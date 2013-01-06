@@ -114,6 +114,18 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_config_set_max_dispatch_interval, 0, 0, 4)
 ZEND_END_ARG_INFO();
 #endif
 
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_socket_new, 0, 0, 1)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, fd)
+	ZEND_ARG_INFO(0, options)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_socket_connect, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, addr)
+ZEND_END_ARG_INFO();
+
 /* ARGINFO }}} */
 
 
@@ -145,8 +157,7 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(event_base_loopexit, arginfo_event_base_loopexit)
 	PHP_FE(event_base_loopbreak, arginfo_event_base_1)
 	PHP_FE(event_base_got_break, arginfo_event_base_1)
-	PHP_FE(event_base_got_exit, arginfo_event_base_1)
-	PHP_FE(event_base_gettimeofday_cached, arginfo_event_base_1)
+	PHP_FE(event_base_got_exit, arginfo_event_base_1) PHP_FE(event_base_gettimeofday_cached, arginfo_event_base_1)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	PHP_FE(event_base_update_cache_time, arginfo_event_base_1)
 #endif
@@ -158,6 +169,9 @@ const zend_function_entry event_functions[] = {
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
 	PHP_FE(event_config_set_max_dispatch_interval, arginfo_event_config_set_max_dispatch_interval)
 #endif
+
+	PHP_FE(bufferevent_socket_new, arginfo_bufferevent_socket_new)
+	PHP_FE(bufferevent_socket_connect, arginfo_bufferevent_socket_connect)
 
 	PHP_FE_END
 };

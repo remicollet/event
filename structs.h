@@ -27,22 +27,50 @@
 # define PHP_EVENT_COMMON_THREAD_CTX
 #endif
 
+/* Represents an event */
 typedef struct {
-	zval                  *data;    /* User custom data                            */
-	zend_fcall_info       *fci;     /* fci and fcc represent userspace callback    */
+	struct event          *event;       /* Pointer returned by event_new                        */
+	int                    stream_id;   /* Resource ID of the file descriptor, or signal number */
+	zval                  *data;        /* User custom data                                     */
+	/* fci and fcc represent userspace callback */
+	zend_fcall_info       *fci;
 	zend_fcall_info_cache *fcc;
-	PHP_EVENT_COMMON_THREAD_CTX;
-} php_event_cb_arg_t;
 
-typedef struct {
-	struct event       *event;     /* Pointer returned by event_new                         */
-	int                 stream_id; /* Resource ID of the file descriptor, or signal number  */
-	php_event_cb_arg_t *arg;       /* For calling userspace func associated with this event */
+	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_t;
+
+/* Represents a bufferevent */
+typedef struct {
+	struct bufferevent    *bevent;
+	int                    stream_id;   /* Resource ID of the file descriptor */
+	zval                  *data;        /* User custom data                   */
+
+    /* fci and fcc members represent userspace callbacks */
+	zend_fcall_info       *fci_read;
+	zend_fcall_info_cache *fcc_read;
+	zend_fcall_info       *fci_write;
+	zend_fcall_info_cache *fcc_write;
+	zend_fcall_info       *fci_event;
+	zend_fcall_info_cache *fcc_event;
+
+	PHP_EVENT_COMMON_THREAD_CTX;
+} php_event_bevent_t;
 
 typedef struct event_base php_event_base_t;
 typedef struct event_config php_event_config_t;
 typedef double php_event_timestamp_t;
+
+
+#ifndef LIBEVENT_VERSION_NUMBER
+# error "<event2/*.h> must be included before " ## #__FILE__
+#endif
+
+#if LIBEVENT_VERSION_NUMBER < 0x02000200
+/* These types introduced in libevent 2.0.2-alpha */
+typedef void (*bufferevent_data_cb)(struct bufferevent *bev, void *ctx);
+typedef void (*bufferevent_event_cb)(struct bufferevent *bev, short events,
+		void *ctx);
+#endif
 
 #endif	/* PHP_EVENT_STRUCTS_H */
 

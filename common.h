@@ -30,8 +30,6 @@
 
 #include <signal.h>
 
-#include "php_event.h"
-#include "structs.h"
 #if PHP_VERSION_ID >= 50301 && (HAVE_SOCKETS || defined(COMPILE_DL_SOCKETS))
 # include <ext/sockets/php_sockets.h>
 # define PHP_EVENT_SOCKETS_SUPPORT
@@ -51,13 +49,16 @@
 # include <event2/tag.h>
 #endif
 
+#ifdef ZTS
+# include <TSRM.h>
+#endif
+
 #if !defined(LIBEVENT_VERSION_NUMBER) || LIBEVENT_VERSION_NUMBER < 0x02000100
 # error "This version of Libevent is not supported; get 2.0.1-alpha or later."
 #endif
 
-#ifdef ZTS
-# include "TSRM.h"
-#endif
+#include "php_event.h"
+#include "structs.h"
 
 #endif
 

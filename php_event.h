@@ -24,6 +24,7 @@
 #define PHP_EVENT_RES_NAME "Event"
 #define PHP_EVENT_BASE_RES_NAME "Event Base"
 #define PHP_EVENT_CONFIG_RES_NAME "Event Config"
+#define PHP_EVENT_BEVENT_RES_NAME "Buffer Event"
 
 extern zend_module_entry event_module_entry;
 #define phpext_event_ptr &event_module_entry

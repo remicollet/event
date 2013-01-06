@@ -59,6 +59,9 @@ PHP_FUNCTION(event_config_require_features);
 PHP_FUNCTION(event_config_set_max_dispatch_interval);
 #endif
 
+PHP_FUNCTION(bufferevent_socket_new);
+PHP_FUNCTION(bufferevent_socket_connect);
+
 #endif /* PHP_EVENT_FE_H */
 
 /* 
