@@ -315,11 +315,11 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 		}
 		args[0] = &arg_data;
 
- 		/* Prepare callback */
-        pfci->params         = args;
-        pfci->retval_ptr_ptr = &retval_ptr;
-        pfci->param_count    = 1;
-        pfci->no_separation  = 1;
+		/* Prepare callback */
+		pfci->params		 = args;
+		pfci->retval_ptr_ptr = &retval_ptr;
+		pfci->param_count	 = 1;
+		pfci->no_separation  = 1;
 
         if (zend_call_function(pfci, cbarg->fcc TSRMLS_CC) == SUCCESS
                 && retval_ptr) {
@@ -717,17 +717,17 @@ PHP_FUNCTION(event_set)
 		Z_ADDREF_P(arg);
 	}
 
-    event_get_assignment(e->event, &base,
-    		(ppzfd ? NULL : &fd),
-    		(short *) (what == -1 ? &what : NULL),
-            NULL /* ignore old callback */ ,
-            NULL /* ignore old callback argument */);
+	event_get_assignment(e->event, &base,
+			(ppzfd ? NULL : &fd),
+			(short *) (what == -1 ? &what : NULL),
+			NULL /* ignore old callback */ ,
+			NULL /* ignore old callback argument */);
 
-    if (event_assign(e->event, base, fd, what, event_cb, (void *) e)) {
-    	RETURN_FALSE;
-    }
+	if (event_assign(e->event, base, fd, what, event_cb, (void *) e)) {
+		RETURN_FALSE;
+	}
 
-    RETVAL_TRUE;
+	RETVAL_TRUE;
 }
 /* }}} */
 
@@ -751,7 +751,7 @@ PHP_FUNCTION(event_get_supported_methods)
 	array_init(return_value);
 
 	for (i = 0; methods[i] != NULL; ++i) {
-    	add_next_index_string(return_value, methods[i], 1);
+		add_next_index_string(return_value, methods[i], 1);
 	}
 }
 
@@ -1209,6 +1209,6 @@ PHP_FUNCTION(event_config_set_max_dispatch_interval)
  * tab-width: 4
  * c-basic-offset: 4
  * End:
- * vim600: noet sw=4 ts=4 fdm=marker
- * vim<600: noet sw=4 ts=4
+ * vim600: noet sw=4 ts=4 sts=4 fdm=marker
+ * vim<600: noet sw=4 ts=4 sts=4
  */
