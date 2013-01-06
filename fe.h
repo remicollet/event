@@ -26,9 +26,12 @@ PHP_FUNCTION(event_add);
 PHP_FUNCTION(event_del);
 PHP_FUNCTION(event_remove_timer);
 PHP_FUNCTION(event_priority_set);
+PHP_FUNCTION(event_pending);
+PHP_FUNCTION(event_free);
 
 PHP_FUNCTION(evtimer_new);
 PHP_FUNCTION(evtimer_set);
+PHP_FUNCTION(evtimer_pending);
 
 PHP_FUNCTION(event_base_new);
 PHP_FUNCTION(event_base_new_with_config);
@@ -39,6 +42,13 @@ PHP_FUNCTION(event_base_loop);
 PHP_FUNCTION(event_base_loopexit);
 PHP_FUNCTION(event_base_loopbreak);
 PHP_FUNCTION(event_base_dispatch);
+PHP_FUNCTION(event_base_got_break);
+PHP_FUNCTION(event_base_got_exit);
+PHP_FUNCTION(event_base_gettimeofday_cached);
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+PHP_FUNCTION(event_base_update_cache_time);
+#endif
+PHP_FUNCTION(event_base_free);
 
 PHP_FUNCTION(event_get_supported_methods);
 

@@ -78,6 +78,9 @@ ZEND_GET_MODULE(event)
             tv.tv_usec = (long) ((t - tv.tv_sec) * 1e6); \
         } while (0)
 
+#define PHP_EVENT_TIMEVAL_TO_DOUBLE(tv) (tv.tv_sec + tv.tv_usec * 1e-6)
+
+
 /* {{{ Private functions */
 
 /* {{{ fatal_error_cb
@@ -589,7 +592,8 @@ PHP_FUNCTION(evtimer_new)
 /* }}} */
 
 /* {{{ proto bool evtimer_set(resource event, resource base, callable cb[, zval arg = NULL]);
- * Re-configures timer event */
+ * Re-configures timer event.
+ * Note, this function doesn't invoke obsolete libevent's event_set. It calls event_assign instead. */
 PHP_FUNCTION(evtimer_set)
 {
 	zval                  *zbase;
@@ -640,9 +644,32 @@ PHP_FUNCTION(evtimer_set)
 }
 /* }}} */
 
+/* {{{ proto bool evtimer_pending(resource event);
+ * Detect whether timer event is pending or scheduled. */
+PHP_FUNCTION(evtimer_pending)
+{
+	zval        *zevent;
+	php_event_t *e;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zevent) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_EVENT(e, zevent);
+
+	if (timer_is_pending(e->event)) {
+		RETURN_TRUE;
+	}
+	RETVAL_FALSE;
+	
+}
+/* }}} */
+
 
 /* {{{ proto bool event_set(resource event, resource base, mixed fd,[ int what = NULL[, callable cb = NULL[, zval arg = NULL]]]);
- * Re-configures event */
+ * Re-configures event.
+ * Note, this function doesn't invoke obsolete libevent's event_set. It calls event_assign instead.  */
 PHP_FUNCTION(event_set)
 {
 	zval                   *zbase;
@@ -860,6 +887,34 @@ PHP_FUNCTION(event_priority_set)
 }
 /* }}} */
 
+/* {{{ proto bool event_pending(resource event, int flags);
+ *  Detect whether event is pending or scheduled. */
+PHP_FUNCTION(event_pending)
+{
+	zval        *zevent;
+	php_event_t *e;
+	long         flags;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+				&zevent, &flags) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_EVENT(e, zevent);
+
+	if (event_pending(e->event, flags, NULL)) {
+		RETURN_TRUE;
+	}
+	RETVAL_FALSE;
+}
+/* }}} */
+
+/* {{{ proto event_free(resource event);
+ * Does nothing! Exists for compatibility with scripts that used libevent ext. */
+PHP_FUNCTION(event_free)
+{
+}
+/* }}} */
 
 
 /* {{{ proto resource event_base_new(void);
@@ -1096,6 +1151,105 @@ PHP_FUNCTION(event_base_set)
 	RETVAL_TRUE;
 }
 /* }}} */
+
+/* {{{ proto bool event_base_got_break(resource base);
+ * Checks if the event loop was told to abort immediately by <function>event_loopbreak</function> */
+PHP_FUNCTION(event_base_got_break)
+{
+	zval             *zbase;
+	php_event_base_t *base;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbase) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+
+	if (event_base_got_break(base)) {
+		RETURN_TRUE;
+	}
+	RETVAL_FALSE;
+}
+/* }}} */
+
+/* {{{ proto bool event_base_got_exit(resource base);
+ * Checks if the event loop was told to exit by <function>event_loopexit</function> */
+PHP_FUNCTION(event_base_got_exit)
+{
+	zval             *zbase;
+	php_event_base_t *base;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbase) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+
+	if (event_base_got_exit(base)) {
+		RETURN_TRUE;
+	}
+	RETVAL_FALSE;
+}
+/* }}} */
+
+/* {{{ proto double event_base_gettimeofday_cached(resource base);
+ * On success returns the current time(as returned by gettimeofday()), looking
+ * at the cached value in 'base' if possible, and calling gettimeofday() or
+ * clock_gettime() as appropriate if there is no cached time. On failure
+ * returns NULL. */
+PHP_FUNCTION(event_base_gettimeofday_cached)
+{
+	zval                  *zbase;
+	php_event_base_t      *base;
+	struct timeval         tv;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbase) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+
+	if (event_base_gettimeofday_cached(base, &tv)) {
+		RETURN_NULL();
+	}
+	
+	RETVAL_DOUBLE(PHP_EVENT_TIMEVAL_TO_DOUBLE(tv));
+}
+/* }}} */
+
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+/* {{{ proto bool event_base_update_cache_time(resource base);
+ * Updates cache time. Available since libevent 2.1.1-alpha */
+PHP_FUNCTION(event_base_update_cache_time)
+{
+	zval             *zbase;
+	php_event_base_t *base;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbase) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+
+	if (event_base_update_cache_time(base)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+#endif
+
+/* {{{ proto event_base_free(resource base);
+ * Does nothing! Exists for compatibility with scripts that used libevent ext. */
+PHP_FUNCTION(event_base_free)
+{
+}
+/* }}} */
+
 
 
 /* {{{ proto resource event_config_new(void);

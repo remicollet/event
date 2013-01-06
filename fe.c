@@ -86,6 +86,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_priority_set, 0, 0, 2)
 	ZEND_ARG_INFO(0, priority)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_pending, 0, 0, 2)
+	ZEND_ARG_INFO(0, event)
+	ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO();
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evtimer_new, 0, 0, 2)
 	ZEND_ARG_INFO(0, base)
 	ZEND_ARG_INFO(0, cb)
@@ -122,10 +127,13 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(event_remove_timer, arginfo_event_1)
 #endif
 	PHP_FE(event_priority_set, arginfo_event_priority_set)
+	PHP_FE(event_pending, arginfo_event_pending)
 	PHP_FE(event_get_supported_methods, arginfo_event__void)
+	PHP_FE(event_free, arginfo_event_1)
 
 	PHP_FE(evtimer_new, arginfo_evtimer_new)
 	PHP_FE(evtimer_set, arginfo_evtimer_set)
+	PHP_FE(evtimer_pending, arginfo_event_1)
 
 	PHP_FE(event_base_new, arginfo_event__void)
 	PHP_FE(event_base_new_with_config, arginfo_event_base_config_1)
@@ -136,6 +144,13 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(event_base_dispatch, arginfo_event_base_1)
 	PHP_FE(event_base_loopexit, arginfo_event_base_loopexit)
 	PHP_FE(event_base_loopbreak, arginfo_event_base_1)
+	PHP_FE(event_base_got_break, arginfo_event_base_1)
+	PHP_FE(event_base_got_exit, arginfo_event_base_1)
+	PHP_FE(event_base_gettimeofday_cached, arginfo_event_base_1)
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+	PHP_FE(event_base_update_cache_time, arginfo_event_base_1)
+#endif
+	PHP_FE(event_base_free, arginfo_event_base_1)
 
 	PHP_FE(event_config_new, arginfo_event__void)
 	PHP_FE(event_config_avoid_method, arginfo_event_config_avoid_method)
