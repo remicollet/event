@@ -42,7 +42,7 @@
 #include <event2/buffer.h>
 #include <event2/util.h>
 
-#ifdef HAVE_HAVE_LIBEVENT_EXTRA
+#ifdef HAVE_EVENT_EXTRA_LIB
 # include <event2/dns.h>
 # include <event2/http.h>
 # include <event2/rpc.h>
@@ -53,8 +53,8 @@
 # include <TSRM.h>
 #endif
 
-#if !defined(LIBEVENT_VERSION_NUMBER) || LIBEVENT_VERSION_NUMBER < 0x02000100
-# error "This version of Libevent is not supported; get 2.0.1-alpha or later."
+#if !defined(LIBEVENT_VERSION_NUMBER) || LIBEVENT_VERSION_NUMBER < 0x02000200
+# error "This version of Libevent is not supported; get 2.0.2-alpha or later."
 #endif
 
 #include "php_event.h"

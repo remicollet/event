@@ -21,15 +21,21 @@
 
 #define PHP_EVENT_VERSION "0.1.0"
 
-#define PHP_EVENT_RES_NAME "Event"
-#define PHP_EVENT_BASE_RES_NAME "Event Base"
-#define PHP_EVENT_CONFIG_RES_NAME "Event Config"
-#define PHP_EVENT_BEVENT_RES_NAME "Buffer Event"
 
 extern zend_module_entry event_module_entry;
 #define phpext_event_ptr &event_module_entry
 
 #include "common.h"
+
+#define PHP_EVENT_RES_NAME "Event"
+#define PHP_EVENT_BASE_RES_NAME "Event Base"
+#define PHP_EVENT_CONFIG_RES_NAME "Event Config"
+#define PHP_EVENT_BEVENT_RES_NAME "Buffer Event"
+#define PHP_EVENT_BUFFER_RES_NAME "Event Buffer"
+
+#if HAVE_EVENT_EXTRA_LIB
+# define PHP_EVENT_DNS_BASE_RES_NAME "DNS Event Base"
+#endif
 
 PHP_MINIT_FUNCTION(event);
 PHP_MSHUTDOWN_FUNCTION(event);
@@ -102,6 +108,10 @@ ZEND_END_MODULE_GLOBALS(event)
         efree(pfci);                                                                             \
     }                                                                                            \
 
+#define PHP_EVENT_LIBEVENT_VERSION_REQUIRED(func, v)                                           \
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, #func ##                                     \
+                " function requires libevent " ## v ## " or greater. "                         \
+                "If you already upgraded libevent, please re-install `event' PECL extension"); \
 
 #endif	/* PHP_EVENT_H */
 

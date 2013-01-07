@@ -72,12 +72,13 @@ if test "$PHP_EVENT_CORE" != "no"; then
   dnl }}}
 
   dnl {{{ --with-event-core
-  PHP_CHECK_LIBRARY(event_core, event_new,
+  dnl bufferevent_getfd first appeared in 2.0.2-alpha
+  PHP_CHECK_LIBRARY(event_core, bufferevent_getfd,
   [
     PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_DIR/lib, EVENT_SHARED_LIBADD)
     AC_DEFINE(HAVE_EVENT_CORE_LIB,1,[ ])
   ],[
-    AC_MSG_ERROR([libevent_core >= 2.0 not found])
+    AC_MSG_ERROR([libevent_core >= 2.0.2-alpha not found])
   ],[
     -L$EVENT_DIR/lib
   ])

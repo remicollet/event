@@ -31,6 +31,7 @@
 typedef struct {
 	struct event          *event;       /* Pointer returned by event_new                        */
 	int                    stream_id;   /* Resource ID of the file descriptor, or signal number */
+	int                    rsrc_id;     /* Resource ID of the event     */
 	zval                  *data;        /* User custom data                                     */
 	/* fci and fcc represent userspace callback */
 	zend_fcall_info       *fci;
@@ -43,6 +44,7 @@ typedef struct {
 typedef struct {
 	struct bufferevent    *bevent;
 	int                    stream_id;   /* Resource ID of the file descriptor */
+	int                    rsrc_id;     /* Resource ID of the bufferevent     */
 	zval                  *data;        /* User custom data                   */
 
     /* fci and fcc members represent userspace callbacks */
@@ -55,6 +57,15 @@ typedef struct {
 
 	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_bevent_t;
+
+#ifdef HAVE_EVENT_EXTRA_LIB/* {{{ */
+
+typedef struct {
+	struct evdns_base *dns_base;
+	int                rsrc_id;    /* Resource ID of the dns base */
+} php_event_dns_base_t;
+
+#endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
 typedef struct event_base php_event_base_t;
 typedef struct event_config php_event_config_t;
