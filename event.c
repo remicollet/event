@@ -715,9 +715,9 @@ PHP_MINFO_FUNCTION(event)
 /* {{{ API functions */
 
 
-/* {{{ proto resource event_timer_new(resource base, callable cb[, zval arg = NULL]);
+/* {{{ proto resource evtimer_new(resource base, callable cb[, zval arg = NULL]);
  * Creates new event */
-PHP_FUNCTION(event_timer_new)
+PHP_FUNCTION(evtimer_new)
 {
 	zval                  *zbase;
 	php_event_base_t      *base;
@@ -760,10 +760,10 @@ PHP_FUNCTION(event_timer_new)
 }
 /* }}} */
 
-/* {{{ proto bool event_timer_set(resource event, resource base, callable cb[, zval arg = NULL]);
+/* {{{ proto bool evtimer_set(resource event, resource base, callable cb[, zval arg = NULL]);
  * Re-configures timer event.
  * Note, this function doesn't invoke obsolete libevent's event_set. It calls event_assign instead. */
-PHP_FUNCTION(event_timer_set)
+PHP_FUNCTION(evtimer_set)
 {
 	zval                  *zbase;
 	php_event_base_t      *base;
@@ -813,9 +813,9 @@ PHP_FUNCTION(event_timer_set)
 }
 /* }}} */
 
-/* {{{ proto bool event_timer_pending(resource event);
+/* {{{ proto bool evtimer_pending(resource event);
  * Detect whether timer event is pending or scheduled. */
-PHP_FUNCTION(event_timer_pending)
+PHP_FUNCTION(evtimer_pending)
 {
 	zval        *zevent;
 	php_event_t *e;
@@ -1619,7 +1619,7 @@ PHP_FUNCTION(event_config_set_max_dispatch_interval)
 
 
 
-/* {{{ proto resource event_buffer_socket_new(resource base[, resource socket = NULL[, int options = 0]]);
+/* {{{ proto resource bufferevent_socket_new(resource base[, resource socket = NULL[, int options = 0]]);
  *
  * Create a socket-based bufferevent.
  * options is one of EVENT_BEV_OPT_* constants, or 0.
@@ -1627,7 +1627,7 @@ PHP_FUNCTION(event_config_set_max_dispatch_interval)
  * e.g. by means of bufferevent_socket_connect().
  *
  * Returns bufferevent resource optionally associated with socket resource. */
-PHP_FUNCTION(event_buffer_socket_new)
+PHP_FUNCTION(bufferevent_socket_new)
 {
 	zval                *zbase;
 	php_event_base_t    *base;
@@ -1658,7 +1658,7 @@ PHP_FUNCTION(event_buffer_socket_new)
 		evutil_make_socket_nonblocking(fd);
 	} else {
  		/* User decided to assign fd later,
- 		 * e.g. by means of event_buffer_socket_connect()
+ 		 * e.g. by means of bufferevent_socket_connect()
  		 * which allocates new socket stream in this case. */
 		fd = -1;
 	}
@@ -1683,7 +1683,7 @@ PHP_FUNCTION(event_buffer_socket_new)
 		b->stream_id = Z_LVAL_PP(ppzfd);
 		zend_list_addref(Z_LVAL_PP(ppzfd));
 	} else {
-		/* Should be assigned in event_buffer_socket_connect() later
+		/* Should be assigned in bufferevent_socket_connect() later
 		 * (by means of bufferevent_getfd()) */
 		b->stream_id = -1;
 	}
@@ -1692,9 +1692,9 @@ PHP_FUNCTION(event_buffer_socket_new)
 }
 /* }}} */
 
-/* {{{ proto void event_buffer_free(resource bevent);
+/* {{{ proto void bufferevent_free(resource bevent);
  * Free a buffer event resource. */
-PHP_FUNCTION(event_buffer_free)
+PHP_FUNCTION(bufferevent_free)
 {
 	php_event_bevent_t *bev;
 	zval               *zbevent;
@@ -1711,7 +1711,7 @@ PHP_FUNCTION(event_buffer_free)
 
 /* }}} */
 
-/* {{{ proto bool event_buffer_socket_connect(resource bevent, string addr[, bool sync_resolve = FALSE]);
+/* {{{ proto bool bufferevent_socket_connect(resource bevent, string addr[, bool sync_resolve = FALSE]);
  *
  * Connect bufferevent's socket to given address(optionally with port).  The
  * function available since libevent 2.0.2-alpha.
@@ -1731,9 +1731,9 @@ PHP_FUNCTION(event_buffer_free)
  *    IPv4Address
  * 
  * To resolve DNS names asyncronously, use
- * event_buffer_socket_connect_hostname() function.
+ * bufferevent_socket_connect_hostname() function.
  */
-PHP_FUNCTION(event_buffer_socket_connect)
+PHP_FUNCTION(bufferevent_socket_connect)
 {
 	php_event_bevent_t *bev;
 	zval               *zbevent;
@@ -1782,22 +1782,22 @@ PHP_FUNCTION(event_buffer_socket_connect)
 }
 /* }}} */
 
-/* {{{ proto bool event_buffer_socket_connect(resource bevent, resource dns_base, string hostname, int port[, int family = EVENT_AF_UNSPEC]);
+/* {{{ proto bool bufferevent_socket_connect(resource bevent, resource dns_base, string hostname, int port[, int family = EVENT_AF_UNSPEC]);
  *
  * Resolves the DNS name hostname, looking for addresses of type
  * family(EVENT_AF_* constants). If the name resolution fails, it invokes the
  * event callback with an error event. If it succeeds, it launches a connection
- * attempt just as event_buffer_socket_connect would.
+ * attempt just as bufferevent_socket_connect would.
  *
  * dns_base is optional. May be NULL, or a resource created with
  * event_dns_base_new()(requires --with-event-extra configure option).
  * For asyncronous hostname resolving pass a valid event dns base resource.
  * Otherwise the hostname resolving will block.
  */
-PHP_FUNCTION(event_buffer_socket_connect_hostname)
+PHP_FUNCTION(bufferevent_socket_connect_hostname)
 {
 #if LIBEVENT_VERSION_NUMBER < 0x02000300
-	PHP_EVENT_LIBEVENT_VERSION_REQUIRED(event_buffer_socket_connect_hostname, 2.0.3-alpha);
+	PHP_EVENT_LIBEVENT_VERSION_REQUIRED(bufferevent_socket_connect_hostname, 2.0.3-alpha);
 	RETVAL_FALSE;
 #else
 	php_event_bevent_t   *bev;
@@ -1845,13 +1845,13 @@ PHP_FUNCTION(event_buffer_socket_connect_hostname)
 }
 /* }}} */
 
-/* {{{ proto mixed event_buffer_socket_get_dns_error(resource bevent);
+/* {{{ proto mixed bufferevent_socket_get_dns_error(resource bevent);
  *
  * Finds out what the most recent error was.
  *
  * If there was a DNS error encountered on the buffer event, returns
  * descriptive string.  Otherwise returns NULL. */
-PHP_FUNCTION(event_buffer_socket_get_dns_error)
+PHP_FUNCTION(bufferevent_socket_get_dns_error)
 {
 	php_event_bevent_t *bev;
 	zval               *zbevent;
@@ -1873,12 +1873,12 @@ PHP_FUNCTION(event_buffer_socket_get_dns_error)
 }
 /* }}} */
 
-/* {{{ proto void event_buffer_set_callbacks(resource bevent, callable readcb, callable writecb, callable eventcb[, mixed arg = NULL]);
+/* {{{ proto void bufferevent_setcb(resource bevent, callable readcb, callable writecb, callable eventcb[, mixed arg = NULL]);
  * Changes one or more of the callbacks of a bufferevent.
  * A callback may be disabled by passing NULL instead of the callable.
  * arg is an argument passed to the callbacks.
  */
-PHP_FUNCTION(event_buffer_set_callbacks)
+PHP_FUNCTION(bufferevent_setcb)
 {
 #ifndef PHP_EVENT_SOCKETS_SUPPORT 
 	PHP_EVENT_RET_SOCKETS_REQUIRED_NORET;
@@ -1940,9 +1940,9 @@ PHP_FUNCTION(event_buffer_set_callbacks)
 }
 /* }}} */
 
-/* {{{ proto void event_buffer_enable(resource bevent, int events);
+/* {{{ proto void bufferevent_enable(resource bevent, int events);
  * Enable events EVENT_READ, EVENT_WRITE, or EVENT_READ | EVENT_WRITE on a buffer event. */
-PHP_FUNCTION(event_buffer_enable)
+PHP_FUNCTION(bufferevent_enable)
 {
 	php_event_bevent_t *bev;
 	zval               *zbevent;
@@ -1959,9 +1959,9 @@ PHP_FUNCTION(event_buffer_enable)
 }
 /* }}} */
 
-/* {{{ proto void event_buffer_disable(resource bevent, int events);
+/* {{{ proto void bufferevent_disable(resource bevent, int events);
  * Disable events EVENT_READ, EVENT_WRITE, or EVENT_READ | EVENT_WRITE on a buffer event. */
-PHP_FUNCTION(event_buffer_disable)
+PHP_FUNCTION(bufferevent_disable)
 {
 	php_event_bevent_t *bev;
 	zval               *zbevent;
@@ -1978,9 +1978,9 @@ PHP_FUNCTION(event_buffer_disable)
 }
 /* }}} */
 
-/* {{{ proto int event_buffer_get_enabled(resource bevent);
+/* {{{ proto int bufferevent_get_enabled(resource bevent);
  * Returns bitmask of events currently enabled on the buffer event. */
-PHP_FUNCTION(event_buffer_get_enabled)
+PHP_FUNCTION(bufferevent_get_enabled)
 {
 	php_event_bevent_t *bev;
 	zval               *zbevent;
@@ -1996,9 +1996,9 @@ PHP_FUNCTION(event_buffer_get_enabled)
 }
 /* }}} */
 
-/* {{{ proto void event_buffer_set_watermark(resource bevent, int events, int lowmark, int highmark);
+/* {{{ proto void bufferevent_set_watermark(resource bevent, int events, int lowmark, int highmark);
  * Adjusts the read watermarks, the write watermarks, or both, of a single bufferevent. */
-PHP_FUNCTION(event_buffer_set_watermark)
+PHP_FUNCTION(bufferevent_set_watermark)
 {
 	php_event_bevent_t *bev;
 	zval               *zbevent;

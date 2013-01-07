@@ -29,9 +29,9 @@ PHP_FUNCTION(event_priority_set);
 PHP_FUNCTION(event_pending);
 PHP_FUNCTION(event_free);
 
-PHP_FUNCTION(event_timer_new);
-PHP_FUNCTION(event_timer_set);
-PHP_FUNCTION(event_timer_pending);
+PHP_FUNCTION(evtimer_new);
+PHP_FUNCTION(evtimer_set);
+PHP_FUNCTION(evtimer_pending);
 
 PHP_FUNCTION(event_base_new);
 PHP_FUNCTION(event_base_new_with_config);
@@ -59,15 +59,16 @@ PHP_FUNCTION(event_config_require_features);
 PHP_FUNCTION(event_config_set_max_dispatch_interval);
 #endif
 
-PHP_FUNCTION(event_buffer_socket_new);
-PHP_FUNCTION(event_buffer_free);
-PHP_FUNCTION(event_buffer_socket_connect);
-PHP_FUNCTION(event_buffer_set_callbacks);
-PHP_FUNCTION(event_buffer_enable);
-PHP_FUNCTION(event_buffer_disable);
-PHP_FUNCTION(event_buffer_get_enabled);
-PHP_FUNCTION(event_buffer_set_watermark);
-PHP_FUNCTION(event_buffer_socket_get_dns_error);
+PHP_FUNCTION(bufferevent_socket_new);
+PHP_FUNCTION(bufferevent_free);
+PHP_FUNCTION(bufferevent_socket_connect);
+PHP_FUNCTION(bufferevent_setcb);
+PHP_FUNCTION(bufferevent_enable);
+PHP_FUNCTION(bufferevent_disable);
+PHP_FUNCTION(bufferevent_get_enabled);
+PHP_FUNCTION(bufferevent_set_watermark);
+PHP_FUNCTION(bufferevent_socket_get_dns_error);
+
 
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API */

@@ -91,13 +91,13 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_pending, 0, 0, 2)
 	ZEND_ARG_INFO(0, flags)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_timer_new, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evtimer_new, 0, 0, 2)
 	ZEND_ARG_INFO(0, base)
 	ZEND_ARG_INFO(0, cb)
 	ZEND_ARG_INFO(0, arg)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_timer_set, 0, 0, 3)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evtimer_set, 0, 0, 3)
 	ZEND_ARG_INFO(0, event)
 	ZEND_ARG_INFO(0, base)
 	ZEND_ARG_INFO(0, cb)
@@ -115,27 +115,27 @@ ZEND_END_ARG_INFO();
 #endif
 
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_1, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_1, 0, 0, 1)
 	ZEND_ARG_INFO(0, bevent)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer__events, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent__events, 0, 0, 2)
 	ZEND_ARG_INFO(0, bevent)
 	ZEND_ARG_INFO(0, events)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_socket_new, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_socket_new, 0, 0, 1)
 	ZEND_ARG_INFO(0, base)
 	ZEND_ARG_INFO(0, fd)
 	ZEND_ARG_INFO(0, options)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_socket_connect, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_socket_connect, 0, 0, 2)
 	ZEND_ARG_INFO(0, bevent)
 	ZEND_ARG_INFO(0, addr)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_set_callbacks, 0, 0, 4)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_set_callbacks, 0, 0, 4)
 	ZEND_ARG_INFO(0, bevent)
 	ZEND_ARG_INFO(0, readcb)
 	ZEND_ARG_INFO(0, writecb)
@@ -143,7 +143,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_set_callbacks, 0, 0, 4)
 	ZEND_ARG_INFO(0, arg)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_set_watermark, 0, 0, 4)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_set_watermark, 0, 0, 4)
 	ZEND_ARG_INFO(0, bevent)
 	ZEND_ARG_INFO(0, events)
 	ZEND_ARG_INFO(0, lowmark)
@@ -183,9 +183,12 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(event_remove_timer, arginfo_event_1)
 #endif
 
-	PHP_FE(event_timer_new,     arginfo_event_timer_new)
-	PHP_FE(event_timer_set,     arginfo_event_timer_set)
-	PHP_FE(event_timer_pending, arginfo_event_1)
+	PHP_FE(evtimer_new,     arginfo_evtimer_new)
+	PHP_FE(evtimer_set,     arginfo_evtimer_set)
+	PHP_FE(evtimer_pending, arginfo_event_1)
+
+	PHP_FALIAS(evtimer_add, event_add, arginfo_event_add)
+	PHP_FALIAS(evtimer_del, event_del, arginfo_event_1)
 
 	PHP_FE(event_base_new,                 arginfo_event__void)
 	PHP_FE(event_base_new_with_config,     arginfo_event_base_config_1)
@@ -211,15 +214,30 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(event_config_set_max_dispatch_interval, arginfo_event_config_set_max_dispatch_interval)
 #endif
 
-	PHP_FE(event_buffer_socket_new,           arginfo_event_buffer_socket_new)
-	PHP_FE(event_buffer_free,                 arginfo_event_buffer_1)
-	PHP_FE(event_buffer_socket_connect,       arginfo_event_buffer_socket_connect)
-	PHP_FE(event_buffer_socket_get_dns_error, arginfo_event_buffer_1)
-	PHP_FE(event_buffer_set_callbacks,        arginfo_event_buffer_set_callbacks)
-	PHP_FE(event_buffer_enable,               arginfo_event_buffer__events)
-	PHP_FE(event_buffer_disable,              arginfo_event_buffer__events)
-	PHP_FE(event_buffer_get_enabled,          arginfo_event_buffer_1)
-	PHP_FE(event_buffer_set_watermark,        arginfo_event_buffer_set_watermark)
+	PHP_FE(bufferevent_socket_new,           arginfo_bufferevent_socket_new)
+	PHP_FE(bufferevent_free,                 arginfo_bufferevent_1)
+	PHP_FE(bufferevent_socket_connect,       arginfo_bufferevent_socket_connect)
+	PHP_FE(bufferevent_socket_get_dns_error, arginfo_bufferevent_1)
+	PHP_FE(bufferevent_setcb,                arginfo_bufferevent_set_callbacks)
+	PHP_FE(bufferevent_enable,               arginfo_bufferevent__events)
+	PHP_FE(bufferevent_disable,              arginfo_bufferevent__events)
+	PHP_FE(bufferevent_get_enabled,          arginfo_bufferevent_1)
+	PHP_FE(bufferevent_set_watermark,        arginfo_bufferevent_set_watermark)
+	
+	/* These aliases are for compatibility with libevent extension */
+
+	PHP_FALIAS(event_timer_new,            evtimer_new,               arginfo_evtimer_new)
+	PHP_FALIAS(event_timer_set,            evtimer_set,               arginfo_evtimer_set)
+	PHP_FALIAS(event_timer_pending,        evtimer_pending,           arginfo_event_1)
+	PHP_FALIAS(event_timer_add,            event_add,                 arginfo_event_add)
+	PHP_FALIAS(event_timer_del,            event_del,                 arginfo_event_1)
+
+	PHP_FALIAS(event_buffer_free,          bufferevent_free,          arginfo_bufferevent_1)
+	PHP_FALIAS(event_buffer_set_callback,  bufferevent_setcb,         arginfo_bufferevent_set_callbacks)
+	PHP_FALIAS(event_buffer_enable,        bufferevent_enable,        arginfo_bufferevent__events)
+	PHP_FALIAS(event_buffer_disable,       bufferevent_disable,       arginfo_bufferevent__events)
+	PHP_FALIAS(event_buffer_watermark_set, bufferevent_set_watermark, arginfo_bufferevent_set_watermark)
+
 
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API */
@@ -229,6 +247,7 @@ const zend_function_entry event_functions[] = {
 	
 /* Extra API END}}} */
 #endif
+
 
 	PHP_FE_END
 };
