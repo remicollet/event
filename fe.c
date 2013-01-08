@@ -169,7 +169,7 @@ ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_add, 0, 0, 2)
 	ZEND_ARG_INFO(0, buf)
-	ZEND_ARG_INFO(0, ...)
+	ZEND_ARG_INFO(0, data) 
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove, 0, 0, 3)

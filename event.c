@@ -2248,41 +2248,28 @@ PHP_FUNCTION(evbuffer_enable_locking)
 }
 /* }}} */
 
-/* {{{ proto bool evbuffer_add(resource buf, ...);
+/* {{{ proto bool evbuffer_add(resource buf, string data); 
  *
- * Append data to the end of an event buffer. The function accepts variable set
- * of arguments. Each argument is converted to string.
+ * Append data to the end of an event buffer.
  */
 PHP_FUNCTION(evbuffer_add)
 {
 	php_event_buffer_t   *b;
 	zval                 *zbuf;
-	int                   i;
-	int                   num_varargs;
-	zval               ***varargs     = NULL;
-	zval                **ppz;
+	zval                **ppzdata;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r+",
-				&zbuf, &varargs, &num_varargs) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rZ",
+				&zbuf, &ppzdata) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
-	for (i = 0; i < num_varargs; i++) {
-		ppz = varargs[i];
-		convert_to_string_ex(ppz);
+	convert_to_string_ex(ppzdata);
 
-		if (evbuffer_add(b->buf, (void *) Z_STRVAL_PP(ppz), Z_STRLEN_PP(ppz))) {
-			RETVAL_FALSE;
-			break;
-		}
+	if (evbuffer_add(b->buf, (void *) Z_STRVAL_PP(ppzdata), Z_STRLEN_PP(ppzdata))) {
+		RETURN_FALSE;
 	}
-
-	if (varargs) {
-		efree(varargs);
-	}
-
 	RETVAL_TRUE;
 }
 /* }}} */

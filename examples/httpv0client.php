@@ -1,4 +1,5 @@
 <?php
+/* Read callback */
 function readcb($bev, $base) {
 	$input = bufferevent_get_input($bev);
 
@@ -7,6 +8,7 @@ function readcb($bev, $base) {
 	}
 }
 
+/* Event callback */
 function eventcb($bev, $events, $base) {
 	if ($events & EVENT_BEV_EVENT_CONNECTED) {
 		echo "Connected.\n";
@@ -18,7 +20,7 @@ function eventcb($bev, $events, $base) {
 		echo "Closing\n";
 		bufferevent_free($bev);
 		event_base_loopexit($base);
-		exit("exit\n");
+		exit("Done\n");
 	}
 }
 
@@ -32,15 +34,19 @@ EOS;
 }
 
 $base = event_base_new();
-$dns_base = evdns_base_new($base, TRUE);
-echo "rsrc type of \$dns_base= ", get_resource_type($dns_base), PHP_EOL;
+
+$dns_base = evdns_base_new($base, TRUE); // We'll use async DNS resolving
 if (!$dns_base) {
 	exit("Failed to init DNS Base\n");
 }
 
-$bev = bufferevent_socket_new($base, NULL, EVENT_BEV_OPT_CLOSE_ON_FREE /*| EVENT_BEV_OPT_DEFER_CALLBACKS*/);
+$bev = bufferevent_socket_new($base, /* use internal socket */ NULL,
+	EVENT_BEV_OPT_CLOSE_ON_FREE | EVENT_BEV_OPT_DEFER_CALLBACKS);
+if (!$bev) {
+	exit("Failed creating bufferevent socket\n");
+}
 
-bufferevent_setcb($bev, "readcb", NULL, "eventcb", $base);
+bufferevent_setcb($bev, "readcb", /* writecb */ NULL, "eventcb", $base);
 bufferevent_enable($bev, EVENT_READ | EVENT_WRITE);
 
 $output = bufferevent_get_output($bev);
