@@ -158,6 +158,28 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_set_watermark, 0, 0, 4)
 	ZEND_ARG_INFO(0, highmark)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_write, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, data)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_write_buffer, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, buf)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_read, 0, 0, 3)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(1, data)
+	ZEND_ARG_INFO(0, size)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_pair_new, 0, 0, 2)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, events)
+ZEND_END_ARG_INFO();
+
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_1, 0, 0, 1)
 	ZEND_ARG_INFO(0, buf)
 ZEND_END_ARG_INFO();
@@ -254,6 +276,11 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(bufferevent_get_input,               arginfo_bufferevent_1)
 	PHP_FE(bufferevent_get_output,              arginfo_bufferevent_1)
 	PHP_FE(bufferevent_set_watermark,           arginfo_bufferevent_set_watermark)
+	PHP_FE(bufferevent_write,                   arginfo_bufferevent_write)
+	PHP_FE(bufferevent_write_buffer,            arginfo_bufferevent_write_buffer)
+	PHP_FE(bufferevent_read,                    arginfo_bufferevent_read)
+	PHP_FE(bufferevent_read_buffer,             arginfo_bufferevent_write_buffer)
+	PHP_FE(bufferevent_pair_new,                arginfo_bufferevent_pair_new)
 
 	PHP_FE(evbuffer_new,            arginfo_event__void)
 	PHP_FE(evbuffer_free,           arginfo_evbuffer_1)
@@ -278,6 +305,7 @@ const zend_function_entry event_functions[] = {
 	PHP_FALIAS(event_buffer_enable,        bufferevent_enable,        arginfo_bufferevent__events)
 	PHP_FALIAS(event_buffer_disable,       bufferevent_disable,       arginfo_bufferevent__events)
 	PHP_FALIAS(event_buffer_watermark_set, bufferevent_set_watermark, arginfo_bufferevent_set_watermark)
+	PHP_FALIAS(event_buffer_write,         bufferevent_write,         arginfo_bufferevent_write)
 
 
 #if HAVE_EVENT_EXTRA_LIB

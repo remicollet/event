@@ -71,6 +71,11 @@ PHP_FUNCTION(bufferevent_get_input);
 PHP_FUNCTION(bufferevent_get_output);
 PHP_FUNCTION(bufferevent_set_watermark);
 PHP_FUNCTION(bufferevent_socket_get_dns_error);
+PHP_FUNCTION(bufferevent_write);
+PHP_FUNCTION(bufferevent_write_buffer);
+PHP_FUNCTION(bufferevent_read);
+PHP_FUNCTION(bufferevent_read_buffer);
+PHP_FUNCTION(bufferevent_pair_new);
 
 PHP_FUNCTION(evbuffer_new);
 PHP_FUNCTION(evbuffer_free);

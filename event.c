@@ -1709,6 +1709,49 @@ PHP_FUNCTION(bufferevent_socket_new)
 }
 /* }}} */
 
+/* {{{ proto array bufferevent_pair_new(resource base[, int options = 0]);
+ *
+ * options is one of EVENT_BEV_OPT_* constants, or 0.
+ *
+ * Returns array of two buffer event resources, each connected to the other.
+ * All the usual options are supported, except for EVENT_BEV_OPT_CLOSE_ON_FREE,
+ * which has no effect, and EVENT_BEV_OPT_DEFER_CALLBACKS, which is always on.
+ */
+PHP_FUNCTION(bufferevent_pair_new)
+{
+	zval               *zbase;
+	php_event_base_t   *base;
+	long                options        = 0;
+	php_event_bevent_t *b[2];
+	struct bufferevent *bevent_pair[2];
+	int                 i;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l",
+				&zbase, &options) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+
+	if (bufferevent_pair_new(base, options, bevent_pair)) {
+		RETURN_FALSE;
+	}
+
+	array_init(return_value);
+
+	for (i = 0; i < 2; i++) {
+		b[i] = emalloc(sizeof(php_event_bevent_t));
+		memset(b[i], 0, sizeof(php_event_bevent_t));
+
+		b[i]->bevent    = bevent_pair[i];
+		b[i]->stream_id = -1;
+		b[i]->rsrc_id   = zend_list_insert(b, le_event_bevent TSRMLS_CC);
+
+		add_next_index_resource(return_value, b[i]->rsrc_id);
+	}
+}
+/* }}} */
+
 /* {{{ proto void bufferevent_free(resource bevent);
  * Free a buffer event resource. */
 PHP_FUNCTION(bufferevent_free)
@@ -2110,6 +2153,122 @@ PHP_FUNCTION(bufferevent_set_watermark)
 }
 /* }}} */
 
+/* {{{ proto bool bufferevent_write(resource bevent, string data);
+ * Adds `data' to a bufferevent's output buffer. */
+PHP_FUNCTION(bufferevent_write)
+{
+	php_event_bevent_t *bev;
+	zval               *zbevent;
+	zval               *zdata;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rz",
+				&zbevent, &zdata) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	convert_to_string(zdata);
+
+	if (bufferevent_write(bev->bevent, Z_STRVAL_P(zdata), Z_STRLEN_P(zdata))) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool bufferevent_write_buffer(resource bevent, resource buf);
+ * Adds contents of the entire buffer to a bufferevent's output buffer. */
+PHP_FUNCTION(bufferevent_write_buffer)
+{
+	php_event_bevent_t *bev;
+	zval               *zbevent;
+	php_event_buffer_t *b;
+	zval               *zbuf;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rr",
+				&zbevent, &zbuf) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (bufferevent_write_buffer(bev->bevent, b->buf)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto int bufferevent_read(resource bevent, string &data, int size);
+ * Removes up to size bytes from the input buffer, storing them into the memory at data.
+ *
+ * Returns the number of bytes actually removed.  */
+PHP_FUNCTION(bufferevent_read)
+{
+	php_event_bevent_t *bev;
+	zval               *zbevent;
+	zval               *zdata;
+	long                size;
+	char               *data;
+	long                ret;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzl",
+				&zbevent, &zdata, &size) == FAILURE) {
+		return;
+	}
+
+	if (!Z_ISREF_P(zdata)) {
+		/* Was not passed by reference */
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	data = safe_emalloc(size, sizeof(char), 1);
+
+	ret = bufferevent_read(bev->bevent, data, size);
+
+	if (ret > 0) {
+		convert_to_string(zdata);
+		zval_dtor(zdata);
+		Z_STRVAL_P(zdata) = estrndup(data, ret);
+		Z_STRLEN_P(zdata) = ret;
+	}
+
+	efree(data);
+
+	RETVAL_LONG(ret);
+}
+/* }}} */
+
+/* {{{ proto bool bufferevent_read_buffer(resource bevent, resource buf);
+ * Drains the entire contents of the input buffer and places them into buf; it returns 0 on success and -1 on failure. */
+PHP_FUNCTION(bufferevent_read_buffer)
+{
+	php_event_bevent_t *bev;
+	zval               *zbevent;
+	php_event_buffer_t *b;
+	zval               *zbuf;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rr",
+				&zbevent, &zbuf) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (bufferevent_read_buffer(bev->bevent, b->buf)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+
+
 /* {{{ proto resource evbuffer_new(void);
  * Allocates storage for new event buffer and returns it's resource. */
 PHP_FUNCTION(evbuffer_new)
@@ -2441,7 +2600,6 @@ PHP_FUNCTION(evdns_base_resolv_conf_parse)
 	RETVAL_TRUE;
 }
 /* }}} */
-
 
 /* Extra API functions END }}} */
 #endif
