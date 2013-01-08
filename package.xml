@@ -15,12 +15,12 @@
   <date>2013-01-06</date>
   <!--{{{ Current version -->
   <version>
-    <release>0.1.0</release>
-    <api>0.1.0</api>
+    <release>0.1.0-devel</release>
+    <api>0.1.0-devel</api>
   </version>
   <stability>
-    <release>stable</release>
-    <api>stable</api>
+    <release>devel</release>
+    <api>devel</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
@@ -64,14 +64,14 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ Current version -->
+    <!--{{{ 0.1.0-devel -->
     <version>
-      <release>0.1.0</release>
-      <api>0.1.0</api>
+      <release>0.1.0-devel</release>
+      <api>0.1.0-devel</api>
     </version>
     <stability>
-      <release>stable</release>
-      <api>stable</api>
+      <release>devel</release>
+      <api>devel</api>
     </stability>
     <license uri="http://www.php.net/license">PHP</license>
     <notes><![CDATA[

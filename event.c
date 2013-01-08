@@ -32,6 +32,8 @@ static int le_event_base;
 static int le_event_config;
 /* Represents bufferevent returned by ex. bufferevent_socket_new() */
 static int le_event_bevent;
+/* Represents php_event_buffer_t(struct evbuffer)*/
+static int le_event_buffer;
 
 #if HAVE_EVENT_EXTRA_LIB
 static int le_event_dns_base;
@@ -81,6 +83,9 @@ ZEND_GET_MODULE(event)
 
 #define PHP_EVENT_FETCH_BEVENT(b, zb) \
 	ZEND_FETCH_RESOURCE((b), php_event_bevent_t *, &(zb), -1, PHP_EVENT_BEVENT_RES_NAME, le_event_bevent)
+
+#define PHP_EVENT_FETCH_BUFFER(b, zb) \
+	ZEND_FETCH_RESOURCE((b), php_event_buffer_t *, &(zb), -1, PHP_EVENT_BUFFER_RES_NAME, le_event_buffer)
 
 #define PHP_EVENT_FETCH_DNS_BASE(b, zb) \
 	ZEND_FETCH_RESOURCE((b), php_event_dns_base_t *, &(zb), -1, PHP_EVENT_DNS_BASE_RES_NAME, le_event_dns_base)
@@ -385,10 +390,9 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 
 /* {{{ bevent_rw_cb
  * Is called from the bufferevent read and write callbacks */
-static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, void *ptr, zend_fcall_info *pfci, zend_fcall_info_cache *pfcc)
+static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_event_bevent_t *bev, zend_fcall_info *pfci, zend_fcall_info_cache *pfcc)
 {
-	php_event_bevent_t *bev = (php_event_bevent_t *) ptr;
-
+	PHP_EVENT_ASSERT(bev);
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
 	zval  *arg_data   = bev->data;
@@ -402,11 +406,11 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, void *pt
 		/* Setup callback args */
 		MAKE_STD_ZVAL(arg_bevent);
 
-		PHP_EVENT_ASSERT(bev->stream_id >= 0);
+		PHP_EVENT_ASSERT(bev->rsrc_id > 0);
 
-		if (bev->stream_id >= 0) {
-			ZVAL_RESOURCE(arg_bevent, bev->stream_id);
-			zend_list_addref(bev->stream_id);
+		if (bev->rsrc_id > 0) {
+			ZVAL_RESOURCE(arg_bevent, bev->rsrc_id);
+			zend_list_addref(bev->rsrc_id);
 		} else {
 			ZVAL_NULL(arg_bevent);
 		}
@@ -444,7 +448,7 @@ static void bevent_read_cb(struct bufferevent *bevent, void *ptr)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) ptr;
 
-	bevent_rw_cb(bevent, ptr, bev->fci_read, bev->fcc_read);
+	bevent_rw_cb(bevent, bev, bev->fci_read, bev->fcc_read);
 }
 /* }}} */
 
@@ -453,7 +457,7 @@ static void bevent_write_cb(struct bufferevent *bevent, void *ptr)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) ptr;
 
-	bevent_rw_cb(bevent, ptr, bev->fci_write, bev->fcc_write);
+	bevent_rw_cb(bevent, bev, bev->fci_write, bev->fcc_write);
 }
 /* }}} */
 
@@ -478,11 +482,11 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 		/* Setup callback args */
 		MAKE_STD_ZVAL(arg_bevent);
 
-		PHP_EVENT_ASSERT(bev->stream_id >= 0);
+		PHP_EVENT_ASSERT(bev->rsrc_id > 0);
 
-		if (bev->stream_id >= 0) {
-			ZVAL_RESOURCE(arg_bevent, bev->stream_id);
-			zend_list_addref(bev->stream_id);
+		if (bev->rsrc_id >= 0) {
+			ZVAL_RESOURCE(arg_bevent, bev->rsrc_id);
+			zend_list_addref(bev->rsrc_id);
 		} else {
 			ZVAL_NULL(arg_bevent);
 		}
@@ -584,6 +588,18 @@ static void php_event_bevent_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 }
 /* }}} */
 
+/* {{{ php_event_buffer_dtor*/
+static void php_event_buffer_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+{
+	php_event_buffer_t *b = (php_event_buffer_t *) rsrc->ptr;
+
+	if (b) {
+		evbuffer_free(b->buf);
+		efree(b);
+	}
+}
+/* }}} */
+
 /* {{{ php_event_dns_base_dtor */
 static void php_event_dns_base_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
@@ -614,6 +630,7 @@ PHP_MINIT_FUNCTION(event)
 	le_event_base     = zend_register_list_destructors_ex(php_event_base_dtor,     NULL, PHP_EVENT_BASE_RES_NAME,     module_number);
 	le_event_config   = zend_register_list_destructors_ex(php_event_config_dtor,   NULL, PHP_EVENT_CONFIG_RES_NAME,   module_number);
 	le_event_bevent   = zend_register_list_destructors_ex(php_event_bevent_dtor,   NULL, PHP_EVENT_BEVENT_RES_NAME,   module_number);
+	le_event_buffer   = zend_register_list_destructors_ex(php_event_buffer_dtor,   NULL, PHP_EVENT_BUFFER_RES_NAME,   module_number);
 	le_event_dns_base = zend_register_list_destructors_ex(php_event_dns_base_dtor, NULL, PHP_EVENT_DNS_BASE_RES_NAME, module_number);
 
 	/* Loop flags */
@@ -1782,7 +1799,7 @@ PHP_FUNCTION(bufferevent_socket_connect)
 }
 /* }}} */
 
-/* {{{ proto bool bufferevent_socket_connect(resource bevent, resource dns_base, string hostname, int port[, int family = EVENT_AF_UNSPEC]);
+/* {{{ proto bool bufferevent_socket_connect_hostname(resource bevent, resource dns_base, string hostname, int port[, int family = EVENT_AF_UNSPEC]);
  *
  * Resolves the DNS name hostname, looking for addresses of type
  * family(EVENT_AF_* constants). If the name resolution fails, it invokes the
@@ -1793,6 +1810,8 @@ PHP_FUNCTION(bufferevent_socket_connect)
  * event_dns_base_new()(requires --with-event-extra configure option).
  * For asyncronous hostname resolving pass a valid event dns base resource.
  * Otherwise the hostname resolving will block.
+ * Recognized hostname formats are:
+ * www.example.com (hostname) 1.2.3.4 (ipv4address) ::1 (ipv6address) [::1] ([ipv6address])
  */
 PHP_FUNCTION(bufferevent_socket_connect_hostname)
 {
@@ -1802,7 +1821,6 @@ PHP_FUNCTION(bufferevent_socket_connect_hostname)
 #else
 	php_event_bevent_t   *bev;
 	zval                 *zbevent;
-	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base;
 	char                 *hostname;
 	int                   hostname_len;
@@ -1823,34 +1841,59 @@ PHP_FUNCTION(bufferevent_socket_connect_hostname)
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 
-	if (zdns_base) {
-		PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
-	}
-
 	/* bufferevent_socket_connect() allocates a socket stream internally, if we
 	 * didn't provide the file descriptor to the bufferevent before, e.g. with
 	 * bufferevent_socket_new() */
+
+#if HAVE_EVENT_EXTRA_LIB
+	php_event_dns_base_t *dnsb;
+
+	if (zdns_base) {
+		PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+		PHP_EVENT_ASSERT(dnsb->rsrc_id);
+	}
+
 	if (bufferevent_socket_connect_hostname(bev->bevent,
 				(zdns_base ? dnsb->dns_base : NULL),
 				family, hostname, port)) {
+# ifdef PHP_EVENT_DEBUG
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s",
+				evutil_gai_strerror(bufferevent_socket_get_dns_error(bev->bevent)));
+# endif
 		RETURN_FALSE;
 	}
+	/*zend_list_addref(dnsb->rsrc_id);*/
+#else /* don't HAVE_EVENT_EXTRA_LIB */
+	if (bufferevent_socket_connect_hostname(bev->bevent,
+				NULL,
+				family, hostname, port)) {
+# ifdef PHP_EVENT_DEBUG
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s",
+				evutil_gai_strerror(bufferevent_socket_get_dns_error(bev->bevent)));
+# endif
+		RETURN_FALSE;
+	}
+#endif
 
 	bev->stream_id = bufferevent_getfd(bev->bevent);
 
-	PHP_EVENT_ASSERT(bev->stream_id >= 0);
+	/*
+	It may not work with evdns
+	if (bev->stream_id < 0) {
+		RETURN_FALSE;
+	}
+	 PHP_EVENT_ASSERT(bev->stream_id >= 0);
+	*/
 
 	RETVAL_TRUE;
 #endif
 }
 /* }}} */
 
-/* {{{ proto mixed bufferevent_socket_get_dns_error(resource bevent);
- *
- * Finds out what the most recent error was.
- *
- * If there was a DNS error encountered on the buffer event, returns
- * descriptive string.  Otherwise returns NULL. */
+/* {{{ proto resource bufferevent_socket_get_dns_error_string(resource bevent);
+ * Returns string describing the last failed DNS lookup attempt made by
+ * bufferevent_socket_connect_hostname(), or an empty string, if no DNS error
+ * detected. */
 PHP_FUNCTION(bufferevent_socket_get_dns_error)
 {
 	php_event_bevent_t *bev;
@@ -1865,11 +1908,11 @@ PHP_FUNCTION(bufferevent_socket_get_dns_error)
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 
 	err = bufferevent_socket_get_dns_error(bev->bevent);
-	if (err) {
-		RETVAL_STRING(evutil_gai_strerror(err), 1);
-	} else {
-		RETVAL_NULL();
+
+	if (err == 0) {
+		RETURN_EMPTY_STRING();
 	}
+	RETVAL_STRING(evutil_gai_strerror(err), 1);
 }
 /* }}} */
 
@@ -1996,6 +2039,56 @@ PHP_FUNCTION(bufferevent_get_enabled)
 }
 /* }}} */
 
+/* {{{ proto resource bufferevent_get_input(resource bevent);
+ * Returns the input event buffer resource */
+PHP_FUNCTION(bufferevent_get_input)
+{
+	php_event_bevent_t *bev;
+	zval               *zbevent;
+	php_event_buffer_t *b;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbevent) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	b = emalloc(sizeof(php_event_buffer_t));
+	memset(b, 0, sizeof(php_event_buffer_t));
+
+	b->buf       = bufferevent_get_input(bev->bevent);
+	b->rsrc_id   = ZEND_REGISTER_RESOURCE(return_value, b, le_event_buffer);
+
+	zend_list_addref(b->rsrc_id);
+}
+/* }}} */
+
+/* {{{ proto resource bufferevent_get_output(resource bevent);
+ * Returns the output event buffer resource */
+PHP_FUNCTION(bufferevent_get_output)
+{
+	php_event_bevent_t *bev;
+	zval               *zbevent;
+	php_event_buffer_t *b;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbevent) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	b = emalloc(sizeof(php_event_buffer_t));
+	memset(b, 0, sizeof(php_event_buffer_t));
+
+	b->buf       = bufferevent_get_output(bev->bevent);
+	b->rsrc_id   = ZEND_REGISTER_RESOURCE(return_value, b, le_event_buffer);
+
+	zend_list_addref(b->rsrc_id);
+}
+/* }}} */
+
 /* {{{ proto void bufferevent_set_watermark(resource bevent, int events, int lowmark, int highmark);
  * Adjusts the read watermarks, the write watermarks, or both, of a single bufferevent. */
 PHP_FUNCTION(bufferevent_set_watermark)
@@ -2017,6 +2110,228 @@ PHP_FUNCTION(bufferevent_set_watermark)
 }
 /* }}} */
 
+/* {{{ proto resource evbuffer_new(void);
+ * Allocates storage for new event buffer and returns it's resource. */
+PHP_FUNCTION(evbuffer_new)
+{
+	php_event_buffer_t *b;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	b = emalloc(sizeof(php_event_buffer_t));
+	memset(b, 0, sizeof(php_event_buffer_t));
+
+	b->buf       = evbuffer_new();
+	b->rsrc_id   = ZEND_REGISTER_RESOURCE(return_value, b, le_event_buffer);
+}
+/* }}} */
+
+/* {{{ proto void evbuffer_free(resource buf);
+ * Free storage allocated for the event buffer */
+PHP_FUNCTION(evbuffer_free)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbuf) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	zend_list_delete(b->rsrc_id);
+}
+/* }}} */
+
+/* {{{ proto bool evbuffer_freeze(resource buf, bool at_front);
+ * Prevent calls that modify an event buffer from succeeding. */
+PHP_FUNCTION(evbuffer_freeze)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf;
+	zend_bool           at_front;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rb",
+				&zbuf, &at_front) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (evbuffer_freeze(b->buf, at_front)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto long evbuffer_get_length(resource buf);
+ * Returns the total number of bytes stored in the event buffer. */
+PHP_FUNCTION(evbuffer_get_length)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbuf) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	RETVAL_LONG(evbuffer_get_length(b->buf));
+}
+/* }}} */
+
+/* {{{ proto void evbuffer_lock(resource buf);
+ * Acquire the lock on an evbuffer. 
+ * Has no effect if locking was not enabled with evbuffer_enable_locking.
+ */
+PHP_FUNCTION(evbuffer_lock)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbuf) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	evbuffer_lock(b->buf);
+}
+/* }}} */
+
+/* {{{ proto void evbuffer_unlock(resource buf);
+ * Release the lock on an evbuffer.
+ * Has no effect if locking was not enabled with evbuffer_enable_locking.
+ */
+PHP_FUNCTION(evbuffer_unlock)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbuf) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	evbuffer_unlock(b->buf);
+}
+/* }}} */
+
+/* {{{ proto void evbuffer_enable_locking(resource buf);
+ *
+ * Enable locking on an evbuffer so that it can safely be used by multiple threads at the same time.
+ * When locking is enabled, the lock will be held when callbacks are invoked.
+ * This could result in deadlock if you aren't careful. Plan accordingly!
+ */
+PHP_FUNCTION(evbuffer_enable_locking)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbuf) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	evbuffer_enable_locking(b->buf, NULL);
+}
+/* }}} */
+
+/* {{{ proto bool evbuffer_add(resource buf, ...);
+ *
+ * Append data to the end of an event buffer. The function accepts variable set
+ * of arguments. Each argument is converted to string.
+ */
+PHP_FUNCTION(evbuffer_add)
+{
+	php_event_buffer_t   *b;
+	zval                 *zbuf;
+	int                   i;
+	int                   num_varargs;
+	zval               ***varargs     = NULL;
+	zval                **ppz;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r+",
+				&zbuf, &varargs, &num_varargs) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	for (i = 0; i < num_varargs; i++) {
+		ppz = varargs[i];
+		convert_to_string_ex(ppz);
+
+		if (evbuffer_add(b->buf, (void *) Z_STRVAL_PP(ppz), Z_STRLEN_PP(ppz))) {
+			RETVAL_FALSE;
+			break;
+		}
+	}
+
+	if (varargs) {
+		efree(varargs);
+	}
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto long evbuffer_remove(resource buf, string &data, long max_bytes);
+ * Read data from an evbuffer and drain the bytes read.  If more bytes are
+ * requested than are available in the evbuffer, we only extract as many bytes
+ * as were available.
+ *
+ * Returns the number of bytes read, or -1 if we can't drain the buffer.
+ */
+PHP_FUNCTION(evbuffer_remove)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf;
+	zval               *zdata;
+	long                max_bytes;
+	long                ret;
+	char               *data;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzl",
+				&zbuf, &zdata, &max_bytes) == FAILURE) {
+		return;
+	}
+
+	if (!Z_ISREF_P(zdata)) {
+		/* Was not passed by reference */
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	data = emalloc(sizeof(char) * max_bytes + 1);
+
+	ret = evbuffer_remove(b->buf, data, max_bytes);
+
+	if (ret > 0) {
+		convert_to_string(zdata);
+		zval_dtor(zdata);
+		Z_STRVAL_P(zdata) = estrndup(data, ret);
+		Z_STRLEN_P(zdata) = ret;
+	}
+
+	efree(data);
+
+	RETVAL_LONG(ret);
+}
+/* }}} */
+
 
 /* API functions END }}} */
 
@@ -2025,7 +2340,7 @@ PHP_FUNCTION(bufferevent_set_watermark)
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API functions */
 
-/* {{{ proto resource event_dns_base_new(resource base, bool initialize);
+/* {{{ proto resource evdns_base_new(resource base, bool initialize);
  *
  * Returns resource representing event dns base.
  *
@@ -2034,7 +2349,7 @@ PHP_FUNCTION(bufferevent_set_watermark)
  * evdns_base empty, with no nameservers or options configured. In the latter
  * case you should configure dns base yourself, e.g. with
  * event_dns_base_resolv_conf_parse() */
-PHP_FUNCTION(event_dns_base_new)
+PHP_FUNCTION(evdns_base_new)
 {
 	php_event_base_t     *base;
 	zval                 *zbase;
@@ -2054,16 +2369,17 @@ PHP_FUNCTION(event_dns_base_new)
 	dnsb->dns_base = evdns_base_new(base, initialize);
 
 	if (dnsb->dns_base) {
-		dnsb->rsrc_id = ZEND_REGISTER_RESOURCE(return_value, dnsb->dns_base, le_event_dns_base);
+		dnsb->rsrc_id = ZEND_REGISTER_RESOURCE(return_value, dnsb, le_event_dns_base);
+		PHP_EVENT_ASSERT(dnsb->rsrc_id);
 	} else {
 		RETVAL_FALSE;
 	}
 }
 /* }}} */
 
-/* {{{ proto void event_dns_base_free(void);
- * Free an event dns base */
-PHP_FUNCTION(event_dns_base_free)
+/* {{{ proto void evdns_base_free(void);
+ * Free an evdns base */
+PHP_FUNCTION(evdns_base_free)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base;
@@ -2079,10 +2395,10 @@ PHP_FUNCTION(event_dns_base_free)
 }
 /* }}} */
 
-/* {{{ proto bool event_dns_base_resolv_conf_parse(resource dns_base, int flags, string filename);
+/* {{{ proto bool evdns_base_resolv_conf_parse(resource dns_base, int flags, string filename);
  * Scans the resolv.conf formatted file stored in filename, and read in all the
  * options from it that are listed in flags */
-PHP_FUNCTION(event_dns_base_resolv_conf_parse)
+PHP_FUNCTION(evdns_base_resolv_conf_parse)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base;

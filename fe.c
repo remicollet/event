@@ -135,6 +135,14 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_socket_connect, 0, 0, 2)
 	ZEND_ARG_INFO(0, addr)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_socket_connect_hostname, 0, 0, 4)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, dns_base)
+	ZEND_ARG_INFO(0, hostname)
+	ZEND_ARG_INFO(0, port)
+	ZEND_ARG_INFO(0, family)
+ZEND_END_ARG_INFO();
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_set_callbacks, 0, 0, 4)
 	ZEND_ARG_INFO(0, bevent)
 	ZEND_ARG_INFO(0, readcb)
@@ -150,17 +158,37 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_set_watermark, 0, 0, 4)
 	ZEND_ARG_INFO(0, highmark)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_1, 0, 0, 1)
+	ZEND_ARG_INFO(0, buf)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_freeze, 0, 0, 2)
+	ZEND_ARG_INFO(0, buf)
+	ZEND_ARG_INFO(0, at_front)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_add, 0, 0, 2)
+	ZEND_ARG_INFO(0, buf)
+	ZEND_ARG_INFO(0, ...)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove, 0, 0, 3)
+	ZEND_ARG_INFO(0, buf)
+	ZEND_ARG_INFO(1, data)
+	ZEND_ARG_INFO(0, max_bytes)
+ZEND_END_ARG_INFO();
+
 /* ARGINFO END }}} */
 
 
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ ARGINFO for extra API */
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_dns_base_1, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_1, 0, 0, 1)
 	ZEND_ARG_INFO(0, dns_base)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_dns_base_new, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_new, 0, 0, 2)
 	ZEND_ARG_INFO(0, base)
 	ZEND_ARG_INFO(0, initialize)
 ZEND_END_ARG_INFO();
@@ -214,16 +242,29 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(event_config_set_max_dispatch_interval, arginfo_event_config_set_max_dispatch_interval)
 #endif
 
-	PHP_FE(bufferevent_socket_new,           arginfo_bufferevent_socket_new)
-	PHP_FE(bufferevent_free,                 arginfo_bufferevent_1)
-	PHP_FE(bufferevent_socket_connect,       arginfo_bufferevent_socket_connect)
-	PHP_FE(bufferevent_socket_get_dns_error, arginfo_bufferevent_1)
-	PHP_FE(bufferevent_setcb,                arginfo_bufferevent_set_callbacks)
-	PHP_FE(bufferevent_enable,               arginfo_bufferevent__events)
-	PHP_FE(bufferevent_disable,              arginfo_bufferevent__events)
-	PHP_FE(bufferevent_get_enabled,          arginfo_bufferevent_1)
-	PHP_FE(bufferevent_set_watermark,        arginfo_bufferevent_set_watermark)
-	
+	PHP_FE(bufferevent_socket_new,              arginfo_bufferevent_socket_new)
+	PHP_FE(bufferevent_free,                    arginfo_bufferevent_1)
+	PHP_FE(bufferevent_socket_connect,          arginfo_bufferevent_socket_connect)
+	PHP_FE(bufferevent_socket_connect_hostname, arginfo_bufferevent_socket_connect_hostname)
+	PHP_FE(bufferevent_socket_get_dns_error,    arginfo_bufferevent_1)
+	PHP_FE(bufferevent_setcb,                   arginfo_bufferevent_set_callbacks)
+	PHP_FE(bufferevent_enable,                  arginfo_bufferevent__events)
+	PHP_FE(bufferevent_disable,                 arginfo_bufferevent__events)
+	PHP_FE(bufferevent_get_enabled,             arginfo_bufferevent_1)
+	PHP_FE(bufferevent_get_input,               arginfo_bufferevent_1)
+	PHP_FE(bufferevent_get_output,              arginfo_bufferevent_1)
+	PHP_FE(bufferevent_set_watermark,           arginfo_bufferevent_set_watermark)
+
+	PHP_FE(evbuffer_new,            arginfo_event__void)
+	PHP_FE(evbuffer_free,           arginfo_evbuffer_1)
+	PHP_FE(evbuffer_freeze,         arginfo_evbuffer_freeze)
+	PHP_FE(evbuffer_get_length,     arginfo_evbuffer_1)
+	PHP_FE(evbuffer_lock,           arginfo_evbuffer_1)
+	PHP_FE(evbuffer_unlock,         arginfo_evbuffer_1)
+	PHP_FE(evbuffer_enable_locking, arginfo_evbuffer_1)
+	PHP_FE(evbuffer_add,            arginfo_evbuffer_add)
+	PHP_FE(evbuffer_remove,         arginfo_evbuffer_remove)
+
 	/* These aliases are for compatibility with libevent extension */
 
 	PHP_FALIAS(event_timer_new,            evtimer_new,               arginfo_evtimer_new)
@@ -242,8 +283,8 @@ const zend_function_entry event_functions[] = {
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API */
 
-	PHP_FE(event_dns_base_new, arginfo_event_dns_base_new)
-	PHP_FE(event_dns_base_free, arginfo_event_dns_base_1)
+	PHP_FE(evdns_base_new, arginfo_evdns_base_new)
+	PHP_FE(evdns_base_free, arginfo_evdns_base_1)
 	
 /* Extra API END}}} */
 #endif

@@ -58,6 +58,11 @@ typedef struct {
 	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_bevent_t;
 
+typedef struct {
+	struct evbuffer *buf;
+	int              rsrc_id;   /* Resource ID of the event buffer */
+} php_event_buffer_t;
+
 #ifdef HAVE_EVENT_EXTRA_LIB/* {{{ */
 
 typedef struct {

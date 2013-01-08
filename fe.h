@@ -62,19 +62,32 @@ PHP_FUNCTION(event_config_set_max_dispatch_interval);
 PHP_FUNCTION(bufferevent_socket_new);
 PHP_FUNCTION(bufferevent_free);
 PHP_FUNCTION(bufferevent_socket_connect);
+PHP_FUNCTION(bufferevent_socket_connect_hostname);
 PHP_FUNCTION(bufferevent_setcb);
 PHP_FUNCTION(bufferevent_enable);
 PHP_FUNCTION(bufferevent_disable);
 PHP_FUNCTION(bufferevent_get_enabled);
+PHP_FUNCTION(bufferevent_get_input);
+PHP_FUNCTION(bufferevent_get_output);
 PHP_FUNCTION(bufferevent_set_watermark);
 PHP_FUNCTION(bufferevent_socket_get_dns_error);
+
+PHP_FUNCTION(evbuffer_new);
+PHP_FUNCTION(evbuffer_free);
+PHP_FUNCTION(evbuffer_freeze);
+PHP_FUNCTION(evbuffer_get_length);
+PHP_FUNCTION(evbuffer_lock);
+PHP_FUNCTION(evbuffer_unlock);
+PHP_FUNCTION(evbuffer_enable_locking);
+PHP_FUNCTION(evbuffer_add);
+PHP_FUNCTION(evbuffer_remove);
 
 
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API */
 
-PHP_FUNCTION(event_dns_base_new);
-PHP_FUNCTION(event_dns_base_free);
+PHP_FUNCTION(evdns_base_new);
+PHP_FUNCTION(evdns_base_free);
 
 /* Extra API END }}} */
 #endif

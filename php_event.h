@@ -19,7 +19,7 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "0.1.0"
+#define PHP_EVENT_VERSION "0.1.0-devel"
 
 
 extern zend_module_entry event_module_entry;
@@ -34,7 +34,7 @@ extern zend_module_entry event_module_entry;
 #define PHP_EVENT_BUFFER_RES_NAME "Event Buffer"
 
 #if HAVE_EVENT_EXTRA_LIB
-# define PHP_EVENT_DNS_BASE_RES_NAME "DNS Event Base"
+# define PHP_EVENT_DNS_BASE_RES_NAME "Event DNS Base"
 #endif
 
 PHP_MINIT_FUNCTION(event);
