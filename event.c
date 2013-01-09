@@ -120,6 +120,13 @@ static void fatal_error_cb(int err)
 }
 /* }}} */
 
+
+#if LIBEVENT_VERSION_NUMBER < 0x02001900
+# define PHP_EVENT_LOG_CONST(name) _ ## name
+#else
+# define PHP_EVENT_LOG_CONST(name) name
+#endif
+
 /* {{{ log_cb
  * Overrides libevent's default error logging(it logs to stderr) */
 static void log_cb(int severity, const char *msg)
@@ -132,13 +139,13 @@ static void log_cb(int severity, const char *msg)
 	int error_type;
 
 	switch (severity) {
-		case EVENT_LOG_DEBUG:
+		case PHP_EVENT_LOG_CONST(EVENT_LOG_DEBUG):
 			error_type = E_STRICT;
-		case EVENT_LOG_MSG:
+		case PHP_EVENT_LOG_CONST(EVENT_LOG_MSG):
 			error_type = E_NOTICE;
-		case EVENT_LOG_WARN:
+		case PHP_EVENT_LOG_CONST(EVENT_LOG_WARN):
 			error_type = E_WARNING;
-		case EVENT_LOG_ERR:
+		case PHP_EVENT_LOG_CONST(EVENT_LOG_ERR):
 			error_type = E_ERROR;
 		default:
 			error_type = E_NOTICE;
