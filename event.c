@@ -880,7 +880,8 @@ PHP_FUNCTION(event_new)
 	}
 
 	if (what & EV_SIGNAL) {
-		if (zval_to_signum(ppzfd) == -1) {
+		fd = zval_to_signum(ppzfd);
+		if (fd == -1) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid signal passed");
 			RETURN_FALSE;
 		}
