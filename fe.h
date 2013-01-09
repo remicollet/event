@@ -27,6 +27,7 @@ PHP_FUNCTION(event_del);
 PHP_FUNCTION(event_remove_timer);
 PHP_FUNCTION(event_priority_set);
 PHP_FUNCTION(event_pending);
+PHP_FUNCTION(event_reinit);
 PHP_FUNCTION(event_free);
 
 PHP_FUNCTION(evtimer_new);

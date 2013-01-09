@@ -236,6 +236,7 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(event_del,                   arginfo_event_1)
 	PHP_FE(event_priority_set,          arginfo_event_priority_set)
 	PHP_FE(event_pending,               arginfo_event_pending)
+	PHP_FE(event_reinit,                arginfo_event_base_1)
 	PHP_FE(event_get_supported_methods, arginfo_event__void)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010200
 	PHP_FE(event_remove_timer, arginfo_event_1)

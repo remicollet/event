@@ -1299,6 +1299,26 @@ PHP_FUNCTION(event_pending)
 }
 /* }}} */
 
+/* {{{ proto bool event_reinit(resource base);
+ * Re-initialize event base. Should be called after a fork. */
+PHP_FUNCTION(event_reinit)
+{
+	zval             *zbase;
+	php_event_base_t *base;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbase) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+
+	if (event_reinit(base)) {
+		RETURN_TRUE;
+	}
+	RETVAL_FALSE;
+}
+/* }}} */
 
 
 /* {{{ proto resource event_base_new(void);
