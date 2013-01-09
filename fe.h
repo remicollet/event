@@ -33,6 +33,8 @@ PHP_FUNCTION(evtimer_new);
 PHP_FUNCTION(evtimer_set);
 PHP_FUNCTION(evtimer_pending);
 
+PHP_FUNCTION(evsignal_new);
+
 PHP_FUNCTION(event_base_new);
 PHP_FUNCTION(event_base_new_with_config);
 PHP_FUNCTION(event_base_get_method);

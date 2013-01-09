@@ -22,23 +22,18 @@ class MyEventSignal {
 		$this->base = $base;
 	}
 
-	function eventSighandler($no, $events, $c) {
-		if ($events & EVENT_SIGNAL) {
-			echo "Caught signal $no\n"; 
-        	event_base_loopexit($c->base);
-		} else {
-			echo "Unknown error. Stopping\n";
-        	event_base_loopexit($c->base);
-		}
+	function eventSighandler($no, $c) {
+		echo "Caught signal $no\n"; 
+        event_base_loopexit($c->base);
 	}
 }
 
 $base = event_base_new();
 $c    = new MyEventSignal($base);
 $no   = SIGTERM;
-$ev   = event_new($base, $no, EVENT_SIGNAL | EVENT_PERSIST, array($c,'eventSighandler'), $c);
+$ev   = evsignal_new($base, $no, array($c,'eventSighandler'), $c);
 
-event_add($ev);
+evsignal_add($ev);
 
 event_base_loop($base);
 ?>

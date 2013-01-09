@@ -105,6 +105,14 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evtimer_set, 0, 0, 3)
 ZEND_END_ARG_INFO();
 
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evsignal_new, 0, 0, 3)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, signum)
+	ZEND_ARG_INFO(0, cb)
+	ZEND_ARG_INFO(0, arg)
+ZEND_END_ARG_INFO();
+
+
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_config_set_max_dispatch_interval, 0, 0, 4)
 	ZEND_ARG_INFO(0, cfg)
@@ -239,6 +247,12 @@ const zend_function_entry event_functions[] = {
 
 	PHP_FALIAS(evtimer_add, event_add, arginfo_event_add)
 	PHP_FALIAS(evtimer_del, event_del, arginfo_event_1)
+
+	PHP_FE(evsignal_new,     arginfo_evsignal_new)
+
+	PHP_FALIAS(evsignal_add,     event_add,     arginfo_event_add)
+	PHP_FALIAS(evsignal_del,     event_del,     arginfo_event_1)
+	PHP_FALIAS(evsignal_pending, event_pending, arginfo_event_pending)
 
 	PHP_FE(event_base_new,                 arginfo_event__void)
 	PHP_FE(event_base_new_with_config,     arginfo_event_base_config_1)

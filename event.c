@@ -388,6 +388,56 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 }
 /* }}} */
 
+/* {{{ signal_cb */
+static void signal_cb(evutil_socket_t signum, short what, void *arg)
+{
+	php_event_t *e = (php_event_t *) arg;
+
+	PHP_EVENT_ASSERT(e);
+	PHP_EVENT_ASSERT(what & EV_SIGNAL);
+	PHP_EVENT_ASSERT(e->fci && e->fcc);
+
+	zend_fcall_info     *pfci       = e->fci;
+	zval                *arg_data   = e->data;
+	zval                *arg_signum;
+	zval               **args[2];
+	zval                *retval_ptr;
+
+	TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
+
+	if (ZEND_FCI_INITIALIZED(*pfci)) {
+		/* Setup callback args */
+		MAKE_STD_ZVAL(arg_signum);
+		ZVAL_LONG(arg_signum, signum);
+		args[0] = &arg_signum;
+
+		if (arg_data) {
+			Z_ADDREF_P(arg_data);
+		} else {
+			ALLOC_INIT_ZVAL(arg_data);
+		}
+		args[1] = &arg_data;
+
+		/* Prepare callback */
+		pfci->params		 = args;
+		pfci->retval_ptr_ptr = &retval_ptr;
+		pfci->param_count	 = 2;
+		pfci->no_separation  = 1;
+
+        if (zend_call_function(pfci, e->fcc TSRMLS_CC) == SUCCESS
+                && retval_ptr) {
+            zval_ptr_dtor(&retval_ptr);
+        } else {
+            php_error_docref(NULL TSRMLS_CC, E_WARNING,
+                    "An error occurred while invoking the callback");
+        }
+
+        zval_ptr_dtor(&arg_data);
+        zval_ptr_dtor(&arg_signum);
+	}
+}
+/* }}} */
+
 /* {{{ bevent_rw_cb
  * Is called from the bufferevent read and write callbacks */
 static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_event_bevent_t *bev, zend_fcall_info *pfci, zend_fcall_info_cache *pfcc)
@@ -852,6 +902,59 @@ PHP_FUNCTION(evtimer_pending)
 }
 /* }}} */
 
+
+
+/* {{{ proto resource evsignal_new(resource base, int signum, callable cb[, zval arg = NULL]);
+ * Creates new signal event */
+PHP_FUNCTION(evsignal_new)
+{
+	zval                  *zbase;
+	php_event_base_t      *base;
+	long                   signum;
+	zend_fcall_info        fci    = empty_fcall_info;
+	zend_fcall_info_cache  fcc    = empty_fcall_info_cache;
+	zval                  *arg    = NULL;
+	php_event_t           *e;
+	struct event          *event;
+	
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlf|z",
+				&zbase, &signum, &fci, &fcc, &arg) == FAILURE) {
+		return;
+	}
+	
+	if (signum < 0 || signum >= NSIG) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid signal passed");
+		RETURN_FALSE;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+
+	e = emalloc(sizeof(php_event_t));
+	memset(e, 0, sizeof(php_event_t));
+
+	event = evsignal_new(base, signum, signal_cb, (void *) e);
+	if (!event) {
+		efree(e);
+		RETURN_FALSE;
+	}
+
+	e->event = event;
+
+	if (arg) {
+		Z_ADDREF_P(arg);
+	}
+	e->data = arg;
+
+	PHP_EVENT_COPY_FCALL_INFO(e->fci, e->fcc, &fci, &fcc);
+
+	TSRMLS_SET_CTX(e->thread_ctx);
+
+	e->stream_id = -1; /* stdin fd = 0 */
+
+	ZEND_REGISTER_RESOURCE(return_value, e, le_event);
+}
+/* }}} */
 
 
 /* {{{ proto resource event_new(resource base, mixed fd, int what, callable cb[, zval arg = NULL]);
