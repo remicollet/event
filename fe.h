@@ -63,6 +63,7 @@ PHP_FUNCTION(event_config_set_max_dispatch_interval);
 #endif
 
 PHP_FUNCTION(bufferevent_socket_new);
+PHP_FUNCTION(bufferevent_pair_new);
 PHP_FUNCTION(bufferevent_free);
 PHP_FUNCTION(bufferevent_socket_connect);
 PHP_FUNCTION(bufferevent_socket_connect_hostname);
@@ -72,13 +73,14 @@ PHP_FUNCTION(bufferevent_disable);
 PHP_FUNCTION(bufferevent_get_enabled);
 PHP_FUNCTION(bufferevent_get_input);
 PHP_FUNCTION(bufferevent_get_output);
-PHP_FUNCTION(bufferevent_set_watermark);
+PHP_FUNCTION(bufferevent_setwatermark);
 PHP_FUNCTION(bufferevent_socket_get_dns_error);
 PHP_FUNCTION(bufferevent_write);
 PHP_FUNCTION(bufferevent_write_buffer);
 PHP_FUNCTION(bufferevent_read);
 PHP_FUNCTION(bufferevent_read_buffer);
-PHP_FUNCTION(bufferevent_pair_new);
+PHP_FUNCTION(bufferevent_priority_set);
+PHP_FUNCTION(bufferevent_set_timeouts);
 
 PHP_FUNCTION(evbuffer_new);
 PHP_FUNCTION(evbuffer_free);

@@ -2263,9 +2263,9 @@ PHP_FUNCTION(bufferevent_get_output)
 }
 /* }}} */
 
-/* {{{ proto void bufferevent_set_watermark(resource bevent, int events, int lowmark, int highmark);
+/* {{{ proto void bufferevent_setwatermark(resource bevent, int events, int lowmark, int highmark);
  * Adjusts the read watermarks, the write watermarks, or both, of a single bufferevent. */
-PHP_FUNCTION(bufferevent_set_watermark)
+PHP_FUNCTION(bufferevent_setwatermark)
 {
 	php_event_bevent_t *bev;
 	zval               *zbevent;
@@ -2398,7 +2398,56 @@ PHP_FUNCTION(bufferevent_read_buffer)
 }
 /* }}} */
 
+/* {{{ proto bool bufferevent_priority_set(resource bevent, int priority);
+ * Assign a priority to a bufferevent.
+ * Only supported for socket bufferevents. */
+PHP_FUNCTION(bufferevent_priority_set)
+{
+	php_event_bevent_t *bev;
+	zval               *zbevent;
+	long                priority;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+				&zbevent, &priority) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	if (bufferevent_priority_set(bev->bevent, priority)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool bufferevent_set_timeouts(resource bevent, double timeout_read, double timeout_write);
+ * Set the read and write timeout for a bufferevent. */
+PHP_FUNCTION(bufferevent_set_timeouts)
+{
+	php_event_bevent_t *bev;
+	zval               *zbevent;
+	double              timeout_read;
+	double              timeout_write;
+	struct timeval      tv_read;
+	struct timeval      tv_write;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll",
+				&zbevent, &timeout_read, &timeout_write) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	PHP_EVENT_TIMEVAL_SET(tv_read, timeout_read);
+	PHP_EVENT_TIMEVAL_SET(tv_write, timeout_write);
+
+	if (bufferevent_set_timeouts(bev->bevent, &tv_read, &tv_write)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
 
 /* {{{ proto resource evbuffer_new(void);
  * Allocates storage for new event buffer and returns it's resource. */

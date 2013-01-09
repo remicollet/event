@@ -159,7 +159,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_set_callbacks, 0, 0, 4)
 	ZEND_ARG_INFO(0, arg)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_set_watermark, 0, 0, 4)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_setwatermark, 0, 0, 4)
 	ZEND_ARG_INFO(0, bevent)
 	ZEND_ARG_INFO(0, events)
 	ZEND_ARG_INFO(0, lowmark)
@@ -186,6 +186,18 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_pair_new, 0, 0, 2)
 	ZEND_ARG_INFO(0, base)
 	ZEND_ARG_INFO(0, events)
 ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_priority_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, priority)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_set_timeouts, 0, 0, 3)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, timeout_read)
+	ZEND_ARG_INFO(0, timeout_write)
+ZEND_END_ARG_INFO();
+
 
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_1, 0, 0, 1)
@@ -290,12 +302,14 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(bufferevent_get_enabled,             arginfo_bufferevent_1)
 	PHP_FE(bufferevent_get_input,               arginfo_bufferevent_1)
 	PHP_FE(bufferevent_get_output,              arginfo_bufferevent_1)
-	PHP_FE(bufferevent_set_watermark,           arginfo_bufferevent_set_watermark)
+	PHP_FE(bufferevent_setwatermark,            arginfo_bufferevent_setwatermark)
 	PHP_FE(bufferevent_write,                   arginfo_bufferevent_write)
 	PHP_FE(bufferevent_write_buffer,            arginfo_bufferevent_write_buffer)
 	PHP_FE(bufferevent_read,                    arginfo_bufferevent_read)
 	PHP_FE(bufferevent_read_buffer,             arginfo_bufferevent_write_buffer)
 	PHP_FE(bufferevent_pair_new,                arginfo_bufferevent_pair_new)
+	PHP_FE(bufferevent_priority_set,            arginfo_bufferevent_priority_set)
+	PHP_FE(bufferevent_set_timeouts,            arginfo_bufferevent_set_timeouts)
 
 	PHP_FE(evbuffer_new,            arginfo_event__void)
 	PHP_FE(evbuffer_free,           arginfo_evbuffer_1)
@@ -319,8 +333,10 @@ const zend_function_entry event_functions[] = {
 	PHP_FALIAS(event_buffer_set_callback,  bufferevent_setcb,         arginfo_bufferevent_set_callbacks)
 	PHP_FALIAS(event_buffer_enable,        bufferevent_enable,        arginfo_bufferevent__events)
 	PHP_FALIAS(event_buffer_disable,       bufferevent_disable,       arginfo_bufferevent__events)
-	PHP_FALIAS(event_buffer_watermark_set, bufferevent_set_watermark, arginfo_bufferevent_set_watermark)
+	PHP_FALIAS(event_buffer_watermark_set, bufferevent_setwatermark,  arginfo_bufferevent_setwatermark)
 	PHP_FALIAS(event_buffer_write,         bufferevent_write,         arginfo_bufferevent_write)
+	PHP_FALIAS(event_buffer_priority_set,  bufferevent_priority_set,  arginfo_bufferevent_priority_set)
+	PHP_FALIAS(event_buffer_timeout_set,   bufferevent_set_timeouts,  arginfo_bufferevent_set_timeouts)
 
 
 #if HAVE_EVENT_EXTRA_LIB
