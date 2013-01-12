@@ -100,7 +100,8 @@ ZEND_GET_MODULE(event)
 
 #define PHP_EVENT_RET_SOCKETS_REQUIRED_NORET                                   \
     php_error_docref(NULL TSRMLS_CC, E_ERROR, "`sockets' extension required. " \
-            "If you have `sockets' installed, rebuild `event' extension")      \
+            "If you have `sockets' installed, rebuild `event' extension")
+
 #define PHP_EVENT_RET_SOCKETS_REQUIRED                                         \
     PHP_EVENT_RET_SOCKETS_REQUIRED_NORET;                                      \
     RETURN_FALSE
@@ -168,13 +169,20 @@ static php_socket_t zval_to_fd(zval **ppfd TSRMLS_DC)
 	if (Z_TYPE_PP(ppfd) == IS_RESOURCE) {
 		/* PHP stream or PHP socket resource  */
 		if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, ppfd, -1, NULL, php_file_le_stream())) {
+			php_stream_from_zval_no_verify(stream, ppfd);
+
 			/* PHP stream */
-			if (php_stream_can_cast(stream, PHP_STREAM_AS_FD | PHP_STREAM_CAST_INTERNAL)) {
-				if (php_stream_cast(stream, PHP_STREAM_AS_FD | PHP_STREAM_CAST_INTERNAL,
+			if (php_stream_can_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL) == SUCCESS) {
+				if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT,
 							(void*) &file_desc, 1) != SUCCESS || file_desc < 0) {
 					return -1;
 				}
-			} else if (php_stream_can_cast(stream, PHP_STREAM_AS_STDIO | PHP_STREAM_CAST_INTERNAL)) {
+			} else if (php_stream_can_cast(stream, PHP_STREAM_AS_FD | PHP_STREAM_CAST_INTERNAL) == SUCCESS) {
+				if (php_stream_cast(stream, PHP_STREAM_AS_FD,
+							(void*) &file_desc, 1) != SUCCESS || file_desc < 0) {
+					return -1;
+				}
+			} else if (php_stream_can_cast(stream, PHP_STREAM_AS_STDIO | PHP_STREAM_CAST_INTERNAL) == SUCCESS) {
 				if (php_stream_cast(stream, PHP_STREAM_AS_STDIO | PHP_STREAM_CAST_INTERNAL,
 							(void*) &file_desc, 1) != SUCCESS || file_desc < 0) {
 					return -1;
@@ -1795,19 +1803,19 @@ PHP_FUNCTION(bufferevent_socket_new)
 	}
 
 	if (ppzfd) {
-#ifndef PHP_EVENT_SOCKETS_SUPPORT 
-		/* Since there is no sockets support, the file descriptor is most
-		 * likely an invalid socket resource */
-		PHP_EVENT_RET_SOCKETS_REQUIRED;
-#endif
-		/* sockets_zval_to_fd reports error
-	 	 * in case if it is not a valid socket resource */
-		fd = (evutil_socket_t) sockets_zval_to_fd(ppzfd TSRMLS_CC);
+#ifdef PHP_EVENT_SOCKETS_SUPPORT 
+		if (ppzfd) {
+			/* sockets_zval_to_fd reports error
+	 	 	 * in case if it is not a valid socket resource */
+			fd = (evutil_socket_t) sockets_zval_to_fd(ppzfd TSRMLS_CC);
+		}
+
 		if (fd < 0) {
 			RETURN_FALSE;
 		}
 		/* Make sure that the socket is in non-blocking mode(libevent's tip) */
 		evutil_make_socket_nonblocking(fd);
+#endif
 	} else {
  		/* User decided to assign fd later,
  		 * e.g. by means of bufferevent_socket_connect()
@@ -2101,9 +2109,6 @@ PHP_FUNCTION(bufferevent_socket_get_dns_error)
  */
 PHP_FUNCTION(bufferevent_setcb)
 {
-#ifndef PHP_EVENT_SOCKETS_SUPPORT 
-	PHP_EVENT_RET_SOCKETS_REQUIRED_NORET;
-#else
 	php_event_bevent_t    *bev;
 	zval                  *zbevent;
 	zend_fcall_info        fci_read;
@@ -2157,7 +2162,6 @@ PHP_FUNCTION(bufferevent_setcb)
 	TSRMLS_SET_CTX(bev->thread_ctx);
 
 	bufferevent_setcb(bev->bevent, read_cb, write_cb, event_cb, (void *) bev);
-#endif
 }
 /* }}} */
 
