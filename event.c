@@ -597,6 +597,7 @@ static void php_event_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 		if (e->stream_id >= 0) { /* stdin fd == 0 */
 			zend_list_delete(e->stream_id);
 		}
+		event_del(e->event);
 		event_free(e->event);
 		efree(e);
 	}
@@ -751,6 +752,9 @@ PHP_MINIT_FUNCTION(event)
 	 * logging to stderr, or calling abort()/exit() */
 	event_set_fatal_callback(fatal_error_cb);
 	event_set_log_callback(log_cb);
+#ifdef PHP_EVENT_DEBUG
+	event_enable_debug_mode();
+#endif
 
 	return SUCCESS;
 }
@@ -1931,7 +1935,7 @@ PHP_FUNCTION(bufferevent_socket_connect)
 	char               *addr;
 	int                 addr_len;
 	struct sockaddr     sa;
-	socklen_t           sa_len;
+	socklen_t           sa_len = sizeof(struct sockaddr);
 	zend_bool           sync_resolve = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|b",
