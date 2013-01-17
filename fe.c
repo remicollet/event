@@ -214,10 +214,20 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_add, 0, 0, 2)
 	ZEND_ARG_INFO(0, data) 
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_add_buffer, 0, 0, 2)
+	ZEND_ARG_INFO(0, outbuf)
+	ZEND_ARG_INFO(0, inbuf) 
+ZEND_END_ARG_INFO();
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove, 0, 0, 3)
 	ZEND_ARG_INFO(0, buf)
 	ZEND_ARG_INFO(1, data)
 	ZEND_ARG_INFO(0, max_bytes)
+ZEND_END_ARG_INFO();
+
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_socket_1, 0, 0, 1)
+	ZEND_ARG_INFO(0, socket)
 ZEND_END_ARG_INFO();
 
 /* ARGINFO END }}} */
@@ -234,6 +244,41 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_new, 0, 0, 2)
 	ZEND_ARG_INFO(0, base)
 	ZEND_ARG_INFO(0, initialize)
 ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_1, 0, 0, 1)
+	ZEND_ARG_INFO(0, listener)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_new, 0, 0, 5)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, cb)
+	ZEND_ARG_INFO(0, data)
+	ZEND_ARG_INFO(0, flags)
+	ZEND_ARG_INFO(0, backlog)
+	ZEND_ARG_INFO(0, stream)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_new_bind, 0, 0, 5)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, cb)
+	ZEND_ARG_INFO(0, data)
+	ZEND_ARG_INFO(0, flags)
+	ZEND_ARG_INFO(0, backlog)
+	ZEND_ARG_INFO(0, addr)
+	ZEND_ARG_INFO(0, port)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_set_cb, 0, 0, 2)
+	ZEND_ARG_INFO(0, listener)
+	ZEND_ARG_INFO(0, cb)
+	ZEND_ARG_INFO(0, arg)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_set_error_cb, 0, 0, 2)
+	ZEND_ARG_INFO(0, listener)
+	ZEND_ARG_INFO(0, cb)
+ZEND_END_ARG_INFO();
+
 
 /* ARGINFO for extra API END }}} */
 #endif
@@ -314,12 +359,17 @@ const zend_function_entry event_functions[] = {
 	PHP_FE(evbuffer_new,            arginfo_event__void)
 	PHP_FE(evbuffer_free,           arginfo_evbuffer_1)
 	PHP_FE(evbuffer_freeze,         arginfo_evbuffer_freeze)
+	PHP_FE(evbuffer_unfreeze,       arginfo_evbuffer_freeze)
 	PHP_FE(evbuffer_get_length,     arginfo_evbuffer_1)
 	PHP_FE(evbuffer_lock,           arginfo_evbuffer_1)
 	PHP_FE(evbuffer_unlock,         arginfo_evbuffer_1)
 	PHP_FE(evbuffer_enable_locking, arginfo_evbuffer_1)
 	PHP_FE(evbuffer_add,            arginfo_evbuffer_add)
+	PHP_FE(evbuffer_add_buffer,     arginfo_evbuffer_add_buffer)
 	PHP_FE(evbuffer_remove,         arginfo_evbuffer_remove)
+
+	PHP_FE(event_socket_get_last_errno, arginfo_event_socket_1)
+	PHP_FE(event_socket_get_last_error, arginfo_event_socket_1)
 
 	/* These aliases are for compatibility with libevent extension */
 
@@ -342,8 +392,19 @@ const zend_function_entry event_functions[] = {
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API */
 
-	PHP_FE(evdns_base_new, arginfo_evdns_base_new)
+	PHP_FE(evdns_base_new,  arginfo_evdns_base_new)
 	PHP_FE(evdns_base_free, arginfo_evdns_base_1)
+
+	PHP_FE(evconnlistener_new,          arginfo_evconnlistener_new)
+	PHP_FE(evconnlistener_new_bind,     arginfo_evconnlistener_new_bind)
+	PHP_FE(evconnlistener_free,         arginfo_evconnlistener_1)
+	PHP_FE(evconnlistener_enable,       arginfo_evconnlistener_1)
+	PHP_FE(evconnlistener_disable,      arginfo_evconnlistener_1)
+	PHP_FE(evconnlistener_set_cb,       arginfo_evconnlistener_set_cb)
+	PHP_FE(evconnlistener_set_error_cb, arginfo_evconnlistener_set_error_cb)
+#if LIBEVENT_VERSION_NUMBER >= 0x02000300
+	PHP_FE(evconnlistener_get_base,     arginfo_evconnlistener_1)
+#endif
 	
 /* Extra API END}}} */
 #endif

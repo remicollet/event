@@ -85,19 +85,34 @@ PHP_FUNCTION(bufferevent_set_timeouts);
 PHP_FUNCTION(evbuffer_new);
 PHP_FUNCTION(evbuffer_free);
 PHP_FUNCTION(evbuffer_freeze);
+PHP_FUNCTION(evbuffer_unfreeze);
 PHP_FUNCTION(evbuffer_get_length);
 PHP_FUNCTION(evbuffer_lock);
 PHP_FUNCTION(evbuffer_unlock);
 PHP_FUNCTION(evbuffer_enable_locking);
 PHP_FUNCTION(evbuffer_add);
 PHP_FUNCTION(evbuffer_remove);
+PHP_FUNCTION(evbuffer_add_buffer);
 
+PHP_FUNCTION(event_socket_get_last_errno);
+PHP_FUNCTION(event_socket_get_last_error);
 
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API */
 
 PHP_FUNCTION(evdns_base_new);
 PHP_FUNCTION(evdns_base_free);
+
+PHP_FUNCTION(evconnlistener_new);
+PHP_FUNCTION(evconnlistener_new_bind);
+PHP_FUNCTION(evconnlistener_free);
+PHP_FUNCTION(evconnlistener_enable);
+PHP_FUNCTION(evconnlistener_disable);
+PHP_FUNCTION(evconnlistener_set_cb);
+PHP_FUNCTION(evconnlistener_set_error_cb);
+#if LIBEVENT_VERSION_NUMBER >= 0x02000300
+PHP_FUNCTION(evconnlistener_get_base);
+#endif
 
 /* Extra API END }}} */
 #endif

@@ -28,6 +28,10 @@
 #include <php_network.h>
 #include <php_streams.h>
 
+#ifdef AF_UNIX
+# include <sys/un.h>
+#endif
+
 #include <signal.h>
 
 #if PHP_VERSION_ID >= 50301 && (HAVE_SOCKETS || defined(COMPILE_DL_SOCKETS))
@@ -41,6 +45,7 @@
 #include <event2/util.h>
 
 #ifdef HAVE_EVENT_EXTRA_LIB
+# include <event2/listener.h>
 # include <event2/dns.h>
 # include <event2/http.h>
 # include <event2/rpc.h>
