@@ -3182,6 +3182,157 @@ PHP_FUNCTION(evdns_base_resolv_conf_parse)
 }
 /* }}} */
 
+/* {{{ proto bool evdns_base_nameserver_ip_add(resource dns_base, string ip);
+ * Adds a nameserver to an existing evdns_base. It takes the nameserver in a
+ * text string, either as an IPv4 address, an IPv6 address, an IPv4 address
+ * with a port (IPv4:Port), or an IPv6 address with a port ([IPv6]:Port).
+ */
+PHP_FUNCTION(evdns_base_nameserver_ip_add)
+{
+	php_event_dns_base_t *dnsb;
+	zval                 *zdns_base;
+	char                 *ip;
+	int                   ip_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs",
+				&zdns_base, &ip, &ip_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+
+	if (evdns_base_nameserver_ip_add(dnsb->dns_base, ip)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool evdns_base_load_hosts(resource dns_base, string hosts);
+ *  Loads a hosts file (in the same format as /etc/hosts) from hosts file
+ */
+PHP_FUNCTION(evdns_base_load_hosts)
+{
+	php_event_dns_base_t *dnsb;
+	zval                 *zdns_base;
+	char                 *hosts;
+	int                   hosts_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs",
+				&zdns_base, &hosts, &hosts_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+
+	if (evdns_base_load_hosts(dnsb->dns_base, hosts)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto void evdns_base_search_clear(resource dns_base);
+ * Removes all current search suffixes (as configured by the search option)
+ * from the evdns_base; the evdns_base_search_add() function adds a suffix
+ */
+PHP_FUNCTION(evdns_base_search_clear)
+{
+	php_event_dns_base_t *dnsb;
+	zval                 *zdns_base;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zdns_base) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+
+	evdns_base_search_clear(dnsb->dns_base);
+}
+/* }}} */
+
+/* {{{ proto void evdns_base_search_add(resource dns_base, string domain);
+ */
+PHP_FUNCTION(evdns_base_search_add)
+{
+	php_event_dns_base_t *dnsb;
+	zval                 *zdns_base;
+	char                 *domain;
+	int                   domain_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs",
+				&zdns_base, &domain, &domain_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+
+	evdns_base_search_add(dnsb->dns_base, domain);
+}
+/* }}} */
+
+/* {{{ proto void evdns_base_search_ndots_set(resource dns_base, int ndots);
+ */
+PHP_FUNCTION(evdns_base_search_ndots_set)
+{
+	php_event_dns_base_t *dnsb;
+	zval                 *zdns_base;
+	long                  ndots;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs",
+				&zdns_base, &ndots) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+
+	evdns_base_search_ndots_set(dnsb->dns_base, ndots);
+}
+/* }}} */
+
+/* {{{ proto bool evdns_base_set_option(resource dns_base, string option, string value);
+ */
+PHP_FUNCTION(evdns_base_set_option)
+{
+	php_event_dns_base_t *dnsb;
+	zval                 *zdns_base;
+	char                 *option;
+	int                   option_len;
+	char                 *value;
+	int                   value_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss",
+				&zdns_base, &option, &option_len, &value, &value_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+
+	if (evdns_base_set_option(dnsb->dns_base, option, value)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto int evdns_base_count_nameservers(resource dns_base);
+ */
+PHP_FUNCTION(evdns_base_count_nameservers)
+{
+	php_event_dns_base_t *dnsb;
+	zval                 *zdns_base;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zdns_base) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+
+	RETURN_LONG(evdns_base_count_nameservers(dnsb->dns_base));
+}
+/* }}} */
 
 
 /* {{{ proto resource evconnlistener_new_bind(resource base, callable cb, mixed data, int flags, int backlog, string addr);

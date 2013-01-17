@@ -245,6 +245,39 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_new, 0, 0, 2)
 	ZEND_ARG_INFO(0, initialize)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_resolv_conf_parse, 0, 0, 3)
+	ZEND_ARG_INFO(0, dns_base)
+	ZEND_ARG_INFO(0, flags)
+	ZEND_ARG_INFO(0, filename)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_nameserver_ip_add, 0, 0, 2)
+	ZEND_ARG_INFO(0, dns_base)
+	ZEND_ARG_INFO(0, ip)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_load_hosts, 0, 0, 2)
+	ZEND_ARG_INFO(0, dns_base)
+	ZEND_ARG_INFO(0, hosts)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_search_add, 0, 0, 2)
+	ZEND_ARG_INFO(0, dns_base)
+	ZEND_ARG_INFO(0, domain)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_search_ndots_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, dns_base)
+	ZEND_ARG_INFO(0, ndots)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_set_option, 0, 0, 3)
+	ZEND_ARG_INFO(0, dns_base)
+	ZEND_ARG_INFO(0, option)
+	ZEND_ARG_INFO(0, value)
+ZEND_END_ARG_INFO();
+
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_1, 0, 0, 1)
 	ZEND_ARG_INFO(0, listener)
 ZEND_END_ARG_INFO();
@@ -392,8 +425,16 @@ const zend_function_entry event_functions[] = {
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API */
 
-	PHP_FE(evdns_base_new,  arginfo_evdns_base_new)
-	PHP_FE(evdns_base_free, arginfo_evdns_base_1)
+	PHP_FE(evdns_base_new,               arginfo_evdns_base_new)
+	PHP_FE(evdns_base_free,              arginfo_evdns_base_1)
+	PHP_FE(evdns_base_resolv_conf_parse, arginfo_evdns_resolv_conf_parse)
+	PHP_FE(evdns_base_nameserver_ip_add, arginfo_evdns_base_nameserver_ip_add)
+	PHP_FE(evdns_base_load_hosts,        arginfo_evdns_base_load_hosts)
+	PHP_FE(evdns_base_search_clear,      arginfo_evdns_base_1)
+	PHP_FE(evdns_base_search_add,        arginfo_evdns_base_search_add)
+	PHP_FE(evdns_base_search_ndots_set,  arginfo_evdns_base_search_ndots_set)
+	PHP_FE(evdns_base_set_option,        arginfo_evdns_base_set_option)
+	PHP_FE(evdns_base_count_nameservers, arginfo_evdns_base_1)
 
 	PHP_FE(evconnlistener_new,          arginfo_evconnlistener_new)
 	PHP_FE(evconnlistener_new_bind,     arginfo_evconnlistener_new_bind)

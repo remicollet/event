@@ -102,6 +102,14 @@ PHP_FUNCTION(event_socket_get_last_error);
 
 PHP_FUNCTION(evdns_base_new);
 PHP_FUNCTION(evdns_base_free);
+PHP_FUNCTION(evdns_base_resolv_conf_parse);
+PHP_FUNCTION(evdns_base_nameserver_ip_add);
+PHP_FUNCTION(evdns_base_load_hosts);
+PHP_FUNCTION(evdns_base_search_clear);
+PHP_FUNCTION(evdns_base_search_add);
+PHP_FUNCTION(evdns_base_search_ndots_set);
+PHP_FUNCTION(evdns_base_set_option);
+PHP_FUNCTION(evdns_base_count_nameservers);
 
 PHP_FUNCTION(evconnlistener_new);
 PHP_FUNCTION(evconnlistener_new_bind);
