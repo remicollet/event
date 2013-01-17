@@ -1,4 +1,19 @@
 <?php
+/*
+ * Simple echo server based on libevent's connection listener.
+ *
+ * Usage:
+ * 1) In one terminal window run:
+ *
+ * $ php listener.php
+ *
+ * 2) In another terminal window open up connection, e.g.:
+ *
+ * $ nc 127.0.0.1 9876
+ *
+ * 3) start typing. The server should repeat the input.
+ */
+
 function echo_read_cb($bev, $ctx) {
     /* This callback is invoked when there is data to read on $bev. */
     $input  = bufferevent_get_input($bev);
@@ -17,10 +32,11 @@ function echo_event_cb($bev, $events, $ctx) {
 }
 
 function accept_conn_cb($listener, $fd, $address, $ctx) {
-	echo __FUNCTION__, " args:\n";
-	var_dump($listener, $fd, $address, $ctx);
     /* We got a new connection! Set up a bufferevent for it. */
+
+    //$base = $ctx;
     $base = evconnlistener_get_base($listener);
+
     $bev = bufferevent_socket_new($base, $fd, EVENT_BEV_OPT_CLOSE_ON_FREE);
 
     bufferevent_setcb($bev, "echo_read_cb", NULL, "echo_event_cb", NULL);
@@ -56,16 +72,21 @@ if (!$base) {
 	exit(1);
 }
 
-/*
+/* Variant #1 */
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 if (!socket_bind($socket, '0.0.0.0', $port)) {
 	echo "Unable to bind socket\n";
 	exit(1);
 }
+$listener = evconnlistener_new($base, "accept_conn_cb", $base,
+    EVENT_LEV_OPT_CLOSE_ON_FREE | EVENT_LEV_OPT_REUSEABLE, -1, $socket);
+
+/* Variant #2 */
+/*
+$listener = evconnlistener_new_bind($base, "accept_conn_cb", $base,
+    EVENT_LEV_OPT_CLOSE_ON_FREE | EVENT_LEV_OPT_REUSEABLE, -1, "0.0.0.0:$port");
  */
 
-$listener = evconnlistener_new_bind($base, "accept_conn_cb", /* data for callbacks */ NULL,
-    EVENT_LEV_OPT_CLOSE_ON_FREE | EVENT_LEV_OPT_REUSEABLE, /* backlog */ -1, "0.0.0.0:$port");
 if (!$listener) {
     echo "Couldn't create listener";
 	exit(1);

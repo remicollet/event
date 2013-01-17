@@ -16,14 +16,15 @@ if (file_exists($dir)) {
 echo "step 1\n";
 
 $base = event_base_new();
-$fd   = eio_get_event_stream();
 
 echo "step 2\n";
 
+eio_init();
+
 eio_mkdir($dir, 0750, EIO_PRI_DEFAULT, "my_nop_cb");
 
-$event = event_new($base, $fd,
-	EVENT_READ | EVENT_WRITE | EVENT_PERSIST, function ($fd, $events, $base) {
+$event = event_new($base, eio_get_event_stream(),
+	EVENT_READ | EVENT_PERSIST, function ($fd, $events, $base) {
 	echo "step 5\n";
 
 	while (eio_nreqs()) {

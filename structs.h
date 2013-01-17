@@ -88,7 +88,10 @@ typedef struct {
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
-typedef struct event_base php_event_base_t;
+typedef struct {
+	struct event_base *base;
+	int                rsrc_id;   /* Resource ID of the event base */
+} php_event_base_t;
 typedef struct event_config php_event_config_t;
 typedef double php_event_timestamp_t;
 
