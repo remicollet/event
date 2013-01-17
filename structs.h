@@ -70,6 +70,22 @@ typedef struct {
 	int                rsrc_id;    /* Resource ID of the dns base */
 } php_event_dns_base_t;
 
+typedef struct {
+	struct evconnlistener *listener;
+	int                    stream_id;   /* Resource ID of the socket file descriptor */
+	int                    base_id;     /* Resource ID of the event base      */
+	int                    rsrc_id;     /* Resource ID of the evconnlistener         */
+	zval                  *data;        /* User custom data passed to callback       */
+	/* Accept callback */
+	zend_fcall_info       *fci;
+	zend_fcall_info_cache *fcc;
+	/* Error callback */
+	zend_fcall_info       *fci_err;
+	zend_fcall_info_cache *fcc_err;
+
+	PHP_EVENT_COMMON_THREAD_CTX;
+} php_event_listener_t;
+
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
 typedef struct event_base php_event_base_t;

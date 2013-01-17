@@ -37,6 +37,7 @@ static int le_event_buffer;
 
 #if HAVE_EVENT_EXTRA_LIB
 static int le_event_dns_base;
+static int le_event_listener;
 #endif
 
 static const zend_module_dep event_deps[] = {
@@ -90,6 +91,9 @@ ZEND_GET_MODULE(event)
 #define PHP_EVENT_FETCH_DNS_BASE(b, zb) \
 	ZEND_FETCH_RESOURCE((b), php_event_dns_base_t *, &(zb), -1, PHP_EVENT_DNS_BASE_RES_NAME, le_event_dns_base)
 
+#define PHP_EVENT_FETCH_LISTENER(b, zb) \
+	ZEND_FETCH_RESOURCE((b), php_event_listener_t *, &(zb), -1, PHP_EVENT_LISTENER_RES_NAME, le_event_listener)
+
 #define PHP_EVENT_TIMEVAL_SET(tv, t)                     \
         do {                                             \
             tv.tv_sec  = (long) t;                       \
@@ -98,12 +102,12 @@ ZEND_GET_MODULE(event)
 
 #define PHP_EVENT_TIMEVAL_TO_DOUBLE(tv) (tv.tv_sec + tv.tv_usec * 1e-6)
 
-#define PHP_EVENT_RET_SOCKETS_REQUIRED_NORET                                   \
+#define PHP_EVENT_SOCKETS_REQUIRED_NORET                                       \
     php_error_docref(NULL TSRMLS_CC, E_ERROR, "`sockets' extension required. " \
             "If you have `sockets' installed, rebuild `event' extension")
 
-#define PHP_EVENT_RET_SOCKETS_REQUIRED                                         \
-    PHP_EVENT_RET_SOCKETS_REQUIRED_NORET;                                      \
+#define PHP_EVENT_SOCKETS_REQUIRED_RET                                         \
+    PHP_EVENT_SOCKETS_REQUIRED_NORET;                                          \
     RETURN_FALSE
 
 
@@ -153,6 +157,66 @@ static void log_cb(int severity, const char *msg)
 	}
 
 	php_error_docref(NULL TSRMLS_CC, error_type, "%s", msg);
+}
+/* }}} */
+
+/* {{{ _php_event_sockaddr_parse
+ * Parse in_addr and fill out_arr with IP and port.
+ * out_arr must be a pre-allocated empty zend array */
+static int _php_event_sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
+{
+	char buf[256];
+	int  ret      = FAILURE;
+
+	PHP_EVENT_ASSERT(Z_TYPE_P(out_zarr) == IS_ARRAY);
+
+	switch (in_addr->sa_family) {
+		case AF_INET:
+			if (evutil_inet_ntop(in_addr->sa_family, &((struct sockaddr_in *) in_addr)->sin_addr,
+						(void *) &buf, sizeof(buf))) {
+				add_next_index_string(out_zarr, (char *)&buf, 1);
+				add_next_index_long(out_zarr,
+						ntohs(((struct sockaddr_in *) in_addr)->sin_port));
+
+				ret = SUCCESS;
+			}
+			break;
+#if HAVE_IPV6 && HAVE_INET_NTOP
+		case AF_INET6:
+			if (evutil_inet_ntop(in_addr->sa_family, &((struct sockaddr_in6 *) in_addr)->sin6_addr,
+						(void *) &buf, sizeof(buf))) {
+				add_next_index_string(out_zarr, (char *)&buf, 1);
+				add_next_index_long(out_zarr,
+						ntohs(((struct sockaddr_in6 *) in_addr)->sin6_port));
+
+				ret = SUCCESS;
+			}
+			break;
+#endif
+#ifdef AF_UNIX
+		case AF_UNIX:
+			{
+				struct sockaddr_un *ua = (struct sockaddr_un *) in_addr;
+
+				if (ua->sun_path[0] == '\0') {
+					/* abstract name */
+ 					zval *tmp;
+					int len = strlen(ua->sun_path + 1) + 1;
+
+    				MAKE_STD_ZVAL(tmp);
+    				ZVAL_STRINGL(tmp, ua->sun_path, len, 1);
+    				Z_STRVAL_P(tmp)[len] = '\0';
+
+    				zend_hash_next_index_insert(Z_ARRVAL_P(out_zarr), &tmp, sizeof(zval *), NULL);
+				} else {
+					add_next_index_string(out_zarr, ua->sun_path, 1);
+				}
+			}
+			break;
+#endif
+	}
+
+	return ret;
 }
 /* }}} */
 
@@ -590,6 +654,134 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 }
 /* }}} */
 
+/* {{{ listener_cb */
+static void listener_cb(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *address, int socklen, void *ctx) {
+
+	php_event_listener_t  *l = (php_event_listener_t *) ctx;
+
+	PHP_EVENT_ASSERT(l);
+
+	zend_fcall_info       *pfci = l->fci;
+	zend_fcall_info_cache *pfcc = l->fcc;
+
+	PHP_EVENT_ASSERT(pfci && pfcc);
+
+	zval  **args[4];
+	zval   *arg_listener;
+	zval   *arg_fd;
+	zval   *arg_address;
+	zval   *arg_data     = l->data;
+	zval   *retval_ptr;
+
+	TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
+
+	php_printf("listener_cb(): listener = %p, fd = %d, l->rsrc_id = %d, l->stream_id = %d\n",
+			listener, fd, l->rsrc_id, l->stream_id);
+
+	/* Call user function having proto:
+	 * void cb (resource $listener, resource $fd, array $address, mixed $data); */
+
+	if (ZEND_FCI_INITIALIZED(*pfci)) {
+		MAKE_STD_ZVAL(arg_listener);
+		ZVAL_RESOURCE(arg_listener, l->rsrc_id);
+		zend_list_addref(l->rsrc_id);
+		args[0] = &arg_listener;
+
+		if (l->stream_id >= 0) {
+			MAKE_STD_ZVAL(arg_fd);
+			ZVAL_RESOURCE(arg_fd, l->stream_id);
+			zend_list_addref(l->stream_id);
+		} else {
+			ALLOC_INIT_ZVAL(arg_fd);
+		}
+		args[1] = &arg_fd;
+
+		MAKE_STD_ZVAL(arg_address);
+		array_init(arg_address);
+		_php_event_sockaddr_parse(address, arg_address);
+		args[2] = &arg_address;
+
+		if (arg_data) {
+			Z_ADDREF_P(arg_data);
+		} else {
+			ALLOC_INIT_ZVAL(arg_data);
+		}
+		args[3] = &arg_data;
+
+ 		/* Prepare callback */
+        pfci->params         = args;
+        pfci->retval_ptr_ptr = &retval_ptr;
+        pfci->param_count    = 4;
+        pfci->no_separation  = 1;
+
+        if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+            zval_ptr_dtor(&retval_ptr);
+        } else {
+            php_error_docref(NULL TSRMLS_CC, E_WARNING,
+                    "An error occurred while invoking the callback");
+        }
+
+        zval_ptr_dtor(&arg_listener);
+        zval_ptr_dtor(&arg_fd);
+        zval_ptr_dtor(&arg_address);
+        zval_ptr_dtor(&arg_data);
+	}
+}
+/* }}} */
+
+/* {{{ listener_error_cb */
+static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
+	php_event_listener_t  *l = (php_event_listener_t *) ctx;
+
+	PHP_EVENT_ASSERT(l);
+
+	zend_fcall_info       *pfci = l->fci_err;
+	zend_fcall_info_cache *pfcc = l->fcc_err;
+
+	PHP_EVENT_ASSERT(pfci && pfcc);
+
+	zval  **args[2];
+	zval   *arg_listener;
+	zval   *arg_data     = l->data;
+	zval   *retval_ptr;
+
+	TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
+
+	/* Call user function having proto:
+	 * void cb (resource $listener, mixed $data); */
+
+	if (ZEND_FCI_INITIALIZED(*pfci)) {
+		MAKE_STD_ZVAL(arg_listener);
+		ZVAL_RESOURCE(arg_listener, l->rsrc_id);
+		zend_list_addref(l->rsrc_id);
+		args[0] = &arg_listener;
+
+		if (arg_data) {
+			Z_ADDREF_P(arg_data);
+		} else {
+			ALLOC_INIT_ZVAL(arg_data);
+		}
+		args[1] = &arg_data;
+
+ 		/* Prepare callback */
+        pfci->params         = args;
+        pfci->retval_ptr_ptr = &retval_ptr;
+        pfci->param_count    = 2;
+        pfci->no_separation  = 1;
+
+        if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+            zval_ptr_dtor(&retval_ptr);
+        } else {
+            php_error_docref(NULL TSRMLS_CC, E_WARNING,
+                    "An error occurred while invoking the callback");
+        }
+
+        zval_ptr_dtor(&arg_listener);
+        zval_ptr_dtor(&arg_data);
+	}
+}
+/* }}} */
+
 /* {{{ php_event_dtor */
 static void php_event_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
@@ -682,6 +874,34 @@ static void php_event_dns_base_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 }
 /* }}} */
 
+/* {{{ php_event_listener_dtor */
+static void php_event_listener_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+{
+	php_event_listener_t *l = (php_event_listener_t *) rsrc->ptr;
+
+	if (l) {
+		if (l->stream_id >= 0) {
+			zend_list_delete(l->stream_id);
+		}
+
+		if (l->base_id) {
+			zend_list_delete(l->base_id);
+		}
+
+		if (l->data) {
+			zval_ptr_dtor(&l->data);
+		}
+
+		PHP_EVENT_FREE_FCALL_INFO(l->fci, l->fcc);
+		PHP_EVENT_FREE_FCALL_INFO(l->fci_err, l->fcc_err);
+
+		evconnlistener_free(l->listener);
+
+		efree(l);
+	}
+}
+/* }}} */
+
 /* Private functions }}} */
 
 
@@ -698,6 +918,7 @@ PHP_MINIT_FUNCTION(event)
 	le_event_bevent   = zend_register_list_destructors_ex(php_event_bevent_dtor,   NULL, PHP_EVENT_BEVENT_RES_NAME,   module_number);
 	le_event_buffer   = zend_register_list_destructors_ex(php_event_buffer_dtor,   NULL, PHP_EVENT_BUFFER_RES_NAME,   module_number);
 	le_event_dns_base = zend_register_list_destructors_ex(php_event_dns_base_dtor, NULL, PHP_EVENT_DNS_BASE_RES_NAME, module_number);
+	le_event_listener = zend_register_list_destructors_ex(php_event_listener_dtor, NULL, PHP_EVENT_LISTENER_RES_NAME, module_number);
 
 	/* Loop flags */
 	PHP_EVENT_REG_CONST_LONG(EVENT_LOOP_ONCE,     EVLOOP_ONCE);
@@ -755,6 +976,22 @@ PHP_MINIT_FUNCTION(event)
 	PHP_EVENT_REG_CONST_LONG(EVENT_DNS_OPTION_MISC,        DNS_OPTION_MISC);
 	PHP_EVENT_REG_CONST_LONG(EVENT_DNS_OPTION_HOSTSFILE,   DNS_OPTION_HOSTSFILE);
 	PHP_EVENT_REG_CONST_LONG(EVENT_DNS_OPTIONS_ALL,        DNS_OPTIONS_ALL);
+
+#if HAVE_EVENT_EXTRA_LIB
+	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_LEAVE_SOCKETS_BLOCKING, LEV_OPT_LEAVE_SOCKETS_BLOCKING);
+	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_CLOSE_ON_FREE,          LEV_OPT_CLOSE_ON_FREE);
+	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_CLOSE_ON_EXEC,          LEV_OPT_CLOSE_ON_EXEC);
+	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_REUSEABLE,              LEV_OPT_REUSEABLE);
+# if LIBEVENT_VERSION_NUMBER >= 0x02010100
+	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_DISABLED,               LEV_OPT_DISABLED);
+# endif
+# if LIBEVENT_VERSION_NUMBER >= 0x02000800
+	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_THREADSAFE,             LEV_OPT_THREADSAFE);
+#endif
+# if LIBEVENT_VERSION_NUMBER >= 0x02010100
+	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_DEFERRED_ACCEPT,        LEV_OPT_DEFERRED_ACCEPT);
+# endif
+#endif
 
 	/* Handle libevent's error logging more gracefully than it's default
 	 * logging to stderr, or calling abort()/exit() */
@@ -1815,6 +2052,8 @@ PHP_FUNCTION(bufferevent_socket_new)
 		}
 		/* Make sure that the socket is in non-blocking mode(libevent's tip) */
 		evutil_make_socket_nonblocking(fd);
+#else
+		fd = -1;
 #endif
 	} else {
  		/* User decided to assign fd later,
@@ -2135,6 +2374,7 @@ PHP_FUNCTION(bufferevent_setcb)
 
 	if (ZEND_FCI_INITIALIZED(fci_read)) {
 		read_cb = bevent_read_cb;
+		PHP_EVENT_FREE_FCALL_INFO(bev->fci_read, bev->fcc_read);
 		PHP_EVENT_COPY_FCALL_INFO(bev->fci_read, bev->fcc_read, &fci_read, &fcc_read);
 	} else {
 		read_cb = NULL;
@@ -2142,6 +2382,7 @@ PHP_FUNCTION(bufferevent_setcb)
 
 	if (ZEND_FCI_INITIALIZED(fci_write)) {
 		write_cb = bevent_write_cb;
+		PHP_EVENT_FREE_FCALL_INFO(bev->fci_write, bev->fcc_write);
 		PHP_EVENT_COPY_FCALL_INFO(bev->fci_write, bev->fcc_write, &fci_write, &fcc_write);
 	} else {
 		write_cb = NULL;
@@ -2149,6 +2390,7 @@ PHP_FUNCTION(bufferevent_setcb)
 
 	if (ZEND_FCI_INITIALIZED(fci_event)) {
 		event_cb = bevent_event_cb;
+		PHP_EVENT_FREE_FCALL_INFO(bev->fci_event, bev->fcc_event);
 		PHP_EVENT_COPY_FCALL_INFO(bev->fci_event, bev->fcc_event, &fci_event, &fcc_event);
 	} else {
 		event_cb = NULL;
@@ -2457,6 +2699,8 @@ PHP_FUNCTION(bufferevent_set_timeouts)
 }
 /* }}} */
 
+
+
 /* {{{ proto resource evbuffer_new(void);
  * Allocates storage for new event buffer and returns it's resource. */
 PHP_FUNCTION(evbuffer_new)
@@ -2509,6 +2753,28 @@ PHP_FUNCTION(evbuffer_freeze)
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
 	if (evbuffer_freeze(b->buf, at_front)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool evbuffer_unfreeze(resource buf, bool at_front);
+ * Re-enable calls that modify an evbuffer. */
+PHP_FUNCTION(evbuffer_unfreeze)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf;
+	zend_bool           at_front;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rb",
+				&zbuf, &at_front) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (evbuffer_unfreeze(b->buf, at_front)) {
 		RETURN_FALSE;
 	}
 	RETVAL_TRUE;
@@ -2621,7 +2887,31 @@ PHP_FUNCTION(evbuffer_add)
 }
 /* }}} */
 
-/* {{{ proto long evbuffer_remove(resource buf, string &data, long max_bytes);
+/* {{{ proto bool evbuffer_add_buffer(resource outbuf, inbuf); 
+ * Move all data from one evbuffer into another evbuffer.
+ * This is a destructive add. The data from one buffer moves into the other buffer. However, no unnecessary memory copies occur.
+ */
+PHP_FUNCTION(evbuffer_add_buffer)
+{
+	php_event_buffer_t *b_out     , *b_in;
+	zval               *zbuf_out  , *zbuf_in;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rr",
+				&zbuf_out, &zbuf_in) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b_out, zbuf_out);
+	PHP_EVENT_FETCH_BUFFER(b_in, zbuf_in);
+
+	if (evbuffer_add_buffer(b_out->buf, b_in->buf)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto int evbuffer_remove(resource buf, string &data, long max_bytes);
  * Read data from an evbuffer and drain the bytes read.  If more bytes are
  * requested than are available in the evbuffer, we only extract as many bytes
  * as were available.
@@ -2663,6 +2953,70 @@ PHP_FUNCTION(evbuffer_remove)
 	efree(data);
 
 	RETVAL_LONG(ret);
+}
+/* }}} */
+
+
+/* {{{ proto int event_socket_get_last_errno([resource socket = null]);
+ * Returns the most recent socket error number(errno).
+ *
+ * Note: if sockets extension was not available at the time when event
+ * extension built, the socket parameter is ignored. In this case the function
+ * returns the morst recent socket error regardless the argument provided. */
+PHP_FUNCTION(event_socket_get_last_errno)
+{
+
+	zval **ppzfd = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|Z!",
+				&ppzfd) == FAILURE) {
+		return;
+	}
+
+#ifdef PHP_EVENT_SOCKETS_SUPPORT 
+	if (ppzfd) {
+		evutil_socket_t fd = (evutil_socket_t) sockets_zval_to_fd(ppzfd TSRMLS_CC);
+
+		if (fd < 0) {
+			RETURN_FALSE;
+		}
+
+		RETVAL_LONG(evutil_socket_geterror(fd));
+	} else {
+		RETVAL_LONG(EVUTIL_SOCKET_ERROR());
+	}
+#else
+	RETVAL_LONG(EVUTIL_SOCKET_ERROR());
+#endif
+}
+/* }}} */
+
+/* {{{ proto string event_socket_get_last_error([resource socket = null]);
+ * Returns the most recent socket error */
+PHP_FUNCTION(event_socket_get_last_error)
+{
+	zval **ppzfd = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|Z!",
+				&ppzfd) == FAILURE) {
+		return;
+	}
+
+#ifdef PHP_EVENT_SOCKETS_SUPPORT 
+	if (ppzfd) {
+		evutil_socket_t fd = (evutil_socket_t) sockets_zval_to_fd(ppzfd TSRMLS_CC);
+
+		if (fd < 0) {
+			RETURN_FALSE;
+		}
+
+		RETVAL_STRING(evutil_socket_error_to_string(evutil_socket_geterror(fd)), 1);
+	} else {
+		RETVAL_STRING(evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()), 1);
+	}
+#else
+	RETVAL_STRING(evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()), 1);
+#endif
 }
 /* }}} */
 
@@ -2711,7 +3065,7 @@ PHP_FUNCTION(evdns_base_new)
 }
 /* }}} */
 
-/* {{{ proto void evdns_base_free(void);
+/* {{{ proto void evdns_base_free(resource base);
  * Free an evdns base */
 PHP_FUNCTION(evdns_base_free)
 {
@@ -2788,6 +3142,331 @@ PHP_FUNCTION(evdns_base_resolv_conf_parse)
 	RETVAL_TRUE;
 }
 /* }}} */
+
+
+
+/* {{{ proto resource evconnlistener_new_bind(resource base, callable cb, mixed data, int flags, int backlog, string addr);
+ * Creates new connection listener associated with an event base.
+ *
+ * Returns resource representing the event connection listener.
+ */
+PHP_FUNCTION(evconnlistener_new_bind)
+{
+	zval                  *zbase;
+	php_event_base_t      *base;
+	zend_fcall_info        fci      = empty_fcall_info;
+	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
+	php_event_listener_t  *l;
+	zval                  *zdata    = NULL;
+	zval                  *zaddr;
+	long                   flags;
+	long                   backlog;
+	struct evconnlistener *listener;
+	struct sockaddr        sa;
+	socklen_t              sa_len   = sizeof(struct sockaddr);
+	evutil_socket_t        fd;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rfz!llz", &zbase,
+				&fci, &fcc, &zdata, &flags, &backlog, &zaddr) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+
+	convert_to_string(zaddr);
+	if (php_network_parse_network_address_with_port(Z_STRVAL_P(zaddr), Z_STRLEN_P(zaddr),
+				&sa, &sa_len TSRMLS_CC) != SUCCESS) {
+		RETURN_FALSE;
+	}
+
+	l = emalloc(sizeof(php_event_listener_t));
+	memset(l, 0, sizeof(php_event_listener_t));
+
+	listener = evconnlistener_new_bind(base, listener_cb, (void *) l,
+			flags, backlog, &sa, sa_len);
+	if (!listener) {
+		efree(l);
+		RETURN_FALSE;
+	}
+	l->listener = listener;
+
+	if (zdata) {
+		l->data = zdata;
+		Z_ADDREF_P(zdata);
+	}
+
+	PHP_EVENT_COPY_FCALL_INFO(l->fci, l->fcc, &fci, &fcc);
+
+	l->base_id = Z_LVAL_P(zbase);
+	zend_list_addref(l->base_id);
+
+	/* Convert the socket created by libevent to PHP stream
+	 * and save it's resource ID in l->stream_id */
+	zval       *zstream;
+	php_stream *stream;
+
+	fd     = evconnlistener_get_fd(listener);
+	stream = php_stream_fopen_from_fd(fd, "r", NULL);
+
+	if (stream) {
+		MAKE_STD_ZVAL(zstream);
+
+		php_stream_to_zval(stream, zstream);
+		l->stream_id = Z_LVAL_P(zstream);
+		zend_list_addref(l->stream_id);
+	} else {
+		l->stream_id = -1;
+	}
+
+
+	TSRMLS_SET_CTX(l->thread_ctx);
+
+	l->rsrc_id = ZEND_REGISTER_RESOURCE(return_value, l, le_event_listener);
+
+	php_printf("evconnlistener_new(): listener = %p, fd = %d, l->stream_id = %d, l->rsrc_id = %d\n",
+			listener, fd, l->stream_id, l->rsrc_id);
+
+	PHP_EVENT_ASSERT(l->rsrc_id);
+}
+/* }}} */
+
+/* {{{ proto resource evconnlistener_new(resource base, callable cb, mixed data, int flags, int backlog, resource stream);
+ * Creates new connection listener associated with an event base.
+ *
+ * stream parameter may be a socket resource, or a stream associated with a socket.
+ *
+ * Returns resource representing the event connection listener.
+ */
+PHP_FUNCTION(evconnlistener_new)
+{
+	zval                   *zbase;
+	php_event_base_t       *base;
+	zend_fcall_info         fci       = empty_fcall_info;
+	zend_fcall_info_cache   fcc       = empty_fcall_info_cache;
+	php_event_listener_t   *l;
+	zval                   *zdata     = NULL;
+	long                    flags;
+	long                    backlog;
+	zval                  **ppzfd;
+	evutil_socket_t         fd        = -1;
+	struct evconnlistener  *listener;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rfz!llZ",
+				&zbase, &fci, &fcc, &zdata, &flags, &backlog,
+				&ppzfd) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+
+	/* sockets_zval_to_fd reports error
+	 * in case if it is not a valid socket resource */
+	fd = zval_to_fd(ppzfd TSRMLS_CC);
+	if (fd < 0) {
+		RETURN_FALSE;
+	}
+
+	/* Make sure that the socket is in non-blocking mode(libevent's tip) */
+	evutil_make_socket_nonblocking(fd);
+
+	l = emalloc(sizeof(php_event_listener_t));
+	memset(l, 0, sizeof(php_event_listener_t));
+
+	listener = evconnlistener_new(base, listener_cb, (void *) l,
+			flags, backlog, fd);
+	if (!listener) {
+		efree(l);
+		RETURN_FALSE;
+	}
+	l->listener = listener;
+
+	if (zdata) {
+		l->data = zdata;
+		Z_ADDREF_P(zdata);
+	}
+
+	PHP_EVENT_COPY_FCALL_INFO(l->fci, l->fcc, &fci, &fcc);
+
+	if (Z_TYPE_PP(ppzfd) == IS_RESOURCE) {
+		/* lval of ppzfd is the resource ID */
+		l->stream_id = Z_LVAL_PP(ppzfd);
+		zend_list_addref(Z_LVAL_PP(ppzfd));
+	} else {
+		l->stream_id = -1;
+	}
+
+	TSRMLS_SET_CTX(l->thread_ctx);
+
+	l->rsrc_id = ZEND_REGISTER_RESOURCE(return_value, l, le_event_listener);
+
+	php_printf("evconnlistener_new(): listener = %p, fd = %d, l->stream_id = %d, l->rsrc_id = %d\n",
+			listener, fd, l->stream_id, l->rsrc_id);
+
+	PHP_EVENT_ASSERT(l->rsrc_id);
+}
+/* }}} */
+
+
+/* {{{ proto void evconnlistener_free(resource listener);
+ * Free an event connect listener resource */
+PHP_FUNCTION(evconnlistener_free)
+{
+	php_event_listener_t *l;
+	zval                 *zlistener;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zlistener) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+
+	zend_list_delete(l->rsrc_id);
+}
+/* }}} */
+
+/* {{{ proto bool evconnlistener_enable(resource listener);
+ * Enable an event connect listener resource */
+PHP_FUNCTION(evconnlistener_enable)
+{
+	php_event_listener_t *l;
+	zval                 *zlistener;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zlistener) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+
+	if (evconnlistener_enable(l->listener)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool evconnlistener_disable(resource listener);
+ * Disable an event connect listener resource */
+PHP_FUNCTION(evconnlistener_disable)
+{
+	php_event_listener_t *l;
+	zval                 *zlistener;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zlistener) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+
+	if (evconnlistener_disable(l->listener)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto void evconnlistener_set_cb(resource listener, callable cb[, mixed arg = NULL]);
+ * Adjust event connect listener's callback and optionally the callback argument.
+ * Both cb and arg may be NULL.
+ */
+PHP_FUNCTION(evconnlistener_set_cb)
+{
+	php_event_listener_t  *l;
+	zval                  *zlistener;
+	zend_fcall_info        fci       = empty_fcall_info;
+	zend_fcall_info_cache  fcc       = empty_fcall_info_cache;
+	zval                  *zarg      = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rf!|z!",
+				&zlistener, &fci, &fcc, &zarg) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+
+	if (ZEND_FCI_INITIALIZED(fci)) {
+		PHP_EVENT_FREE_FCALL_INFO(l->fci, l->fcc);
+		PHP_EVENT_COPY_FCALL_INFO(l->fci, l->fcc, &fci, &fcc);
+	}
+
+	if (zarg) {
+		if (l->data) {
+			zval_ptr_dtor(&l->data);
+		}
+
+		Z_ADDREF_P(zarg);
+		l->data = zarg;
+	}
+
+	/*
+	 * No sense in the following call, since the callback and the pointer
+	 * remain the same
+	 * evconnlistener_set_cb(l->listener, listener_cb, (void *) l);
+	 */
+}
+/* }}} */
+
+/* {{{ proto void evconnlistener_set_error_cb(resource listener, callable cb);
+ * Set event listener's error callback
+ */
+PHP_FUNCTION(evconnlistener_set_error_cb)
+{
+	php_event_listener_t  *l;
+	zval                  *zlistener;
+	zend_fcall_info        fci;
+	zend_fcall_info_cache  fcc;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rf",
+				&zlistener, &fci, &fcc) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+
+	if (ZEND_FCI_INITIALIZED(fci)) {
+		PHP_EVENT_FREE_FCALL_INFO(l->fci_err, l->fcc_err);
+		PHP_EVENT_COPY_FCALL_INFO(l->fci_err, l->fcc_err, &fci, &fcc);
+	}
+
+	/*
+	 * No much sense in the following call, since the callback and the pointer
+	 * remain the same. However, we have to set it once at least
+	 */
+	 evconnlistener_set_error_cb(l->listener, listener_error_cb);
+}
+/* }}} */
+
+#if LIBEVENT_VERSION_NUMBER >= 0x02000300
+/* {{{ proto resource evconnlistener_get_base(resource listener);
+ * Get event base associated with the connection listener
+ */
+PHP_FUNCTION(evconnlistener_get_base)
+{
+	php_event_listener_t *l;
+	zval                 *zlistener;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zlistener) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+
+	/*
+	   base = evconnlistener_get_base(l->listener);
+	*/
+
+	if (l->base_id) {
+		RETURN_RESOURCE(l->base_id);
+	} else {
+		RETVAL_FALSE;
+	}
+}
+/* }}} */
+#endif
+
 
 /* Extra API functions END }}} */
 #endif
