@@ -230,6 +230,66 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_socket_1, 0, 0, 1)
 	ZEND_ARG_INFO(0, socket)
 ZEND_END_ARG_INFO();
 
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_base_new, 0, 0, 4)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, dns_base)
+	ZEND_ARG_INFO(0, address)
+	ZEND_ARG_INFO(0, port)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_1, 0, 0, 1)
+	ZEND_ARG_INFO(0, evcon)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_get_peer, 0, 0, 3)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(1, address)
+	ZEND_ARG_INFO(1, port)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_set_local_address, 0, 0, 2)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, address)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_set_local_port, 0, 0, 2)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, port)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_set_timeout, 0, 0, 2)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, timeout)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_set_max_size, 0, 0, 2)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, max_size)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_set_retries, 0, 0, 2)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, retries)
+ZEND_END_ARG_INFO();
+
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_1, 0, 0, 1)
+	ZEND_ARG_INFO(0, evhttp)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_accept_socket, 0, 0, 2)
+	ZEND_ARG_INFO(0, evhttp)
+	ZEND_ARG_INFO(0, socket)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_bind_socket, 0, 0, 3)
+	ZEND_ARG_INFO(0, evhttp)
+	ZEND_ARG_INFO(0, address)
+	ZEND_ARG_INFO(0, port)
+ZEND_END_ARG_INFO();
+
+
 /* ARGINFO END }}} */
 
 
@@ -446,6 +506,23 @@ const zend_function_entry event_functions[] = {
 #if LIBEVENT_VERSION_NUMBER >= 0x02000300
 	PHP_FE(evconnlistener_get_base,     arginfo_evconnlistener_1)
 #endif
+
+
+	PHP_FE(evhttp_connection_base_new, arginfo_event_evhttp_connection_base_new)
+	PHP_FE(evhttp_connection_free, arginfo_event_evhttp_connection_1)
+	PHP_FE(evhttp_connection_get_base, arginfo_event_evhttp_connection_1)
+	PHP_FE(evhttp_connection_get_peer, arginfo_event_evhttp_connection_get_peer)
+	PHP_FE(evhttp_connection_set_local_address, arginfo_event_evhttp_connection_set_local_address)
+	PHP_FE(evhttp_connection_set_local_port, arginfo_event_evhttp_connection_set_local_port)
+	PHP_FE(evhttp_connection_set_timeout, arginfo_event_evhttp_connection_set_timeout)
+	PHP_FE(evhttp_connection_set_max_headers_size, arginfo_event_evhttp_connection_set_max_size)
+	PHP_FE(evhttp_connection_set_max_body_size, arginfo_event_evhttp_connection_set_max_size)
+	PHP_FE(evhttp_connection_set_retries, arginfo_event_evhttp_connection_set_retries)
+
+	PHP_FE(evhttp_new, arginfo_event_base_1)
+	PHP_FE(evhttp_free, arginfo_event_evhttp_1)
+	PHP_FE(evhttp_accept_socket, arginfo_event_evhttp_accept_socket)
+	PHP_FE(evhttp_bind_socket, arginfo_event_evhttp_bind_socket)
 	
 /* Extra API END}}} */
 #endif

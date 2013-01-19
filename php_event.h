@@ -36,6 +36,8 @@ extern zend_module_entry event_module_entry;
 #if HAVE_EVENT_EXTRA_LIB
 # define PHP_EVENT_DNS_BASE_RES_NAME "Event DNS Base"
 # define PHP_EVENT_LISTENER_RES_NAME "Event Connection Listener"
+# define PHP_EVENT_HTTP_CONN_RES_NAME "Event HTTP Connection"
+# define PHP_EVENT_HTTP_RES_NAME "Event HTTP Server"
 #endif
 
 PHP_MINIT_FUNCTION(event);

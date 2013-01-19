@@ -38,6 +38,8 @@ static int le_event_buffer;
 #if HAVE_EVENT_EXTRA_LIB
 static int le_event_dns_base;
 static int le_event_listener;
+static int le_event_http_conn;
+static int le_event_http;
 #endif
 
 static const zend_module_dep event_deps[] = {
@@ -93,6 +95,12 @@ ZEND_GET_MODULE(event)
 
 #define PHP_EVENT_FETCH_LISTENER(b, zb) \
 	ZEND_FETCH_RESOURCE((b), php_event_listener_t *, &(zb), -1, PHP_EVENT_LISTENER_RES_NAME, le_event_listener)
+
+#define PHP_EVENT_FETCH_HTTP_CONN(b, zb) \
+	ZEND_FETCH_RESOURCE((b), php_event_http_conn_t *, &(zb), -1, PHP_EVENT_HTTP_CONN_RES_NAME, le_event_http_conn)
+
+#define PHP_EVENT_FETCH_HTTP(b, zb) \
+	ZEND_FETCH_RESOURCE((b), php_event_http_t*, &(zb), -1, PHP_EVENT_HTTP_RES_NAME, le_event_http)
 
 #define PHP_EVENT_TIMEVAL_SET(tv, t)                     \
         do {                                             \
@@ -921,6 +929,44 @@ static void php_event_listener_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 }
 /* }}} */
 
+/* {{{ php_event_http_conn_dtor */
+static void php_event_http_conn_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+{
+	php_event_http_conn_t *evcon = (php_event_http_conn_t *) rsrc->ptr;
+
+	if (evcon) {
+		if (evcon->base_id) {
+			zend_list_delete(evcon->base_id);
+		}
+
+		if (evcon->dns_base_id) {
+			zend_list_delete(evcon->dns_base_id);
+		}
+
+		evhttp_connection_free(evcon->conn);
+
+		efree(evcon);
+	}
+}
+/* }}} */
+
+/* {{{ php_event_http_dtor */
+static void php_event_http_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+{
+	php_event_http_t *http = (php_event_http_t *) rsrc->ptr;
+
+	if (http) {
+		if (http->base_id) {
+			zend_list_delete(http->base_id);
+		}
+
+		evhttp_free(http->ptr);
+
+		efree(http);
+	}
+}
+/* }}} */
+
 /* Private functions }}} */
 
 
@@ -931,13 +977,15 @@ static void php_event_listener_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
 {
-	le_event          = zend_register_list_destructors_ex(php_event_dtor,          NULL, PHP_EVENT_RES_NAME,          module_number);
-	le_event_base     = zend_register_list_destructors_ex(php_event_base_dtor,     NULL, PHP_EVENT_BASE_RES_NAME,     module_number);
-	le_event_config   = zend_register_list_destructors_ex(php_event_config_dtor,   NULL, PHP_EVENT_CONFIG_RES_NAME,   module_number);
-	le_event_bevent   = zend_register_list_destructors_ex(php_event_bevent_dtor,   NULL, PHP_EVENT_BEVENT_RES_NAME,   module_number);
-	le_event_buffer   = zend_register_list_destructors_ex(php_event_buffer_dtor,   NULL, PHP_EVENT_BUFFER_RES_NAME,   module_number);
-	le_event_dns_base = zend_register_list_destructors_ex(php_event_dns_base_dtor, NULL, PHP_EVENT_DNS_BASE_RES_NAME, module_number);
-	le_event_listener = zend_register_list_destructors_ex(php_event_listener_dtor, NULL, PHP_EVENT_LISTENER_RES_NAME, module_number);
+	le_event           = zend_register_list_destructors_ex(php_event_dtor,           NULL, PHP_EVENT_RES_NAME,           module_number);
+	le_event_base      = zend_register_list_destructors_ex(php_event_base_dtor,      NULL, PHP_EVENT_BASE_RES_NAME,      module_number);
+	le_event_config    = zend_register_list_destructors_ex(php_event_config_dtor,    NULL, PHP_EVENT_CONFIG_RES_NAME,    module_number);
+	le_event_bevent    = zend_register_list_destructors_ex(php_event_bevent_dtor,    NULL, PHP_EVENT_BEVENT_RES_NAME,    module_number);
+	le_event_buffer    = zend_register_list_destructors_ex(php_event_buffer_dtor,    NULL, PHP_EVENT_BUFFER_RES_NAME,    module_number);
+	le_event_dns_base  = zend_register_list_destructors_ex(php_event_dns_base_dtor,  NULL, PHP_EVENT_DNS_BASE_RES_NAME,  module_number);
+	le_event_listener  = zend_register_list_destructors_ex(php_event_listener_dtor,  NULL, PHP_EVENT_LISTENER_RES_NAME,  module_number);
+	le_event_http_conn = zend_register_list_destructors_ex(php_event_http_conn_dtor, NULL, PHP_EVENT_HTTP_CONN_RES_NAME, module_number);
+	le_event_http      = zend_register_list_destructors_ex(php_event_http_dtor, NULL, PHP_EVENT_HTTP_RES_NAME, module_number);
 
 	/* Loop flags */
 	PHP_EVENT_REG_CONST_LONG(EVENT_LOOP_ONCE,     EVLOOP_ONCE);
@@ -3643,6 +3691,367 @@ PHP_FUNCTION(evconnlistener_get_base)
 }
 /* }}} */
 #endif
+
+
+
+/* {{{ proto resource evhttp_connection_base_new(resource base, resource dns_base, string address, int port);
+ * Creates new http connection resource.
+ */
+PHP_FUNCTION(evhttp_connection_base_new)
+{
+	zval                     *zbase;
+	php_event_base_t         *b;
+	zval                     *zdns_base;
+	php_event_dns_base_t     *dnsb;
+	char                     *address;
+	int                       address_len;
+	long                      port;
+	php_event_http_conn_t    *evcon;
+	struct evhttp_connection *conn;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrsl",
+				&zbase, &zdns_base, &address, &address_len, &port) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(b, zbase);
+	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+
+	evcon = emalloc(sizeof(php_event_http_conn_t));
+	memset(evcon, 0, sizeof(php_event_http_conn_t));
+
+	conn = evhttp_connection_base_new(b->base, dnsb->dns_base, address, (unsigned short) port);
+	if (!conn) {
+		efree(evcon);
+		RETURN_FALSE;
+	}
+	evcon->conn = conn;
+
+	evcon->base_id = Z_LVAL_P(zbase);
+	zend_list_addref(evcon->base_id);
+
+	evcon->dns_base_id = Z_LVAL_P(zdns_base);
+	zend_list_addref(evcon->dns_base_id);
+
+	evcon->rsrc_id = ZEND_REGISTER_RESOURCE(return_value, evcon, le_event_http_conn);
+
+	PHP_EVENT_ASSERT(evcon->rsrc_id);
+}
+/* }}} */
+
+/* {{{ proto void evhttp_connection_free(resource evcon);
+ * Free an event http connection resource */
+PHP_FUNCTION(evhttp_connection_free)
+{
+	php_event_http_conn_t *evcon;
+	zval                  *zevcon;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zevcon) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	zend_list_delete(evcon->rsrc_id);
+}
+/* }}} */
+
+/* {{{ proto resource evhttp_connection_get_base(resource evcon);
+ * Get event base associated with the http connection
+ */
+PHP_FUNCTION(evhttp_connection_get_base)
+{
+	php_event_http_conn_t *evcon;
+	zval                 *zevcon;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zevcon) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	/*
+	 * No sense in this call
+	 * base = evhttp_connection_get_base(evcon->con);
+	 */
+
+	if (evcon->base_id) {
+		/* Make sure base wouldn't be inexpectedly destroyed */
+		zend_list_addref(evcon->base_id);
+
+		RETURN_RESOURCE(evcon->base_id);
+	} else {
+		RETVAL_FALSE;
+	}
+}
+/* }}} */
+
+/* {{{ proto void evhttp_connection_get_peer(resource evcon, string &address, int &port);
+ * Get the remote address and port associated with this connection. */
+PHP_FUNCTION(evhttp_connection_get_peer)
+{
+	php_event_http_conn_t *evcon;
+	zval                  *zevcon;
+	zval                  *zaddress;
+	zval                  *zport;
+
+	char *address;
+	unsigned short port;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzz",
+				&zevcon, &zaddress, &zport) == FAILURE) {
+		return;
+	}
+
+	if (! (Z_ISREF_P(zaddress) && Z_ISREF_P(zport))) {
+		/* Was not passed by reference */
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	evhttp_connection_get_peer(evcon->conn, &address, &port);
+
+	ZVAL_STRING(zaddress, address, 1);
+	ZVAL_LONG(zport, port);
+}
+/* }}} */
+
+/* {{{ proto void evhttp_connection_set_local_address(resource evcon, string address);
+ * Sets the ip address from which http connections are made */
+PHP_FUNCTION(evhttp_connection_set_local_address)
+{
+	php_event_http_conn_t *evcon;
+	zval                  *zevcon;
+	char                  *address;
+	int                    address_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs",
+				&zevcon, &address, &address_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	evhttp_connection_set_local_address(evcon->conn, address);
+}
+/* }}} */
+
+/* {{{ proto void evhttp_connection_set_local_port(resource evcon, int port);
+ * Sets the port from which http connections are made */
+PHP_FUNCTION(evhttp_connection_set_local_port)
+{
+	php_event_http_conn_t *evcon;
+	zval                  *zevcon;
+	long                   port;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+				&zevcon, &port) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	evhttp_connection_set_local_port(evcon->conn, port);
+}
+/* }}} */
+
+/* {{{ proto void evhttp_connection_set_timeout(resource evcon, int timeout);
+ */
+PHP_FUNCTION(evhttp_connection_set_timeout)
+{
+	php_event_http_conn_t *evcon;
+	zval                  *zevcon;
+	long                   timeout;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+				&zevcon, &timeout) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	evhttp_connection_set_timeout(evcon->conn, timeout);
+}
+/* }}} */
+
+/* {{{ proto void evhttp_connection_set_max_headers_size(resource evcon, int max_size);
+ */
+PHP_FUNCTION(evhttp_connection_set_max_headers_size)
+{
+	php_event_http_conn_t *evcon;
+	zval                  *zevcon;
+	long                   max_size;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+				&zevcon, &max_size) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	evhttp_connection_set_max_headers_size(evcon->conn, (ev_ssize_t) max_size);
+}
+/* }}} */
+
+/* {{{ proto void evhttp_connection_set_max_body_size(resource evcon, int max_size);
+ */
+PHP_FUNCTION(evhttp_connection_set_max_body_size)
+{
+	php_event_http_conn_t *evcon;
+	zval                  *zevcon;
+	long                   max_size;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+				&zevcon, &max_size) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	evhttp_connection_set_max_body_size(evcon->conn, (ev_ssize_t) max_size);
+}
+/* }}} */
+
+/* {{{ proto void evhttp_connection_set_retries(resource evcon, int retries);
+ */
+PHP_FUNCTION(evhttp_connection_set_retries)
+{
+	php_event_http_conn_t *evcon;
+	zval                  *zevcon;
+	long                   retries;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl",
+				&zevcon, &retries) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	evhttp_connection_set_retries(evcon->conn, retries);
+}
+/* }}} */
+
+
+/* {{{ proto resource evhttp_new(resource base);
+ * Creates new http server resource.
+ */
+PHP_FUNCTION(evhttp_new)
+{
+	zval             *zbase;
+	php_event_base_t *b;
+	php_event_http_t *http;
+	struct evhttp    *http_ptr;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zbase) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(b, zbase);
+
+	http = emalloc(sizeof(php_event_http_t));
+	memset(http, 0, sizeof(php_event_http_t));
+
+	http_ptr = evhttp_new(b->base);
+	if (!http_ptr) {
+		efree(http);
+		RETURN_FALSE;
+	}
+	http->ptr = http_ptr;
+
+	http->base_id = Z_LVAL_P(zbase);
+	zend_list_addref(http->base_id);
+
+	http->stream_id = -1;
+
+	http->rsrc_id = ZEND_REGISTER_RESOURCE(return_value, http, le_event_http);
+
+	PHP_EVENT_ASSERT(http->rsrc_id);
+}
+/* }}} */
+
+/* {{{ proto void evhttp_free(resource evhttp);
+ * Free an event http server resource */
+PHP_FUNCTION(evhttp_free)
+{
+	php_event_http_t *http;
+	zval             *zhttp;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
+				&zhttp) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	zend_list_delete(http->rsrc_id);
+}
+/* }}} */
+
+/* {{{ proto bool evhttp_accept_socket(resource evhttp, resource socket);
+ * Makes an HTTP server accept connections on the specified socket stream or resource.
+ * The socket should be ready to accept connections.
+ * Can be called multiple times to accept connections on different sockets. */
+PHP_FUNCTION(evhttp_accept_socket)
+{
+	php_event_http_t  *http;
+	zval              *zhttp;
+	zval             **ppzfd;
+	evutil_socket_t    fd;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rZ",
+				&zhttp, &ppzfd) == FAILURE) {
+		return;
+	}
+
+	fd = (evutil_socket_t) zval_to_fd(ppzfd TSRMLS_CC);
+	if (fd < 0) {
+		RETURN_FALSE;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	if (evhttp_accept_socket(http->ptr, fd)) {
+		RETURN_FALSE;
+	}
+
+#if 0
+	http->stream_id = Z_LVAL_P(ppzfd);
+	zend_list_addref(Z_LVAL_P(ppzfd));
+#endif
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool evhttp_bind_socket(resource evhttp, string address, int port);
+ * Binds an HTTP server on the specified address and port.
+ * Can be called multiple times to bind the same http server to multiple different ports. */
+PHP_FUNCTION(evhttp_bind_socket)
+{
+	php_event_http_t  *http;
+	zval              *zhttp;
+	char *address;
+	int address_len;
+	long port;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl",
+				&zhttp, &address, &address_len, &port) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	if (evhttp_bind_socket(http->ptr, address, port)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
+}
+/* }}} */
 
 
 /* Extra API functions END }}} */
