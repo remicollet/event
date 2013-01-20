@@ -122,6 +122,22 @@ PHP_FUNCTION(evconnlistener_set_error_cb);
 PHP_FUNCTION(evconnlistener_get_base);
 #endif
 
+PHP_FUNCTION(evhttp_connection_base_new);
+PHP_FUNCTION(evhttp_connection_free);
+PHP_FUNCTION(evhttp_connection_get_base);
+PHP_FUNCTION(evhttp_connection_get_peer);
+PHP_FUNCTION(evhttp_connection_set_local_address);
+PHP_FUNCTION(evhttp_connection_set_local_port);
+PHP_FUNCTION(evhttp_connection_set_timeout);
+PHP_FUNCTION(evhttp_connection_set_max_headers_size);
+PHP_FUNCTION(evhttp_connection_set_max_body_size);
+PHP_FUNCTION(evhttp_connection_set_retries);
+
+PHP_FUNCTION(evhttp_new);
+PHP_FUNCTION(evhttp_free);
+PHP_FUNCTION(evhttp_accept_socket);
+PHP_FUNCTION(evhttp_bind_socket);
+
 /* Extra API END }}} */
 #endif
 

@@ -86,6 +86,20 @@ typedef struct {
 	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_listener_t;
 
+typedef struct {
+	struct evhttp_connection *conn;
+	int                       base_id;       /* Resource ID of the event base     */
+	int                       dns_base_id;   /* Resource ID of the event dns base */
+	int                       rsrc_id;       /* Resource ID of the evconnlistener */
+} php_event_http_conn_t;
+
+typedef struct {
+	struct evhttp *ptr;
+	int            rsrc_id;     /* Resource ID of the http server                */
+	int            base_id;     /* Resource ID of the event base                 */
+	int            stream_id;   /* Resource ID of socket probably being listened */
+} php_event_http_t;
+
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
 typedef struct {
