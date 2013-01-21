@@ -27,11 +27,22 @@
 # define PHP_EVENT_COMMON_THREAD_CTX
 #endif
 
-/* Represents an event */
+#define PHP_EVENT_OBJECT_HEAD \
+    zend_object  zo;          /* Extending zend_object */ \
+    HashTable   *prop_handler /* no ';' */
+
+/* php_event_abstract_object_t is for type casting only. However, all the
+ * class objects must have the same fields at the head of their structs */
 typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+} php_event_abstract_object_t; 
+
+/* Represents an event object */
+typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
 	struct event          *event;       /* Pointer returned by event_new                        */
 	int                    stream_id;   /* Resource ID of the file descriptor, or signal number */
-	int                    rsrc_id;     /* Resource ID of the event     */
 	zval                  *data;        /* User custom data                                     */
 	/* fci and fcc represent userspace callback */
 	zend_fcall_info       *fci;
@@ -108,6 +119,26 @@ typedef struct {
 } php_event_base_t;
 typedef struct event_config php_event_config_t;
 typedef double php_event_timestamp_t;
+
+typedef int (*php_event_prop_read_t)(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC);
+typedef int (*php_event_prop_write_t)(php_event_abstract_object_t *obj, zval *newval  TSRMLS_DC);
+typedef zval **(*php_event_prop_get_prop_ptr_ptr_t)(php_event_abstract_object_t *obj TSRMLS_DC);
+
+typedef struct {
+	const char                        *name;
+	size_t                             name_length;
+	php_event_prop_read_t              read_func;
+	php_event_prop_write_t             write_func;
+	php_event_prop_get_prop_ptr_ptr_t  get_ptr_ptr_func;
+} php_event_property_entry_t;
+
+typedef struct {
+	char                              *name;
+	size_t                             name_len;
+	php_event_prop_read_t              read_func;
+	php_event_prop_write_t             write_func;
+	php_event_prop_get_prop_ptr_ptr_t  get_ptr_ptr_func;
+} php_event_prop_handler_t;
 
 
 #ifndef LIBEVENT_VERSION_NUMBER

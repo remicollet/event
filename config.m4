@@ -98,7 +98,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   fi
   dnl }}}
  
-  event_src="event.c fe.c"
+  event_src="php_event.c util.c event.c base.c fe.c"
   PHP_NEW_EXTENSION(event, $event_src, $ext_shared,,$CFLAGS)
   PHP_ADD_EXTENSION_DEP(event, sockets, true)
   PHP_SUBST(EVENT_SHARED_LIBADD)
