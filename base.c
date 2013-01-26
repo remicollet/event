@@ -19,9 +19,6 @@
 #include "util.h"
 #include "priv.h"
 
-extern zend_class_entry *php_event_base_ce;
-extern zend_class_entry *php_event_config_ce;
-
 /* {{{ proto EventBase EventBase::__construct([EventConfig cfg = null]); */
 PHP_METHOD(EventBase, __construct)
 {
@@ -34,29 +31,15 @@ PHP_METHOD(EventBase, __construct)
 		return;
 	}
 
-	b = (php_event_base_t *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHP_EVENT_FETCH_BASE(b, getThis());
 
 	if (zcfg == NULL) {
 		b->base = event_base_new();
 	} else {
 		PHP_EVENT_FETCH_CONFIG(cfg, zcfg);
 
-		b->base = event_base_new_with_config(cfg);
+		b->base = event_base_new_with_config(cfg->ptr);
 	}
-}
-/* }}} */
-
-/* {{{ proto void EventBase::free(void);
-   XXX FALIAS to __destruct? */
-PHP_METHOD(EventBase, free)
-{
-	zval *self = getThis();
-
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	zval_ptr_dtor(&self);
 }
 /* }}} */
 
@@ -196,7 +179,7 @@ PHP_METHOD(EventBase, exit)
 }
 /* }}} */
 
-/* {{{ proto bool EventBase::break(void);
+/* {{{ proto bool EventBase::stop(void);
  * Tells event_base to stop. */
 PHP_METHOD(EventBase, event_base_loopbreak)
 {
@@ -216,7 +199,7 @@ PHP_METHOD(EventBase, event_base_loopbreak)
 }
 /* }}} */
 
-/* {{{ proto bool EventBase::set(resource base, resource event);
+/* {{{ proto bool EventBase::set(Event event);
  * Associate event base with an event. */
 PHP_METHOD(EventBase, set)
 {
@@ -246,9 +229,10 @@ PHP_METHOD(EventBase, set)
 }
 /* }}} */
 
-/* {{{ proto bool EventBase::gotBreak(void);
- * Checks if the event loop was told to abort immediately by <function>event_loopbreak</function> */
-PHP_METHOD(EventBase, EventBase::gotBreak)
+/* {{{ proto bool EventBase::gotStop(void);
+ *
+ * Checks if the event loop was told to abort immediately by EventBase::stop() */
+PHP_METHOD(EventBase, gotStop)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -286,7 +270,8 @@ PHP_METHOD(EventBase, gotExit)
 }
 /* }}} */
 
-/* {{{ proto double EventBase::getTimeOfDayCached(EventBase base);
+/* {{{ proto double EventBase::getTimeOfDayCached(void);
+ *
  * On success returns the current time(as returned by gettimeofday()), looking
  * at the cached value in 'base' if possible, and calling gettimeofday() or
  * clock_gettime() as appropriate if there is no cached time. On failure
@@ -312,7 +297,7 @@ PHP_METHOD(EventBase, getTimeOfDayCached)
 /* }}} */
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
-/* {{{ proto bool EventBase::updateCacheTime(resource base);
+/* {{{ proto bool EventBase::updateCacheTime(void);
  * Updates cache time. Available since libevent 2.1.1-alpha */
 PHP_METHOD(EventBase, updateCacheTime)
 {

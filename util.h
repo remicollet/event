@@ -29,12 +29,17 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC);
     ce->create_object = create_func;                                  \
 }
 
+#define PHP_EVENT_INIT_CLASS_OBJECT(pz, pce) \
+        Z_TYPE_P((pz)) = IS_OBJECT;          \
+        object_init_ex((pz), (pce));         \
+        Z_SET_REFCOUNT_P((pz), 1);           \
+        Z_SET_ISREF_P((pz))
+
 #define PHP_EVENT_FETCH_EVENT(e, ze) \
 	e = (php_event_t *) zend_object_store_get_object(ze TSRMLS_CC);
 
 #define PHP_EVENT_FETCH_BASE(base, zbase) \
 	base = (php_event_base_t *) zend_object_store_get_object(zbase TSRMLS_CC);
-
 
 #define PHP_EVENT_FETCH_CONFIG(cfg, zcfg) \
 	cfg = (php_event_config_t *) zend_object_store_get_object(zcfg TSRMLS_CC);

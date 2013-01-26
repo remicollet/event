@@ -19,9 +19,6 @@
 #include "util.h"
 #include "priv.h"
 
-extern zend_class_entry *php_event_ce;
-extern zend_class_entry *php_event_base_ce;
-
 /* {{{ Private */
 
 /* {{{ zval_to_signum */
@@ -208,8 +205,7 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 /* }}} */
 
 
-
-/* {{{ proto Event Event::__construct(EventBase, mixed fd, int what, callable cb[, zval arg = NULL]);
+/* {{{ proto Event Event::__construct(EventBase base, mixed fd, int what, callable cb[, zval arg = NULL]);
  * Creates new event */
 PHP_METHOD(Event, __construct)
 {
@@ -280,30 +276,16 @@ PHP_METHOD(Event, __construct)
 }
 /* }}} */
 
-/* {{{ proto void Event::free();
- * Free an event
- * XXX FALIAS of Event::__destruct? */
-PHP_METHOD(Event, free)
-{
-	zval *self = getThis();
-
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	/* Rely on the free-storage handler */
-	zval_ptr_dtor(&self);
-}
-/* }}} */
-
-/* {{{ proto bool Event::set(Event event, EventBase base, mixed fd,[ int what = NULL[, callable cb = NULL[, zval arg = NULL]]]);
+/* {{{ proto bool Event::set(EventBase base, mixed fd,[ int what = NULL[, callable cb = NULL[, zval arg = NULL]]]);
+ *
  * Re-configures event.
+ *
  * Note, this function doesn't invoke obsolete libevent's event_set. It calls event_assign instead.  */
 PHP_METHOD(Event, set)
 {
 	zval                   *zbase;
 	php_event_base_t       *b;
-	zval                   *zevent;
+	zval                   *zevent  = getThis();
 	php_event_t            *e;
 	zval                  **ppzfd   = NULL;
 	evutil_socket_t         fd;
@@ -312,8 +294,8 @@ PHP_METHOD(Event, set)
 	zend_fcall_info_cache   fcc     = empty_fcall_info_cache;
 	zval                   *arg     = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OOZ!|lfz!",
-				&zevent, php_event_ce, &zbase, php_event_base_ce, &ppzfd,
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OZ!|lfz!",
+				&zbase, php_event_base_ce, &ppzfd,
 				&what, &fci, &fcc, &arg) == FAILURE) {
 		return;
 	}
@@ -448,7 +430,7 @@ PHP_METHOD(Event, add)
 
 /* {{{ proto bool Event::del(void);
  * Remove an event from the set of monitored events. */
-PHP_METHOD(Event::del)
+PHP_METHOD(Event, del)
 {
 	zval        *zevent = getThis();
 	php_event_t *e;
@@ -537,10 +519,10 @@ PHP_METHOD(Event, pending)
 }
 /* }}} */
 
-/* {{{ proto bool Event::reinit(EventBase base);
+/* {{{ proto bool Event::reInit(EventBase base);
  * Re-initialize event base. Should be called after a fork.
  * XXX pthread_atfork() in MINIT */
-PHP_METHOD(Event::reinit)
+PHP_METHOD(Event, reInit)
 {
 	zval             *zbase;
 	php_event_base_t *b;
@@ -655,7 +637,7 @@ PHP_METHOD(Event, setTimer)
 }
 /* }}} */
 
-/* {{{ proto bool Event::timerPending(resource event);
+/* {{{ proto bool Event::timerPending(void);
  * Detect whether timer event is pending or scheduled.
  * XXX move to properties */
 PHP_METHOD(Event, timerPending)

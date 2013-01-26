@@ -55,7 +55,7 @@ typedef struct {
 typedef struct {
 	struct bufferevent    *bevent;
 	int                    stream_id;   /* Resource ID of the file descriptor */
-	int                    rsrc_id;     /* Resource ID of the bufferevent     */
+	zval                  *self;        /* Object itself. For callbacks       */
 	zval                  *data;        /* User custom data                   */
 
     /* fci and fcc members represent userspace callbacks */
@@ -71,21 +71,19 @@ typedef struct {
 
 typedef struct {
 	struct evbuffer *buf;
-	int              rsrc_id;   /* Resource ID of the event buffer */
 } php_event_buffer_t;
 
 #ifdef HAVE_EVENT_EXTRA_LIB/* {{{ */
 
 typedef struct {
 	struct evdns_base *dns_base;
-	int                rsrc_id;    /* Resource ID of the dns base */
 } php_event_dns_base_t;
 
 typedef struct {
 	struct evconnlistener *listener;
 	int                    stream_id;   /* Resource ID of the socket file descriptor */
-	int                    base_id;     /* Resource ID of the event base      */
-	int                    rsrc_id;     /* Resource ID of the evconnlistener         */
+	zval                  *self;        /* Object itself. For callbacks              */
+	zval                  *base;        /* Event base associated with the listener   */
 	zval                  *data;        /* User custom data passed to callback       */
 	/* Accept callback */
 	zend_fcall_info       *fci;
@@ -99,15 +97,13 @@ typedef struct {
 
 typedef struct {
 	struct evhttp_connection *conn;
-	int                       base_id;       /* Resource ID of the event base     */
-	int                       dns_base_id;   /* Resource ID of the event dns base */
-	int                       rsrc_id;       /* Resource ID of the evconnlistener */
+	zval                     *base;       /* Event base associated with the listener */
+	zval                     *dns_base;   /* Associated EventDnsBase                 */
 } php_event_http_conn_t;
 
 typedef struct {
 	struct evhttp *ptr;
-	int            rsrc_id;     /* Resource ID of the http server                */
-	int            base_id;     /* Resource ID of the event base                 */
+	zval          *base;        /* Event base associated with the listener       */
 	int            stream_id;   /* Resource ID of socket probably being listened */
 } php_event_http_t;
 
@@ -115,9 +111,12 @@ typedef struct {
 
 typedef struct {
 	struct event_base *base;
-	int                rsrc_id;   /* Resource ID of the event base */
 } php_event_base_t;
-typedef struct event_config php_event_config_t;
+
+typedef struct {
+	struct event_config *ptr;
+} php_event_config_t;
+
 typedef double php_event_timestamp_t;
 
 typedef int (*php_event_prop_read_t)(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC);
