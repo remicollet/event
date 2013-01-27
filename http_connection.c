@@ -21,7 +21,7 @@
 
 /* {{{ proto EventHttpConnection EventHttpConnection::__construct(EventBase base, EventDnsBase dns_base, string address, int port);
  * */
-PHP_METHOD(EventHttpConnection, connection_base_new)
+PHP_METHOD(EventHttpConnection, __construct)
 {
 	zval                     *zbase;
 	php_event_base_t         *b;
@@ -177,7 +177,7 @@ PHP_METHOD(EventHttpConnection, setTimeout)
 
 /* {{{ proto void EventHttpConnection::setMaxHeadersSize(int max_size);
  */
-PHP_METHOD(EventHttpConnection, connection_set_max_headers_size)
+PHP_METHOD(EventHttpConnection, setMaxHeadersSize)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
@@ -215,7 +215,7 @@ PHP_METHOD(EventHttpConnection, setMaxBodySize)
 
 /* {{{ proto void EventHttpConnection::setRetries(int retries);
  */
-PHP_METHOD(EventHttpConnection, connection_set_retries)
+PHP_METHOD(EventHttpConnection, setRetries)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;

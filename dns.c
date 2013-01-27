@@ -200,7 +200,7 @@ PHP_METHOD(EventDnsBase, addSearch)
 
 /* {{{ proto void EventDnsBase::setSearchNdots(int ndots);
  */
-PHP_METHOD(EventDnsBase, base_search_ndots_set)
+PHP_METHOD(EventDnsBase, setSearchNdots)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();
@@ -245,7 +245,7 @@ PHP_METHOD(EventDnsBase, setOption)
 
 /* {{{ proto int EventDnsBase::countNameservers(void);
  */
-PHP_METHOD(EventDnsBase, base_count_nameservers)
+PHP_METHOD(EventDnsBase, countNameservers)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();

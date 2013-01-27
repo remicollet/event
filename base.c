@@ -56,7 +56,7 @@ PHP_METHOD(EventBase, getMethod)
 
 	PHP_EVENT_FETCH_BASE(b, zbase);
 
-	RETVAL_STRING(event_base_get_method(b->base), 1);
+	RETURN_STRING((char *)event_base_get_method(b->base), 1);
 }
 /* }}} */
 
@@ -181,7 +181,7 @@ PHP_METHOD(EventBase, exit)
 
 /* {{{ proto bool EventBase::stop(void);
  * Tells event_base to stop. */
-PHP_METHOD(EventBase, event_base_loopbreak)
+PHP_METHOD(EventBase, stop)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;

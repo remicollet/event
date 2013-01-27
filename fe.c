@@ -423,8 +423,10 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 /* }}} */
 
 const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
-	PHP_ME(EventUtil, getLastSocketErrno, arginfo_event_socket_1, ZEND_ACC_PUBLIC)
-	PHP_ME(EventUtil, getLastSocketError, arginfo_event_socket_1, ZEND_ACC_PUBLIC)
+	PHP_ABSTRACT_ME(EventUtil, __construct, NULL)
+
+	PHP_ME(EventUtil, getLastSocketErrno, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, getLastSocketError, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 	PHP_FE_END
 };

@@ -269,7 +269,6 @@ static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 /* }}} */
 
 
-
 /* {{{ register_object */
 static zend_always_inline zend_object_value register_object(zend_class_entry *ce, void *obj, zend_objects_free_object_storage_t func_free_storage TSRMLS_DC)
 {
@@ -287,12 +286,14 @@ static zend_always_inline zend_object_value register_object(zend_class_entry *ce
 /* {{{ object_new
  * Allocates new object with it's properties.
  * size is a size of struct implementing php_event_abstract_object_t */
-static php_event_abstract_object_t *object_new(zend_class_entry *ce, size_t size TSRMLS_DC)
+static void *object_new(zend_class_entry *ce, size_t size TSRMLS_DC)
 {
+	void *ptr;
 	php_event_abstract_object_t *obj;
 	zend_class_entry *ce_parent = ce;
 
-	obj = ecalloc(1, sizeof(size));
+	ptr = ecalloc(1, sizeof(size));
+	obj = (php_event_abstract_object_t *) ptr;
 
 	while (ce_parent->type != ZEND_INTERNAL_CLASS && ce_parent->parent != NULL) {
 		ce_parent = ce_parent->parent;
@@ -303,7 +304,7 @@ static php_event_abstract_object_t *object_new(zend_class_entry *ce, size_t size
 	zend_object_std_init(&obj->zo, ce TSRMLS_CC);
 	object_properties_init(&obj->zo, ce);
 
-	return obj;
+	return ptr;
 }
 /* }}} */
 
@@ -312,7 +313,7 @@ static php_event_abstract_object_t *object_new(zend_class_entry *ce, size_t size
  * Event object ctor */
 static zend_object_value event_object_create(zend_class_entry *ce TSRMLS_DC)
 {
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_object_free_storage TSRMLS_CC);
 }
@@ -322,7 +323,7 @@ static zend_object_value event_object_create(zend_class_entry *ce TSRMLS_DC)
  * EventBase object ctor */
 static zend_object_value event_base_object_create(zend_class_entry *ce TSRMLS_DC)
 {
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_base_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_base_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_base_object_free_storage TSRMLS_CC);
 }
@@ -332,7 +333,7 @@ static zend_object_value event_base_object_create(zend_class_entry *ce TSRMLS_DC
  * EventConfig object ctor */
 static zend_object_value event_config_object_create(zend_class_entry *ce TSRMLS_DC)
 {
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_config_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_config_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_config_object_free_storage TSRMLS_CC);
 }
@@ -342,7 +343,7 @@ static zend_object_value event_config_object_create(zend_class_entry *ce TSRMLS_
  * EventBufferEvent object ctor */
 static zend_object_value event_bevent_object_create(zend_class_entry *ce TSRMLS_DC)
 {
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_bevent_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_bevent_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_bevent_object_free_storage TSRMLS_CC);
 }
@@ -352,7 +353,7 @@ static zend_object_value event_bevent_object_create(zend_class_entry *ce TSRMLS_
  * EventBuffer object ctor */
 static zend_object_value event_buffer_object_create(zend_class_entry *ce TSRMLS_DC)
 {
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_buffer_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_buffer_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_buffer_object_free_storage TSRMLS_CC);
 }
@@ -364,7 +365,7 @@ static zend_object_value event_buffer_object_create(zend_class_entry *ce TSRMLS_
  * EventDnsBase object ctor */
 static zend_object_value event_dns_base_object_create(zend_class_entry *ce TSRMLS_DC)
 {
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_dns_base_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_dns_base_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_dns_base_object_free_storage TSRMLS_CC);
 }
@@ -374,7 +375,7 @@ static zend_object_value event_dns_base_object_create(zend_class_entry *ce TSRML
  * EventListener object ctor */
 static zend_object_value event_listener_object_create(zend_class_entry *ce TSRMLS_DC)
 {
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_listener_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_listener_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_listener_object_free_storage TSRMLS_CC);
 }
@@ -384,7 +385,7 @@ static zend_object_value event_listener_object_create(zend_class_entry *ce TSRML
  * EventHttpConnection object ctor */
 static zend_object_value event_http_conn_object_create(zend_class_entry *ce TSRMLS_DC)
 {
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_http_conn_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_conn_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_http_conn_object_free_storage TSRMLS_CC);
 }
@@ -394,7 +395,7 @@ static zend_object_value event_http_conn_object_create(zend_class_entry *ce TSRM
  * EventHttp object ctor */
 static zend_object_value event_http_object_create(zend_class_entry *ce TSRMLS_DC)
 {
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_http_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_http_object_free_storage TSRMLS_CC);
 }
@@ -409,7 +410,7 @@ static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC
 	/* EventUtil is a singleton. This function must never be called */
 	PHP_EVENT_ASSERT(0);
 
-	php_event_abstract_object_t *obj = object_new(ce, sizeof(php_event_abstract_object_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_abstract_object_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, event_generic_object_free_storage TSRMLS_CC);
 }
@@ -472,6 +473,7 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			php_event_util_ce_functions);
 	ce = php_event_util_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
 }
 /* }}} */
 
@@ -754,6 +756,8 @@ PHP_MINIT_FUNCTION(event)
 
 	zend_hash_init(&classes, 0, NULL, NULL, 1);
 	register_classes(TSRMLS_C);
+
+	/* XXX Move constants to corresponding classes */
 
 	/* Loop flags */
 	PHP_EVENT_REG_CONST_LONG(EVENT_LOOP_ONCE,     EVLOOP_ONCE);

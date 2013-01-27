@@ -577,7 +577,7 @@ PHP_METHOD(EventBufferEvent,disable)
 
 /* {{{ proto int EventBufferEvent::getEnabled(void);
  * Returns bitmask of events currently enabled on the buffer event. */
-PHP_METHOD(EventBufferEvent,get_enabled)
+PHP_METHOD(EventBufferEvent, getEnabled)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -638,7 +638,7 @@ PHP_METHOD(EventBufferEvent, getOutput)
 
 /* {{{ proto void EventBufferEvent::setWatermark(int events, int lowmark, int highmark);
  * Adjusts the read watermarks, the write watermarks, or both, of a single bufferevent. */
-PHP_METHOD(EventBufferEvent,setwatermark)
+PHP_METHOD(EventBufferEvent, setWatermark)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -684,7 +684,7 @@ PHP_METHOD(EventBufferEvent, write)
 
 /* {{{ proto bool EventBufferEvent::writeBuffer(EventBuffer buf);
  * Adds contents of the entire buffer to a buffer event's output buffer. */
-PHP_METHOD(EventBufferEvent,write_buffer)
+PHP_METHOD(EventBufferEvent, writeBuffer)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -801,7 +801,7 @@ PHP_METHOD(EventBufferEvent, setPriority)
 
 /* {{{ proto bool EventBufferEvent::setTimeouts(double timeout_read, double timeout_write);
  * Set the read and write timeout for a bufferevent. */
-PHP_METHOD(EventBufferEvent,set_timeouts)
+PHP_METHOD(EventBufferEvent, setTimeouts)
 {
 	zval               *zbevent       = getThis();
 	php_event_bevent_t *bev;

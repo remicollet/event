@@ -83,7 +83,7 @@ PHP_METHOD(EventBuffer, unfreeze)
 /* {{{ proto long EventBuffer::getLength(void);
  * XXX Create property?
  * Returns the total number of bytes stored in the event buffer. */
-PHP_METHOD(EventBuffer, get_length)
+PHP_METHOD(EventBuffer, getLength)
 {
 	zval               *zbuf = getThis();
 	php_event_buffer_t *b;
@@ -188,7 +188,7 @@ PHP_METHOD(EventBuffer, add)
  * Move all data from one evbuffer into another evbuffer.
  * This is a destructive add. The data from one buffer moves into the other buffer. However, no unnecessary memory copies occur.
  */
-PHP_METHOD(EventBuffer, add_buffer)
+PHP_METHOD(EventBuffer, addBuffer)
 {
 	php_event_buffer_t *b_out     , *b_in;
 	zval               *zbuf_out  , *zbuf_in;

@@ -420,7 +420,7 @@ PHP_METHOD(EventListener, setCallback)
 /* {{{ proto void EventListener::setErrorCallback(callable cb);
  * Set event listener's error callback
  */
-PHP_METHOD(EventListener, set_error_cb)
+PHP_METHOD(EventListener, setErrorCallback)
 {
 	zval                  *zlistener = getThis();
 	php_event_listener_t  *l;
