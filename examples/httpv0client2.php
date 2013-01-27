@@ -1,7 +1,7 @@
 <?php
 /*
  * 1. Connect to 127.0.0.1 at port 80
- * by means of bufferevent_socket_connect().
+ * by means of EventBufferEvent::connect().
  *
  * 2. Request /index.cphp via HTTP/1.0
  * using the output buffer.
@@ -11,43 +11,46 @@
 
 /* Read callback */
 function readcb($bev, $base) {
-	$input = bufferevent_get_input($bev);
+	echo __FUNCTION__, PHP_EOL;
+	$input = $bev->getInput();
 
-	while (($n = evbuffer_remove($input, $buf, 1024)) > 0) {
+	while (($n = $input->remove($buf, 1024)) > 0) {
 		echo $buf;
 	}
 }
 
 /* Event callback */
 function eventcb($bev, $events, $base) {
-	if ($events & EVENT_BEV_EVENT_CONNECTED) {
+	if ($events & EventBufferEvent::CONNECTED) {
 		echo "Connected.\n";
-	} elseif ($events & (EVENT_BEV_EVENT_ERROR | EVENT_BEV_EVENT_EOF)) {
-		if ($events & EVENT_BEV_EVENT_ERROR) {
-			echo "DNS error: ", bufferevent_socket_get_dns_error($bev), PHP_EOL;
+	} elseif ($events & (EventBufferEvent::ERROR | EventBufferEvent::EOF)) {
+		if ($events & EventBufferEvent::ERROR) {
+			echo "DNS error: ", $bev->getDnsErrorString(), PHP_EOL;
 		}
 
 		echo "Closing\n";
-		bufferevent_free($bev);
-		event_base_loopexit($base);
+		$base->exit();
 		exit("Done\n");
 	}
 }
 
-$base = event_base_new();
+$base = new EventBase();
 
-$bev = bufferevent_socket_new($base, /* use internal socket */ NULL,
-	EVENT_BEV_OPT_CLOSE_ON_FREE | EVENT_BEV_OPT_DEFER_CALLBACKS);
+echo "step 1\n";
+$bev = new EventBufferEvent($base, /* use internal socket */ NULL,
+	EventBufferEvent::OPT_CLOSE_ON_FREE | EventBufferEvent::OPT_DEFER_CALLBACKS);
 if (!$bev) {
 	exit("Failed creating bufferevent socket\n");
 }
 
-bufferevent_setcb($bev, "readcb", /* writecb */ NULL, "eventcb", $base);
-bufferevent_enable($bev, EVENT_READ | EVENT_WRITE);
+echo "step 2\n";
+$bev->setCallbacks("readcb", /* writecb */ NULL, "eventcb", $base);
+$bev->enable(Event::READ | Event::WRITE);
 
+echo "step 3\n";
 /* Send request */
-$output = bufferevent_get_output($bev);
-if (!evbuffer_add($output,
+$output = $bev->getOutput();
+if (!$output->add(
 	"GET /index.cphp HTTP/1.0\r\n".
 	"Connection: Close\r\n\r\n"
 )) {
@@ -56,9 +59,9 @@ if (!evbuffer_add($output,
 
 /* Connect to the host syncronously.
  * We know the IP, and don't need to resolve DNS. */
-if (!bufferevent_socket_connect($bev, "127.0.0.1:80")) {
+if (!$bev->connect("127.0.0.1:80")) {
 	exit("Can't connect to host\n");
 }
 
 /* Dispatch pending events */
-event_base_dispatch($base);
+$base->dispatch();

@@ -188,13 +188,10 @@ PHP_METHOD(EventBufferEvent, __construct)
 
 	if (ppzfd) {
 #ifdef PHP_EVENT_SOCKETS_SUPPORT 
-		if (ppzfd) {
-			/* php_event_zval_to_fd reports error
-	 	 	 * in case if it is not a valid socket resource */
-			/*fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);*/
-			fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
-
-		}
+		/* php_event_zval_to_fd reports error
+	 	 * in case if it is not a valid socket resource */
+		/*fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);*/
+		fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
 
 		if (fd < 0) {
 			RETURN_FALSE;
@@ -607,8 +604,6 @@ PHP_METHOD(EventBufferEvent, getInput)
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_ce);
-
-
 	PHP_EVENT_FETCH_BUFFER(b, return_value);
 
 	b->buf = bufferevent_get_input(bev->bevent);
