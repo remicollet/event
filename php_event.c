@@ -40,6 +40,21 @@ zend_class_entry *php_event_http_ce;
 
 static HashTable classes;
 
+static HashTable event_properties;
+static HashTable event_base_properties;
+static HashTable event_config_properties;
+static HashTable event_bevent_properties;
+static HashTable event_buffer_properties;
+static HashTable event_buffer_properties;
+static HashTable event_util_properties;
+
+#if HAVE_EVENT_EXTRA_LIB
+static HashTable event_dns_base_properties;
+static HashTable event_listener_properties;
+static HashTable event_http_conn_properties;
+static HashTable event_http_properties;
+#endif
+
 static zend_object_handlers object_handlers;
 
 static const zend_module_dep event_deps[] = {
@@ -80,11 +95,13 @@ ZEND_GET_MODULE(event)
 /* {{{ event_generic_object_free_storage */
 static zend_always_inline void event_generic_object_free_storage(void *ptr TSRMLS_DC)
 {
+	PHP_EVENT_ASSERT(ptr);
+
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) ptr;
 
 	zend_object_std_dtor(&obj->zo TSRMLS_CC);
 
-	efree(obj);
+	efree(ptr);
 }
 /* }}} */
 
@@ -288,12 +305,11 @@ static zend_always_inline zend_object_value register_object(zend_class_entry *ce
  * size is a size of struct implementing php_event_abstract_object_t */
 static void *object_new(zend_class_entry *ce, size_t size TSRMLS_DC)
 {
-	void *ptr;
 	php_event_abstract_object_t *obj;
 	zend_class_entry *ce_parent = ce;
 
-	ptr = ecalloc(1, sizeof(size));
-	obj = (php_event_abstract_object_t *) ptr;
+	obj = ecalloc(1, size);
+	obj->prop_handler = NULL;
 
 	while (ce_parent->type != ZEND_INTERNAL_CLASS && ce_parent->parent != NULL) {
 		ce_parent = ce_parent->parent;
@@ -304,7 +320,7 @@ static void *object_new(zend_class_entry *ce, size_t size TSRMLS_DC)
 	zend_object_std_init(&obj->zo, ce TSRMLS_CC);
 	object_properties_init(&obj->zo, ce);
 
-	return ptr;
+	return (void *) obj;
 }
 /* }}} */
 
@@ -359,6 +375,19 @@ static zend_object_value event_buffer_object_create(zend_class_entry *ce TSRMLS_
 }
 /* }}} */
 
+/* {{{ event_util_object_create
+ * EventUtil object ctor */
+static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC)
+{
+	/* EventUtil is a singleton. This function must never be called */
+	PHP_EVENT_ASSERT(0);
+
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_abstract_object_t) TSRMLS_CC);
+
+	return register_object(ce, (void *) obj, event_generic_object_free_storage TSRMLS_CC);
+}
+/* }}} */
+
 #if HAVE_EVENT_EXTRA_LIB
 
 /* {{{ event_dns_base_object_create
@@ -402,80 +431,6 @@ static zend_object_value event_http_object_create(zend_class_entry *ce TSRMLS_DC
 /* }}} */
 
 #endif /* HAVE_EVENT_EXTRA_LIB */
-
-/* {{{ event_util_object_create
- * EventUtil object ctor */
-static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC)
-{
-	/* EventUtil is a singleton. This function must never be called */
-	PHP_EVENT_ASSERT(0);
-
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_abstract_object_t) TSRMLS_CC);
-
-	return register_object(ce, (void *) obj, event_generic_object_free_storage TSRMLS_CC);
-}
-/* }}} */
-
-/* {{{ register_classes */
-static zend_always_inline void register_classes(TSRMLS_D)
-{
-	zend_class_entry *ce;
-
-	PHP_EVENT_REGISTER_CLASS("Event", event_object_create, php_event_ce, php_event_ce_functions);
-	ce = php_event_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-	PHP_EVENT_REGISTER_CLASS("EventBase", event_base_object_create, php_event_base_ce,
-			php_event_base_ce_functions);
-	ce = php_event_base_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-	PHP_EVENT_REGISTER_CLASS("EventConfig", event_config_object_create, php_event_config_ce,
-			php_event_config_ce_functions);
-	ce = php_event_config_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-	PHP_EVENT_REGISTER_CLASS("EventBufferEvent", event_bevent_object_create, php_event_bevent_ce,
-			php_event_bevent_ce_functions);
-	ce = php_event_bevent_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-	PHP_EVENT_REGISTER_CLASS("EventBuffer", event_buffer_object_create, php_event_buffer_ce,
-			php_event_buffer_ce_functions);
-	ce = php_event_buffer_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-#if HAVE_EVENT_EXTRA_LIB
-
-	PHP_EVENT_REGISTER_CLASS("EventDnsBase", event_dns_base_object_create, php_event_dns_base_ce,
-			php_event_dns_base_ce_functions);
-	ce = php_event_dns_base_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-	PHP_EVENT_REGISTER_CLASS("EventListener", event_listener_object_create, php_event_listener_ce,
-			php_event_listener_ce_functions);
-	ce = php_event_listener_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-	PHP_EVENT_REGISTER_CLASS("EventHttpConnection", event_http_conn_object_create, php_event_http_conn_ce,
-			php_event_http_conn_ce_functions);
-	ce = php_event_http_conn_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-	PHP_EVENT_REGISTER_CLASS("EventHttp", event_http_object_create, php_event_http_ce,
-			php_event_http_ce_functions);
-	ce = php_event_http_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-#endif /* HAVE_EVENT_EXTRA_LIB */
-
-	PHP_EVENT_REGISTER_CLASS("EventUtil", event_util_object_create, php_event_util_ce,
-			php_event_util_ce_functions);
-	ce = php_event_util_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
-}
-/* }}} */
 
 
 /* {{{ fatal_error_cb
@@ -524,6 +479,36 @@ static void log_cb(int severity, const char *msg)
 }
 /* }}} */
 
+
+/* {{{ read_property_default */
+static int read_property_default(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	*retval = NULL;
+	php_error_docref(NULL TSRMLS_CC, E_ERROR, "Cannot read property");
+	return FAILURE;
+}
+/* }}} */
+
+/* {{{ write_property_default */
+static int write_property_default(php_event_abstract_object_t *obj, zval *newval TSRMLS_DC)
+{
+	php_error_docref(NULL TSRMLS_CC, E_ERROR, "Cannot write property");
+	return FAILURE;
+}
+/* }}} */
+
+/* {{{ add_property */
+static void add_property(HashTable *h, const char *name, size_t name_len, php_event_prop_read_t read_func, php_event_prop_write_t write_func, php_event_prop_get_prop_ptr_ptr_t get_ptr_ptr_func TSRMLS_DC) {
+	php_event_prop_handler_t p;
+
+	p.name             = (char *) name;
+	p.name_len         = name_len;
+	p.read_func        = (read_func) ? read_func : read_property_default;
+	p.write_func       = (write_func) ? write_func: write_property_default;
+	p.get_ptr_ptr_func = get_ptr_ptr_func;
+	zend_hash_add(h, name, name_len + 1, &p, sizeof(php_event_prop_handler_t), NULL);
+}
+/* }}} */
 
 /* {{{ read_property */
 static zval *read_property(zval *object, zval *member, int type, const zend_literal *key TSRMLS_DC)
@@ -617,39 +602,41 @@ static int object_has_property(zval *object, zval *member, int has_set_exists, c
 	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
 
 
-	if (zend_hash_find(obj->prop_handler, Z_STRVAL_P(member),
-				Z_STRLEN_P(member) + 1, (void **) &p) == SUCCESS) {
-	    switch (has_set_exists) {
-	        case 2:
-	            ret = 1;
-	            break;
-	        case 1: {
-	                	zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
-	                	if (value != EG(uninitialized_zval_ptr)) {
-	                	    convert_to_boolean(value);
-	                	    ret = Z_BVAL_P(value)? 1:0;
-	                	    /* refcount is 0 */
-	                	    Z_ADDREF_P(value);
-	                	    zval_ptr_dtor(&value);
+	if (obj->prop_handler) {
+		if (zend_hash_find(obj->prop_handler, Z_STRVAL_P(member),
+					Z_STRLEN_P(member) + 1, (void **) &p) == SUCCESS) {
+	    	switch (has_set_exists) {
+	        	case 2:
+	            	ret = 1;
+	            	break;
+	        	case 1: {
+	                		zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
+	                		if (value != EG(uninitialized_zval_ptr)) {
+	                	    	convert_to_boolean(value);
+	                	    	ret = Z_BVAL_P(value)? 1:0;
+	                	    	/* refcount is 0 */
+	                	    	Z_ADDREF_P(value);
+	                	    	zval_ptr_dtor(&value);
+	                		}
+	                		break;
 	                	}
-	                	break;
-	                }
-	        case 0:{
-	                   zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
-	                   if (value != EG(uninitialized_zval_ptr)) {
-	                	   ret = Z_TYPE_P(value) != IS_NULL? 1:0;
-	                	   /* refcount is 0 */
-	                	   Z_ADDREF_P(value);
-	                	   zval_ptr_dtor(&value);
-	                   }
-	                   break;
-	               }
-	        default:
-	               php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid value for has_set_exists");
-	    }
-	} else {
-	    zend_object_handlers *std_hnd = zend_get_std_object_handlers();
-	    ret = std_hnd->has_property(object, member, has_set_exists, key TSRMLS_CC);
+	        	case 0:{
+	                   	   zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
+	                   	   if (value != EG(uninitialized_zval_ptr)) {
+	                	   	   ret = Z_TYPE_P(value) != IS_NULL? 1:0;
+	                	   	   /* refcount is 0 */
+	                	   	   Z_ADDREF_P(value);
+	                	   	   zval_ptr_dtor(&value);
+	                   	   }
+	                   	   break;
+	               	   }
+	        	default:
+	               	   php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid value for has_set_exists");
+	    	}
+		} else {
+	    	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
+	    	ret = std_hnd->has_property(object, member, has_set_exists, key TSRMLS_CC);
+		}
 	}
 	return ret;
 }
@@ -669,6 +656,7 @@ static HashTable *object_get_debug_info(zval *object, int *is_temp TSRMLS_DC)
 	props = obj->prop_handler;
 
 	ALLOC_HASHTABLE(retval);
+
 	ZEND_INIT_SYMTABLE_EX(retval, zend_hash_num_elements(props) + 1, 0);
 
 	zend_hash_internal_pointer_reset_ex(props, &pos);
@@ -732,11 +720,108 @@ static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_litera
 /* }}} */
 
 
+
+
+/* {{{ register_classes */
+static zend_always_inline void register_classes(TSRMLS_D)
+{
+	zend_class_entry *ce;
+
+	PHP_EVENT_REGISTER_CLASS("Event", event_object_create, php_event_ce, php_event_ce_functions);
+	ce = php_event_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+	PHP_EVENT_REGISTER_CLASS("EventBase", event_base_object_create, php_event_base_ce,
+			php_event_base_ce_functions);
+	ce = php_event_base_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+	zend_hash_init(&event_base_properties, 0, NULL, NULL, 1);
+	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_base_properties, event_base_property_entries);
+	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_base_property_entry_info);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_properties, sizeof(event_base_properties), NULL);
+
+	PHP_EVENT_REGISTER_CLASS("EventConfig", event_config_object_create, php_event_config_ce,
+			php_event_config_ce_functions);
+	ce = php_event_config_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+	PHP_EVENT_REGISTER_CLASS("EventBufferEvent", event_bevent_object_create, php_event_bevent_ce,
+			php_event_bevent_ce_functions);
+	ce = php_event_bevent_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+	PHP_EVENT_REGISTER_CLASS("EventBuffer", event_buffer_object_create, php_event_buffer_ce,
+			php_event_buffer_ce_functions);
+	ce = php_event_buffer_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+#if HAVE_EVENT_EXTRA_LIB
+
+	PHP_EVENT_REGISTER_CLASS("EventDnsBase", event_dns_base_object_create, php_event_dns_base_ce,
+			php_event_dns_base_ce_functions);
+	ce = php_event_dns_base_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+	PHP_EVENT_REGISTER_CLASS("EventListener", event_listener_object_create, php_event_listener_ce,
+			php_event_listener_ce_functions);
+	ce = php_event_listener_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+	PHP_EVENT_REGISTER_CLASS("EventHttpConnection", event_http_conn_object_create, php_event_http_conn_ce,
+			php_event_http_conn_ce_functions);
+	ce = php_event_http_conn_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+	PHP_EVENT_REGISTER_CLASS("EventHttp", event_http_object_create, php_event_http_ce,
+			php_event_http_ce_functions);
+	ce = php_event_http_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+#endif /* HAVE_EVENT_EXTRA_LIB */
+
+	PHP_EVENT_REGISTER_CLASS("EventUtil", event_util_object_create, php_event_util_ce,
+			php_event_util_ce_functions);
+	ce = php_event_util_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+}
+/* }}} */
+
+
+
 /* Private functions }}} */
 
 
+/* XXX remove after moving constants to classes */
 #define PHP_EVENT_REG_CONST_LONG(name, real_name) \
     REGISTER_LONG_CONSTANT(#name, real_name, CONST_CS | CONST_PERSISTENT);
+
+#define PHP_EVENT_ADD_CLASS_PROPERTIES(a, b)                                           \
+{                                                                                      \
+    int i = 0;                                                                         \
+    while (b[i].name != NULL) {                                                        \
+        add_property((a), (b)[i].name, (b)[i].name_length,                             \
+                (php_event_prop_read_t)(b)[i].read_func,                               \
+                (php_event_prop_write_t)(b)[i].write_func,                             \
+                (php_event_prop_get_prop_ptr_ptr_t)(b)[i].get_ptr_ptr_func TSRMLS_CC); \
+        i++;                                                                           \
+    }                                                                                  \
+}
+
+#define PHP_EVENT_DECL_CLASS_PROPERTIES(a, b)                            \
+{                                                                        \
+    int i = 0;                                                           \
+    while (b[i].name != NULL) {                                          \
+        zend_declare_property_null((a), (b)[i].name, (b)[i].name_length, \
+                ZEND_ACC_PUBLIC TSRMLS_CC);                              \
+        i++;                                                             \
+    }                                                                    \
+}
+
+#define REGISTER_EVENT_CLASS_CONST_LONG((pce), const_name, value) \
+    zend_declare_class_constant_long((pce), #const_name,          \
+            sizeof(#const_name) - 1, (long) value TSRMLS_CC)
+
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
