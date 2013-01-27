@@ -60,7 +60,7 @@ PHP_METHOD(EventHttp, __construct)
 PHP_METHOD(EventHttp, accept)
 {
 	php_event_http_t  *http;
-	zval              *zhttp;
+	zval              *zhttp = getThis();
 	zval             **ppzfd;
 	evutil_socket_t    fd;
 

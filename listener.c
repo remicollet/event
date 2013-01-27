@@ -228,12 +228,12 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 /* Private }}} */
 
 
-/* {{{ proto EventListener EventListener::__construct(EventBase base, callable cb, mixed data, int flags, int backlog, mixed addr);
+/* {{{ proto EventListener EventListener::__construct(EventBase base, callable cb, mixed data, int flags, int backlog, mixed target);
  *
  * Creates new connection listener associated with an event base.
  *
- * addr parameter may be string, socket resource, or a stream associated with a socket.
- * In case if addr is a string, the string will be parsed as network address.
+ * target parameter may be string, socket resource, or a stream associated with a socket.
+ * In case if target is a string, the string will be parsed as network address.
  *
  * Returns resource representing the event connection listener.
  */
@@ -246,24 +246,24 @@ PHP_METHOD(EventListener, __construct)
 	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
 	php_event_listener_t  *l;
 	zval                  *zdata    = NULL;
-	zval                  *zaddr;
+	zval                 **ppztarget;
 	long                   flags;
 	long                   backlog;
 	struct evconnlistener *listener;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ofz!llz",
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ofz!llZ",
 				&zbase, php_event_base_ce,
-				&fci, &fcc, &zdata, &flags, &backlog, &zaddr) == FAILURE) {
+				&fci, &fcc, &zdata, &flags, &backlog, &ppztarget) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_BASE(base, zbase);
 
-	if (Z_TYPE_P(zaddr) == IS_STRING) {
+	if (Z_TYPE_PP(ppztarget) == IS_STRING) {
 		struct sockaddr sa;
 		socklen_t       sa_len = sizeof(struct sockaddr);
 
-		if (php_network_parse_network_address_with_port(Z_STRVAL_P(zaddr), Z_STRLEN_P(zaddr),
+		if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget), Z_STRLEN_PP(ppztarget),
 					&sa, &sa_len TSRMLS_CC) != SUCCESS) {
 			RETURN_FALSE;
 		}
@@ -276,13 +276,12 @@ PHP_METHOD(EventListener, __construct)
 			return;
 		}
 		l->listener = listener;
-	} else { /* zaddr is not string */
-		zval            **ppzfd;
+	} else { /* ppztarget is not string */
 		evutil_socket_t   fd    = -1;
 
 		/* php_event_zval_to_fd reports error
 	 	 * in case if it is not a valid socket resource */
-		fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
+		fd = php_event_zval_to_fd(ppztarget TSRMLS_CC);
 		if (fd < 0) {
 			return;
 		}
@@ -304,10 +303,10 @@ PHP_METHOD(EventListener, __construct)
 		 * thus producing new file descriptor. The new descriptor is available
 		 * in _php_event_listener_cb() callback. */
 
-		if (Z_TYPE_PP(ppzfd) == IS_RESOURCE) {
-			/* lval of ppzfd is the resource ID */
-			l->stream_id = Z_LVAL_PP(ppzfd);
-			zend_list_addref(Z_LVAL_PP(ppzfd));
+		if (Z_TYPE_PP(ppztarget) == IS_RESOURCE) {
+			/* lval of ppztarget is the resource ID */
+			l->stream_id = Z_LVAL_PP(ppztarget);
+			zend_list_addref(Z_LVAL_PP(ppztarget));
 		} else {
 			l->stream_id = -1;
 		}
