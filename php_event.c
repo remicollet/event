@@ -720,7 +720,27 @@ static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_litera
 /* }}} */
 
 
+#define PHP_EVENT_ADD_CLASS_PROPERTIES(a, b)                                           \
+{                                                                                      \
+    int i = 0;                                                                         \
+    while (b[i].name != NULL) {                                                        \
+        add_property((a), (b)[i].name, (b)[i].name_length,                             \
+                (php_event_prop_read_t)(b)[i].read_func,                               \
+                (php_event_prop_write_t)(b)[i].write_func,                             \
+                (php_event_prop_get_prop_ptr_ptr_t)(b)[i].get_ptr_ptr_func TSRMLS_CC); \
+        i++;                                                                           \
+    }                                                                                  \
+}
 
+#define PHP_EVENT_DECL_CLASS_PROPERTIES(a, b)                            \
+{                                                                        \
+    int i = 0;                                                           \
+    while (b[i].name != NULL) {                                          \
+        zend_declare_property_null((a), (b)[i].name, (b)[i].name_length, \
+                ZEND_ACC_PUBLIC TSRMLS_CC);                              \
+        i++;                                                             \
+    }                                                                    \
+}
 
 /* {{{ register_classes */
 static zend_always_inline void register_classes(TSRMLS_D)
@@ -787,41 +807,12 @@ static zend_always_inline void register_classes(TSRMLS_D)
 }
 /* }}} */
 
-
-
 /* Private functions }}} */
 
 
-/* XXX remove after moving constants to classes */
-#define PHP_EVENT_REG_CONST_LONG(name, real_name) \
-    REGISTER_LONG_CONSTANT(#name, real_name, CONST_CS | CONST_PERSISTENT);
-
-#define PHP_EVENT_ADD_CLASS_PROPERTIES(a, b)                                           \
-{                                                                                      \
-    int i = 0;                                                                         \
-    while (b[i].name != NULL) {                                                        \
-        add_property((a), (b)[i].name, (b)[i].name_length,                             \
-                (php_event_prop_read_t)(b)[i].read_func,                               \
-                (php_event_prop_write_t)(b)[i].write_func,                             \
-                (php_event_prop_get_prop_ptr_ptr_t)(b)[i].get_ptr_ptr_func TSRMLS_CC); \
-        i++;                                                                           \
-    }                                                                                  \
-}
-
-#define PHP_EVENT_DECL_CLASS_PROPERTIES(a, b)                            \
-{                                                                        \
-    int i = 0;                                                           \
-    while (b[i].name != NULL) {                                          \
-        zend_declare_property_null((a), (b)[i].name, (b)[i].name_length, \
-                ZEND_ACC_PUBLIC TSRMLS_CC);                              \
-        i++;                                                             \
-    }                                                                    \
-}
-
-#define REGISTER_EVENT_CLASS_CONST_LONG((pce), const_name, value) \
-    zend_declare_class_constant_long((pce), #const_name,          \
+#define REGISTER_EVENT_CLASS_CONST_LONG(pce, const_name, value) \
+    zend_declare_class_constant_long((pce), #const_name,        \
             sizeof(#const_name) - 1, (long) value TSRMLS_CC)
-
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
@@ -842,78 +833,76 @@ PHP_MINIT_FUNCTION(event)
 	zend_hash_init(&classes, 0, NULL, NULL, 1);
 	register_classes(TSRMLS_C);
 
-	/* XXX Move constants to corresponding classes */
-
 	/* Loop flags */
-	PHP_EVENT_REG_CONST_LONG(EVENT_LOOP_ONCE,     EVLOOP_ONCE);
-	PHP_EVENT_REG_CONST_LONG(EVENT_LOOP_NONBLOCK, EVLOOP_NONBLOCK);
-
-	/* Event flags */
-	PHP_EVENT_REG_CONST_LONG(EVENT_ET,      EV_ET);
-	PHP_EVENT_REG_CONST_LONG(EVENT_PERSIST, EV_PERSIST);
-	PHP_EVENT_REG_CONST_LONG(EVENT_READ,    EV_READ);
-	PHP_EVENT_REG_CONST_LONG(EVENT_WRITE,   EV_WRITE);
-	PHP_EVENT_REG_CONST_LONG(EVENT_SIGNAL,  EV_SIGNAL);
-	PHP_EVENT_REG_CONST_LONG(EVENT_TIMEOUT, EV_TIMEOUT);
-
-	/* Features of event_base usually passed to event_config_require_features */
-	PHP_EVENT_REG_CONST_LONG(EVENT_FEATURE_ET,  EV_FEATURE_ET);
-	PHP_EVENT_REG_CONST_LONG(EVENT_FEATURE_O1,  EV_FEATURE_O1);
-	PHP_EVENT_REG_CONST_LONG(EVENT_FEATURE_FDS, EV_FEATURE_FDS);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, LOOP_ONCE,     EVLOOP_ONCE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, LOOP_NONBLOCK, EVLOOP_NONBLOCK);
 
 	/* Run-time flags of event base usually passed to event_config_set_flag */
-	PHP_EVENT_REG_CONST_LONG(EVENT_BASE_FLAG_NOLOCK,               EVENT_BASE_FLAG_NOLOCK);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BASE_FLAG_STARTUP_IOCP,         EVENT_BASE_FLAG_STARTUP_IOCP);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BASE_FLAG_NO_CACHE_TIME,        EVENT_BASE_FLAG_NO_CACHE_TIME);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BASE_FLAG_EPOLL_USE_CHANGELIST, EVENT_BASE_FLAG_EPOLL_USE_CHANGELIST);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, NOLOCK,               EVENT_BASE_FLAG_NOLOCK);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, STARTUP_IOCP,         EVENT_BASE_FLAG_STARTUP_IOCP);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, NO_CACHE_TIME,        EVENT_BASE_FLAG_NO_CACHE_TIME);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, EPOLL_USE_CHANGELIST, EVENT_BASE_FLAG_EPOLL_USE_CHANGELIST);
 #ifdef EVENT_BASE_FLAG_IGNORE_ENV
-	PHP_EVENT_REG_CONST_LONG(EVENT_BASE_FLAG_IGNORE_ENV,           EVENT_BASE_FLAG_IGNORE_ENV);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, IGNORE_ENV,           IGNORE_ENV);
 #endif
 #ifdef EVENT_BASE_FLAG_PRECISE_TIMER
-	PHP_EVENT_REG_CONST_LONG(EVENT_BASE_FLAG_PRECISE_TIMER,        EVENT_BASE_FLAG_PRECISE_TIMER);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, PRECISE_TIMER,        PRECISE_TIMER);
 #endif
 
+	/* Event flags */
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, ET,      EV_ET);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, PERSIST, EV_PERSIST);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, READ,    EV_READ);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, WRITE,   EV_WRITE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, SIGNAL,  EV_SIGNAL);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, TIMEOUT, EV_TIMEOUT);
+
+	/* Features of event_base usually passed to event_config_require_features */
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_ET,  EV_FEATURE_ET);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_O1,  EV_FEATURE_O1);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_FDS, EV_FEATURE_FDS);
+
 	/* Buffer event flags */
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_EVENT_READING,   BEV_EVENT_READING);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_EVENT_WRITING,   BEV_EVENT_WRITING);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_EVENT_EOF,       BEV_EVENT_EOF);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_EVENT_ERROR,     BEV_EVENT_ERROR);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_EVENT_TIMEOUT,   BEV_EVENT_TIMEOUT);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_EVENT_CONNECTED, BEV_EVENT_CONNECTED);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, READING,   BEV_EVENT_READING);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, WRITING,   BEV_EVENT_WRITING);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, EOF,       BEV_EVENT_EOF);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, ERROR,     BEV_EVENT_ERROR);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, TIMEOUT,   BEV_EVENT_TIMEOUT);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, CONNECTED, BEV_EVENT_CONNECTED);
 
 	/* Option flags for bufferevents */
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_OPT_CLOSE_ON_FREE,    BEV_OPT_CLOSE_ON_FREE);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_OPT_THREADSAFE,       BEV_OPT_THREADSAFE);
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_OPT_DEFER_CALLBACKS,  BEV_OPT_DEFER_CALLBACKS);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, OPT_CLOSE_ON_FREE,    BEV_OPT_CLOSE_ON_FREE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, OPT_THREADSAFE,       BEV_OPT_THREADSAFE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, OPT_DEFER_CALLBACKS,  BEV_OPT_DEFER_CALLBACKS);
 #if LIBEVENT_VERSION_NUMBER >= 0x02000500
-	PHP_EVENT_REG_CONST_LONG(EVENT_BEV_OPT_UNLOCK_CALLBACKS, BEV_OPT_UNLOCK_CALLBACKS);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, OPT_UNLOCK_CALLBACKS, BEV_OPT_UNLOCK_CALLBACKS);
 #endif
 
 	/* Address families */
-	PHP_EVENT_REG_CONST_LONG(EVENT_AF_INET,   AF_INET);
-	PHP_EVENT_REG_CONST_LONG(EVENT_AF_INET6,  AF_INET6);
-	PHP_EVENT_REG_CONST_LONG(EVENT_AF_UNSPEC, AF_UNSPEC);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_INET,   AF_INET);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_INET6,  AF_INET6);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_UNSPEC, AF_UNSPEC);
 
 	/* DNS options */
-	PHP_EVENT_REG_CONST_LONG(EVENT_DNS_OPTION_SEARCH,      DNS_OPTION_SEARCH);
-	PHP_EVENT_REG_CONST_LONG(EVENT_DNS_OPTION_NAMESERVERS, DNS_OPTION_NAMESERVERS);
-	PHP_EVENT_REG_CONST_LONG(EVENT_DNS_OPTION_MISC,        DNS_OPTION_MISC);
-	PHP_EVENT_REG_CONST_LONG(EVENT_DNS_OPTION_HOSTSFILE,   DNS_OPTION_HOSTSFILE);
-	PHP_EVENT_REG_CONST_LONG(EVENT_DNS_OPTIONS_ALL,        DNS_OPTIONS_ALL);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_SEARCH,      DNS_OPTION_SEARCH);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_NAMESERVERS, DNS_OPTION_NAMESERVERS);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_MISC,        DNS_OPTION_MISC);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_HOSTSFILE,   DNS_OPTION_HOSTSFILE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTIONS_ALL,        DNS_OPTIONS_ALL);
 
 #if HAVE_EVENT_EXTRA_LIB
-	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_LEAVE_SOCKETS_BLOCKING, LEV_OPT_LEAVE_SOCKETS_BLOCKING);
-	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_CLOSE_ON_FREE,          LEV_OPT_CLOSE_ON_FREE);
-	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_CLOSE_ON_EXEC,          LEV_OPT_CLOSE_ON_EXEC);
-	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_REUSEABLE,              LEV_OPT_REUSEABLE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_LEAVE_SOCKETS_BLOCKING, LEV_OPT_LEAVE_SOCKETS_BLOCKING);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_CLOSE_ON_FREE,          LEV_OPT_CLOSE_ON_FREE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_CLOSE_ON_EXEC,          LEV_OPT_CLOSE_ON_EXEC);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_REUSEABLE,              LEV_OPT_REUSEABLE);
 # if LIBEVENT_VERSION_NUMBER >= 0x02010100
-	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_DISABLED,               LEV_OPT_DISABLED);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_DISABLED,               LEV_OPT_DISABLED);
 # endif
 # if LIBEVENT_VERSION_NUMBER >= 0x02000800
-	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_THREADSAFE,             LEV_OPT_THREADSAFE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_THREADSAFE,             LEV_OPT_THREADSAFE);
 #endif
 # if LIBEVENT_VERSION_NUMBER >= 0x02010100
-	PHP_EVENT_REG_CONST_LONG(EVENT_LEV_OPT_DEFERRED_ACCEPT,        LEV_OPT_DEFERRED_ACCEPT);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_DEFERRED_ACCEPT,        LEV_OPT_DEFERRED_ACCEPT);
 # endif
 #endif
 
