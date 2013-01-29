@@ -543,7 +543,7 @@ PHP_METHOD(Event, reInit)
 
 
 /* {{{ proto Event Event::timer(EventBase base, callable cb[, zval arg = NULL]);
- * Creates new timer event */
+ * Factory method for timer event */
 PHP_METHOD(Event, timer)
 {
 	zval                  *zbase;
@@ -561,7 +561,8 @@ PHP_METHOD(Event, timer)
 
 	PHP_EVENT_FETCH_BASE(b, zbase);
 
-	e = (php_event_t *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_ce);
+	PHP_EVENT_FETCH_EVENT(e, return_value);
 
 	event = evtimer_new(b->base, timer_cb, (void *) e);
 	if (!event) {
@@ -661,7 +662,7 @@ PHP_METHOD(Event, timerPending)
 
 
 /* {{{ proto Event signal(EventBase base, int signum, callable cb[, zval arg = NULL]);
- * Creates new signal event */
+ * Factory method for signal event */
 PHP_METHOD(Event, signal)
 {
 	zval                  *zbase;
@@ -686,7 +687,8 @@ PHP_METHOD(Event, signal)
 
 	PHP_EVENT_FETCH_BASE(b, zbase);
 
-	e = (php_event_t *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_ce);
+	PHP_EVENT_FETCH_EVENT(e, return_value);
 
 	event = evsignal_new(b->base, signum, signal_cb, (void *) e);
 	if (!event) {

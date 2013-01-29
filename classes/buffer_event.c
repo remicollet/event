@@ -230,11 +230,15 @@ PHP_METHOD(EventBufferEvent, __construct)
 	}
 
 	bev->self = zself;
+#if 0
 	Z_ADDREF_P(zself);
+#endif
 
+#if 0
 	/* Make sure base destroyed after the bufferevent
 	 * XXX Really need this? */
 	Z_ADDREF_P(zbase);
+#endif
 }
 /* }}} */
 

@@ -115,8 +115,10 @@ static void event_object_free_storage(void *ptr TSRMLS_DC)
 	PHP_EVENT_ASSERT(e && e->event);
 
 	if (e->data) {
-		/*zval_ptr_dtor(&e->data);*/
+		zval_ptr_dtor(&e->data);
+#if 0
 		Z_DELREF_P(e->data);
+#endif
 	}
 
 	PHP_EVENT_FREE_FCALL_INFO(e->fci, e->fcc);
@@ -167,8 +169,10 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 	PHP_EVENT_ASSERT(b && b->bevent);
 
 	if (b->data) {
-		/*zval_ptr_dtor(&b->data);*/
+		zval_ptr_dtor(&b->data);
+#if 0
 		Z_DELREF_P(b->data);
+#endif
 	}
 
 	PHP_EVENT_FREE_FCALL_INFO(b->fci_read,  b->fcc_read);
@@ -180,7 +184,10 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 	}
 
 	if (b->self) {
+#if 0
 		Z_DELREF_P(b->self);
+#endif
+		zval_ptr_dtor(&b->data);
 	}
 
 	bufferevent_free(b->bevent);
@@ -237,15 +244,24 @@ static void event_listener_object_free_storage(void *ptr TSRMLS_DC)
 	}
 
 	if (l->base) {
+#if 0
 		Z_DELREF_P(l->base);
+#endif
+		zval_ptr_dtor(&l->base);
 	}
 
 	if (l->data) {
+#if 0
 		Z_DELREF_P(l->data);
+#endif
+		zval_ptr_dtor(&l->data);
 	}
 
 	if (l->self) {
+#if 0
 		Z_DELREF_P(l->self);
+#endif
+		zval_ptr_dtor(&l->self);
 	}
 
 	PHP_EVENT_FREE_FCALL_INFO(l->fci, l->fcc);
@@ -265,11 +281,17 @@ static void event_http_conn_object_free_storage(void *ptr TSRMLS_DC)
 	PHP_EVENT_ASSERT(evcon && evcon->conn);
 
 	if (evcon->base) {
+#if 0
 		Z_DELREF_P(evcon->base);
+#endif
+		zval_ptr_dtor(&evcon->base);
 	}
 
 	if (evcon->dns_base) {
+#if 0
 		Z_DELREF_P(evcon->dns_base);
+#endif
+		zval_ptr_dtor(&evcon->dns_base);
 	}
 
 	evhttp_connection_free(evcon->conn);
