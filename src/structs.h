@@ -71,8 +71,8 @@ typedef struct {
 
 	struct bufferevent    *bevent;
 	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
-	zval                  *self;        /* Object itself. For callbacks       */
-	zval                  *data;        /* User custom data                   */
+	zval                  *self;        /* Object itself. For callbacks                   */
+	zval                  *data;        /* User custom data                               */
 
     /* fci and fcc members represent userspace callbacks */
 	zend_fcall_info       *fci_read;
@@ -88,6 +88,7 @@ typedef struct {
 /* Represents EventBuffer object */
 typedef struct {
 	PHP_EVENT_OBJECT_HEAD;
+	zend_bool internal; /* Whether is an internal buffer of a bufferevent */
 
 	struct evbuffer *buf;
 } php_event_buffer_t;

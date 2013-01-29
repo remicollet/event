@@ -45,6 +45,8 @@ static HashTable event_base_properties;
 static HashTable event_config_properties;
 static HashTable event_bevent_properties;
 static HashTable event_buffer_properties;
+
+#if 0
 static HashTable event_util_properties;
 
 #if HAVE_EVENT_EXTRA_LIB
@@ -52,6 +54,7 @@ static HashTable event_dns_base_properties;
 static HashTable event_listener_properties;
 static HashTable event_http_conn_properties;
 static HashTable event_http_properties;
+#endif
 #endif
 
 static zend_object_handlers object_handlers;
@@ -193,9 +196,17 @@ static void event_buffer_object_free_storage(void *ptr TSRMLS_DC)
 
 	PHP_EVENT_ASSERT(b && b->buf);
 
-	evbuffer_free(b->buf);
+	/* If we got the buffer in, say, a read callback the buffer
+	 * is destroyed when the callback is done as any normal variable.
+	 * Zend MM calls destructor which eventually calls this function.
+	 * We'll definitely crash, if we call evbuffer_free() on an internal
+	 * bufferevent buffer. */
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	if (!b->internal) {
+		evbuffer_free(b->buf);
+
+		event_generic_object_free_storage(ptr TSRMLS_CC);
+	}
 }
 /* }}} */
 
@@ -307,8 +318,8 @@ static void *object_new(zend_class_entry *ce, size_t size TSRMLS_DC)
 	php_event_abstract_object_t *obj;
 	zend_class_entry *ce_parent = ce;
 
-	obj = ecalloc(1, size);
-	obj->prop_handler = NULL;
+	obj = emalloc(size);
+	memset(obj, 0, size);
 
 	while (ce_parent->type != ZEND_INTERNAL_CLASS && ce_parent->parent != NULL) {
 		ce_parent = ce_parent->parent;

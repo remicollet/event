@@ -11,7 +11,6 @@
 
 /* Read callback */
 function readcb($bev, $base) {
-	echo __FUNCTION__, PHP_EOL;
 	$input = $bev->getInput();
 
 	while (($n = $input->remove($buf, 1024)) > 0) {

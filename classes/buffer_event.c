@@ -42,8 +42,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 		PHP_EVENT_ASSERT(bev->self);
 
 		if (bev->self) {
-			ZVAL_ZVAL(arg_bevent, bev->self, 0, 0);
-			Z_ADDREF_P(bev->self);
+			ZVAL_ZVAL(arg_bevent, bev->self, 1, 0);
 		} else {
 			ZVAL_NULL(arg_bevent);
 		}
@@ -118,8 +117,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 		PHP_EVENT_ASSERT(bev->self);
 
 		if (bev->self) {
-			ZVAL_ZVAL(arg_bevent, bev->self, 0, 0);
-			Z_ADDREF_P(bev->self);
+			ZVAL_ZVAL(arg_bevent, bev->self, 1, 0);
 		} else {
 			ZVAL_NULL(arg_bevent);
 		}
@@ -590,6 +588,7 @@ PHP_METHOD(EventBufferEvent, getEnabled)
 /* }}} */
 
 /* {{{ proto EventBuffer EventBufferEvent::getInput(void);
+ *
  * Returns an input EventBuffer object associated with the buffer event */
 PHP_METHOD(EventBufferEvent, getInput)
 {
@@ -605,12 +604,17 @@ PHP_METHOD(EventBufferEvent, getInput)
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_ce);
 	PHP_EVENT_FETCH_BUFFER(b, return_value);
+	/* Don't do this. It's normal to have refcount = 1 here.
+	 * If we got bugs, we most likely free'd an internal buffer somewhere
+	 * Z_ADDREF_P(return_value);*/
 
-	b->buf = bufferevent_get_input(bev->bevent);
+	b->buf      = bufferevent_get_input(bev->bevent);
+	b->internal = 1;
 }
 /* }}} */
 
 /* {{{ proto EventBuffer EventBufferEvent::getOutput(void);
+ *
  * Returns an output EventBuffer object associated with the buffer event */
 PHP_METHOD(EventBufferEvent, getOutput)
 {
@@ -626,8 +630,12 @@ PHP_METHOD(EventBufferEvent, getOutput)
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_ce);
 	PHP_EVENT_FETCH_BUFFER(b, return_value);
+	/* Don't do this. It's normal to have refcount = 1 here.
+	 * If we got bugs, we most likely free'd an internal buffer somewhere
+	 * Z_ADDREF_P(return_value);*/
 
-	b->buf = bufferevent_get_output(bev->bevent);
+	b->buf      = bufferevent_get_output(bev->bevent);
+	b->internal = 1;
 }
 /* }}} */
 
