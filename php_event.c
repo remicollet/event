@@ -45,7 +45,6 @@ static HashTable event_base_properties;
 static HashTable event_config_properties;
 static HashTable event_bevent_properties;
 static HashTable event_buffer_properties;
-static HashTable event_buffer_properties;
 static HashTable event_util_properties;
 
 #if HAVE_EVENT_EXTRA_LIB
@@ -764,16 +763,28 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			php_event_config_ce_functions);
 	ce = php_event_config_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+	zend_hash_init(&event_config_properties, 0, NULL, NULL, 1);
+	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_config_properties, event_config_property_entries);
+	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_config_property_entry_info);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_config_properties, sizeof(event_config_properties), NULL);
 
 	PHP_EVENT_REGISTER_CLASS("EventBufferEvent", event_bevent_object_create, php_event_bevent_ce,
 			php_event_bevent_ce_functions);
 	ce = php_event_bevent_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+	zend_hash_init(&event_bevent_properties, 0, NULL, NULL, 1);
+	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_bevent_properties, event_bevent_property_entries);
+	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_bevent_property_entry_info);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_bevent_properties, sizeof(event_bevent_properties), NULL);
 
 	PHP_EVENT_REGISTER_CLASS("EventBuffer", event_buffer_object_create, php_event_buffer_ce,
 			php_event_buffer_ce_functions);
 	ce = php_event_buffer_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+	zend_hash_init(&event_buffer_properties, 0, NULL, NULL, 1);
+	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_buffer_properties, event_buffer_property_entries);
+	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_buffer_property_entry_info);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_buffer_properties, sizeof(event_buffer_properties), NULL);
 
 #if HAVE_EVENT_EXTRA_LIB
 

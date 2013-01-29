@@ -99,7 +99,7 @@ PHP_METHOD(EventConfig, setMaxDispatchInterval)
 	php_event_config_t    *cfg;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "dll",
-				&max_interval, &max_callbacks, min_priority) == FAILURE) {
+				&max_interval, &max_callbacks, &min_priority) == FAILURE) {
 		return;
 	}
 
