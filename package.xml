@@ -12,10 +12,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-01-19</date>
+  <date>2013-01-29</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.0.0</release>
+    <release>1.0.1</release>
     <api>1.0.0</api>
   </version>
   <stability>
@@ -24,7 +24,9 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Initial release
+    Fix: crash due to destruction of the internal bufferevent buffers (synced with oop branch)
+    Fix: extra memory consumption caused by continuous calls to bufferevent_get_input/_output
+    Fix: memory violation while parsing event_config_set_max_dispatch_interval parameters
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -64,6 +66,24 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 1.0.1 -->
+    <release>
+      <version>
+        <release>1.0.1</release>
+        <api>1.0.0</api>
+      </version>
+      <stability>
+        <release>devel</release>
+        <api>devel</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Fix: crash due to destruction of the internal bufferevent buffers (synced with oop branch)
+    Fix: extra memory consumption caused by continuous calls to bufferevent_get_input/_output
+    Fix: memory violation while parsing event_config_set_max_dispatch_interval parameters
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.0.0 -->
     <release>
       <date>2013-01-19</date>
