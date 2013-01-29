@@ -60,7 +60,8 @@ typedef struct {
 
 typedef struct {
 	struct evbuffer *buf;
-	int              rsrc_id;   /* Resource ID of the event buffer */
+	int              rsrc_id;    /* Resource ID of the event buffer                */
+	zend_bool        internal;   /* Whether is an internal buffer of a bufferevent */
 } php_event_buffer_t;
 
 #ifdef HAVE_EVENT_EXTRA_LIB/* {{{ */

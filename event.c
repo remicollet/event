@@ -878,7 +878,7 @@ static void php_event_buffer_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
 	php_event_buffer_t *b = (php_event_buffer_t *) rsrc->ptr;
 
-	if (b) {
+	if (b && !b->internal) {
 		evbuffer_free(b->buf);
 		efree(b);
 	}
@@ -2570,8 +2570,9 @@ PHP_FUNCTION(bufferevent_get_input)
 
 	b->buf       = bufferevent_get_input(bev->bevent);
 	b->rsrc_id   = ZEND_REGISTER_RESOURCE(return_value, b, le_event_buffer);
+	b->internal  = 1;
 
-	zend_list_addref(b->rsrc_id);
+	/*zend_list_addref(b->rsrc_id);*/
 }
 /* }}} */
 
@@ -2595,8 +2596,9 @@ PHP_FUNCTION(bufferevent_get_output)
 
 	b->buf       = bufferevent_get_output(bev->bevent);
 	b->rsrc_id   = ZEND_REGISTER_RESOURCE(return_value, b, le_event_buffer);
+	b->internal  = 1;
 
-	zend_list_addref(b->rsrc_id);
+	/*zend_list_addref(b->rsrc_id);*/
 }
 /* }}} */
 
