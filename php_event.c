@@ -94,6 +94,158 @@ ZEND_GET_MODULE(event)
 
 /* {{{ Private functions */
 
+/* {{{ event_bevent_object_dtor
+ * Required to cleanup bufferevent properly */
+static void event_bevent_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
+{
+	php_event_bevent_t *b = (php_event_bevent_t *) ptr;
+
+	PHP_EVENT_ASSERT(b);
+
+	if (b->bevent) {
+		bufferevent_free(b->bevent);
+		b->bevent = NULL;
+	}
+
+	PHP_EVENT_FREE_FCALL_INFO(b->fci_read,  b->fcc_read);
+	PHP_EVENT_FREE_FCALL_INFO(b->fci_write, b->fcc_write);
+	PHP_EVENT_FREE_FCALL_INFO(b->fci_event, b->fcc_event);
+
+	zend_objects_destroy_object(ptr, handle TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_object_dtor
+ * Required to cleanup event properly */
+static void event_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
+{
+	php_event_t *e = (php_event_t *) ptr;
+
+	if (e && e->event) {
+		event_del(e->event);
+		event_free(e->event);
+		e->event = NULL;
+	}
+
+	zend_objects_destroy_object(ptr, handle TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_base_object_dtor
+ * Required to cleanup event base properly */
+static void event_base_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
+{
+	php_event_base_t *b = (php_event_base_t *) ptr;
+
+	if (!b->internal && b->base) {
+		/* TODO: what if events bound to the event_base are not destroyed? */
+		event_base_free(b->base);
+		b->base = NULL;
+	}
+
+	zend_objects_destroy_object(ptr, handle TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_config_object_dtor
+ * Required to cleanup event config properly */
+static void event_config_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
+{
+	php_event_config_t *cfg = (php_event_config_t *) ptr;
+
+	if (cfg && cfg->ptr) {
+		event_config_free(cfg->ptr);
+		cfg->ptr = NULL;
+	}
+
+	zend_objects_destroy_object(ptr, handle TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_buffer_object_dtor
+ * Required to cleanup buffer properly */
+static void event_buffer_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
+{
+	php_event_buffer_t *b = (php_event_buffer_t *) ptr;
+
+	/* If we got the buffer in, say, a read callback the buffer
+	 * is destroyed when the callback is done as any normal variable.
+	 * Zend MM calls destructor which eventually calls this function.
+	 * We'll definitely crash, if we call evbuffer_free() on an internal
+	 * bufferevent buffer. */
+
+	if (!b->internal && b->buf) {
+		evbuffer_free(b->buf);
+		b->buf = NULL;
+	}
+
+	zend_objects_destroy_object(ptr, handle TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_dns_base_object_dtor
+ * Required to cleanup buffer properly */
+static void event_dns_base_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
+{
+	php_event_dns_base_t *dnsb = (php_event_dns_base_t *) ptr;
+
+	if (dnsb && dnsb->dns_base) {
+		/* Setting fail_requests to 1 makes all in-flight requests get
+	 	 * their callbacks invoked with a canceled error code before it
+	 	 * frees the base*/
+		evdns_base_free(dnsb->dns_base, 1);
+		dnsb->dns_base = NULL;
+	}
+
+	zend_objects_destroy_object(ptr, handle TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_listener_object_dtor
+ * Required to cleanup buffer properly */
+static void event_listener_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
+{
+	php_event_listener_t *l = (php_event_listener_t *) ptr;
+
+	if (l && l->listener) {
+		evconnlistener_free(l->listener);
+		l->listener = NULL;
+	}
+
+	zend_objects_destroy_object(ptr, handle TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_http_conn_object_dtor
+ * Required to cleanup http conn obj properly */
+static void event_http_conn_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
+{
+	php_event_http_conn_t *evcon = (php_event_http_conn_t *) ptr;
+
+	if (evcon && evcon->conn) {
+		evhttp_connection_free(evcon->conn);
+		evcon->conn = NULL;
+	}
+
+	zend_objects_destroy_object(ptr, handle TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_http_object_dtor
+ * Required to cleanup http obj properly */
+static void event_http_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
+{
+	php_event_http_t *http = (php_event_http_t *) ptr;
+
+	if (http && http->ptr) {
+		evhttp_free(http->ptr);
+	}
+
+	zend_objects_destroy_object(ptr, handle TSRMLS_CC);
+}
+/* }}} */
+
+
 /* {{{ event_generic_object_free_storage */
 static zend_always_inline void event_generic_object_free_storage(void *ptr TSRMLS_DC)
 {
@@ -112,13 +264,10 @@ static void event_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_t *e = (php_event_t *) ptr;
 
-	PHP_EVENT_ASSERT(e && e->event);
+	PHP_EVENT_ASSERT(e);
 
 	if (e->data) {
 		zval_ptr_dtor(&e->data);
-#if 0
-		Z_DELREF_P(e->data);
-#endif
 	}
 
 	PHP_EVENT_FREE_FCALL_INFO(e->fci, e->fcc);
@@ -127,8 +276,10 @@ static void event_object_free_storage(void *ptr TSRMLS_DC)
 		zend_list_delete(e->stream_id);
 	}
 
-	event_del(e->event);
-	event_free(e->event);
+	if (e->event) {
+		event_del(e->event);
+		event_free(e->event);
+	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
@@ -139,10 +290,12 @@ static void event_base_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_base_t *b = (php_event_base_t *) ptr;
 
-	PHP_EVENT_ASSERT(b && b->base);
+	PHP_EVENT_ASSERT(b);
 
-	/* TODO: what if events bound to the event_base are not destroyed? */
-	event_base_free(b->base);
+	if (!b->internal && b->base) {
+		/* TODO: what if events bound to the event_base are not destroyed? */
+		event_base_free(b->base);
+	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
@@ -153,9 +306,11 @@ static void event_config_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_config_t *cfg = (php_event_config_t *) ptr;
 
-	PHP_EVENT_ASSERT(cfg && cfg->ptr);
+	PHP_EVENT_ASSERT(cfg);
 
-	event_config_free(cfg->ptr);
+	if (cfg->ptr) {
+		event_config_free(cfg->ptr);
+	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
@@ -166,33 +321,29 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_bevent_t *b = (php_event_bevent_t *) ptr;
 
-	PHP_EVENT_ASSERT(b && b->bevent);
+	if (b) {
+		if (b->data) {
+			zval_ptr_dtor(&b->data);
+		}
 
-	if (b->data) {
-		zval_ptr_dtor(&b->data);
-#if 0
-		Z_DELREF_P(b->data);
-#endif
+		PHP_EVENT_FREE_FCALL_INFO(b->fci_read,  b->fcc_read);
+		PHP_EVENT_FREE_FCALL_INFO(b->fci_write, b->fcc_write);
+		PHP_EVENT_FREE_FCALL_INFO(b->fci_event, b->fcc_event);
+
+		if (b->stream_id >= 0) { /* stdin fd == 0 */
+			zend_list_delete(b->stream_id);
+		}
+
+		if (b->self) {
+			zval_ptr_dtor(&b->self);
+		}
+
+		if (b->bevent) {
+			bufferevent_free(b->bevent);
+		}
+
+		event_generic_object_free_storage(ptr TSRMLS_CC);
 	}
-
-	PHP_EVENT_FREE_FCALL_INFO(b->fci_read,  b->fcc_read);
-	PHP_EVENT_FREE_FCALL_INFO(b->fci_write, b->fcc_write);
-	PHP_EVENT_FREE_FCALL_INFO(b->fci_event, b->fcc_event);
-
-	if (b->stream_id >= 0) { /* stdin fd == 0 */
-		zend_list_delete(b->stream_id);
-	}
-
-	if (b->self) {
-#if 0
-		Z_DELREF_P(b->self);
-#endif
-		zval_ptr_dtor(&b->data);
-	}
-
-	bufferevent_free(b->bevent);
-
-	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
 /* }}} */
 
@@ -201,7 +352,7 @@ static void event_buffer_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_buffer_t *b = (php_event_buffer_t *) ptr;
 
-	PHP_EVENT_ASSERT(b && b->buf);
+	PHP_EVENT_ASSERT(b);
 
 	/* If we got the buffer in, say, a read callback the buffer
 	 * is destroyed when the callback is done as any normal variable.
@@ -209,11 +360,11 @@ static void event_buffer_object_free_storage(void *ptr TSRMLS_DC)
 	 * We'll definitely crash, if we call evbuffer_free() on an internal
 	 * bufferevent buffer. */
 
-	if (!b->internal) {
+	if (!b->internal && b->buf) {
 		evbuffer_free(b->buf);
-
-		event_generic_object_free_storage(ptr TSRMLS_CC);
 	}
+
+	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
 /* }}} */
 
@@ -222,12 +373,14 @@ static void event_dns_base_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_dns_base_t *dnsb = (php_event_dns_base_t *) ptr;
 
-	PHP_EVENT_ASSERT(dnsb && dnsb->dns_base);
+	PHP_EVENT_ASSERT(dnsb);
 
-	/* Setting fail_requests to 1 makes all in-flight requests get
-	 * their callbacks invoked with a canceled error code before it
-	 * frees the base*/
-	evdns_base_free(dnsb->dns_base, 1);
+	if (dnsb->dns_base) {
+		/* Setting fail_requests to 1 makes all in-flight requests get
+	 	 * their callbacks invoked with a canceled error code before it
+	 	 * frees the base*/
+		evdns_base_free(dnsb->dns_base, 1);
+	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
@@ -238,36 +391,26 @@ static void event_listener_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_listener_t *l = (php_event_listener_t *) ptr;
 
-	PHP_EVENT_ASSERT(l && l->listener);
+	PHP_EVENT_ASSERT(l);
+
 	if (l->stream_id >= 0) {
 		zend_list_delete(l->stream_id);
 	}
 
-	if (l->base) {
-#if 0
-		Z_DELREF_P(l->base);
-#endif
-		zval_ptr_dtor(&l->base);
-	}
-
 	if (l->data) {
-#if 0
-		Z_DELREF_P(l->data);
-#endif
 		zval_ptr_dtor(&l->data);
 	}
 
 	if (l->self) {
-#if 0
-		Z_DELREF_P(l->self);
-#endif
 		zval_ptr_dtor(&l->self);
 	}
 
 	PHP_EVENT_FREE_FCALL_INFO(l->fci, l->fcc);
 	PHP_EVENT_FREE_FCALL_INFO(l->fci_err, l->fcc_err);
 
-	evconnlistener_free(l->listener);
+	if (l->listener) {
+		evconnlistener_free(l->listener);
+	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
@@ -278,23 +421,19 @@ static void event_http_conn_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_http_conn_t *evcon = (php_event_http_conn_t *) ptr;
 
-	PHP_EVENT_ASSERT(evcon && evcon->conn);
+	PHP_EVENT_ASSERT(evcon);
 
 	if (evcon->base) {
-#if 0
-		Z_DELREF_P(evcon->base);
-#endif
 		zval_ptr_dtor(&evcon->base);
 	}
 
 	if (evcon->dns_base) {
-#if 0
-		Z_DELREF_P(evcon->dns_base);
-#endif
 		zval_ptr_dtor(&evcon->dns_base);
 	}
 
-	evhttp_connection_free(evcon->conn);
+	if (evcon->conn) {
+		evhttp_connection_free(evcon->conn);
+	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
@@ -305,13 +444,15 @@ static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_http_t *http = (php_event_http_t *) ptr;
 
-	PHP_EVENT_ASSERT(http && http->ptr);
+	PHP_EVENT_ASSERT(http);
 
 	if (http->base) {
-		Z_DELREF_P(http->base);
+		zval_ptr_dtor(&http->base);
 	}
 
-	evhttp_free(http->ptr);
+	if (http->ptr) {
+		evhttp_free(http->ptr);
+	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
@@ -319,13 +460,11 @@ static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 
 
 /* {{{ register_object */
-static zend_always_inline zend_object_value register_object(zend_class_entry *ce, void *obj, zend_objects_free_object_storage_t func_free_storage TSRMLS_DC)
+static zend_always_inline zend_object_value register_object(zend_class_entry *ce, void *obj, zend_objects_store_dtor_t func_dtor, zend_objects_free_object_storage_t func_free_storage TSRMLS_DC)
 {
 	zend_object_value retval;
 
-	retval.handle = zend_objects_store_put(obj,
-			(zend_objects_store_dtor_t) zend_objects_destroy_object,
-			func_free_storage, NULL TSRMLS_CC);
+	retval.handle   = zend_objects_store_put(obj, func_dtor, func_free_storage, NULL TSRMLS_CC);
 	retval.handlers = &object_handlers;
 
 	return retval;
@@ -363,7 +502,8 @@ static zend_object_value event_object_create(zend_class_entry *ce TSRMLS_DC)
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, event_object_dtor,
+			event_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -373,7 +513,8 @@ static zend_object_value event_base_object_create(zend_class_entry *ce TSRMLS_DC
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_base_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_base_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, event_base_object_dtor,
+			event_base_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -383,7 +524,8 @@ static zend_object_value event_config_object_create(zend_class_entry *ce TSRMLS_
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_config_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_config_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, event_config_object_dtor,
+			event_config_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -393,7 +535,8 @@ static zend_object_value event_bevent_object_create(zend_class_entry *ce TSRMLS_
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_bevent_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_bevent_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, event_bevent_object_dtor,
+			event_bevent_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -403,7 +546,8 @@ static zend_object_value event_buffer_object_create(zend_class_entry *ce TSRMLS_
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_buffer_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_buffer_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, event_buffer_object_dtor,
+			event_buffer_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -416,7 +560,8 @@ static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC
 
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_abstract_object_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_generic_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
+			event_generic_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -428,7 +573,8 @@ static zend_object_value event_dns_base_object_create(zend_class_entry *ce TSRML
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_dns_base_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_dns_base_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, event_dns_base_object_dtor,
+			event_dns_base_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -438,7 +584,8 @@ static zend_object_value event_listener_object_create(zend_class_entry *ce TSRML
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_listener_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_listener_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, event_listener_object_dtor,
+			event_listener_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -448,7 +595,8 @@ static zend_object_value event_http_conn_object_create(zend_class_entry *ce TSRM
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_conn_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_http_conn_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, event_http_conn_object_dtor,
+			event_http_conn_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -458,7 +606,8 @@ static zend_object_value event_http_object_create(zend_class_entry *ce TSRMLS_DC
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_t) TSRMLS_CC);
 
-	return register_object(ce, (void *) obj, event_http_object_free_storage TSRMLS_CC);
+	return register_object(ce, (void *) obj, event_http_object_dtor,
+			event_http_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -949,6 +1098,8 @@ PHP_MINIT_FUNCTION(event)
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_DEFERRED_ACCEPT,        LEV_OPT_DEFERRED_ACCEPT);
 # endif
 #endif
+
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, LIBEVENT_VERSION_NUMBER, LIBEVENT_VERSION_NUMBER);
 
 	/* Handle libevent's error logging more gracefully than it's default
 	 * logging to stderr, or calling abort()/exit() */

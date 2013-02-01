@@ -383,7 +383,9 @@ const zend_function_entry php_event_config_ce_functions[] = {/* {{{ */
 /* }}} */
 
 const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
-	PHP_ME(EventBufferEvent, __construct,       arginfo_bufferevent__construct,              ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, __construct,       arginfo_bufferevent__construct,              ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+	PHP_ME(EventBufferEvent, free,              arginfo_event__void,                         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, ref,               arginfo_event__void,                         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, connect,           arginfo_bufferevent_connect,                 ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, connectHost,       arginfo_bufferevent_socket_connect_hostname, ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, getDnsErrorString, arginfo_event__void,                         ZEND_ACC_PUBLIC)
@@ -415,7 +417,7 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, unlock,        arginfo_event__void,         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, enableLocking, arginfo_event__void,         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, add,           arginfo_evbuffer_add,        ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, addBuffer,     arginfo_evbuffer_add_buffer, ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, addBuffer,     arginfo_evbuffer_add_buffer, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventBuffer, remove,        arginfo_evbuffer_remove,     ZEND_ACC_PUBLIC)
 
 	PHP_FE_END

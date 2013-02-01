@@ -104,11 +104,13 @@ ZEND_END_MODULE_GLOBALS(event)
 #define PHP_EVENT_FREE_FCALL_INFO(pfci, pfcc)                                                    \
     if (pfci && pfcc) {                                                                          \
         efree(pfcc);                                                                             \
+        pfcc = NULL;                                                                             \
                                                                                                  \
         if (ZEND_FCI_INITIALIZED(*pfci)) {                                                       \
             PHP_EVENT_FCI_DELREF(pfci);                                                          \
         }                                                                                        \
         efree(pfci);                                                                             \
+        pfci = NULL;                                                                             \
     }                                                                                            \
 
 #define PHP_EVENT_LIBEVENT_VERSION_REQUIRED(func, v)                                           \

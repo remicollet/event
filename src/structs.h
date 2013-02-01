@@ -56,6 +56,7 @@ typedef struct {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct event_base *base;
+	zend_bool          internal;   /* Whether is an internal pointer, e.g. obtained with evconnlistener_get_base() */
 } php_event_base_t;
 
 /* Represents EventConfig object */
@@ -109,7 +110,6 @@ typedef struct {
 	struct evconnlistener *listener;
 	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
 	zval                  *self;        /* Object itself. For callbacks              */
-	zval                  *base;        /* Event base associated with the listener   */
 	zval                  *data;        /* User custom data passed to callback       */
 
 	/* Accept callback */

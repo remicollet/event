@@ -83,8 +83,7 @@ static int sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
 
 /* {{{ _php_event_listener_cb */
 static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *address, int socklen, void *ctx) {
-
-	php_event_listener_t  *l = (php_event_listener_t *) ctx;
+	php_event_listener_t *l = (php_event_listener_t *) ctx;
 
 	PHP_EVENT_ASSERT(l);
 
@@ -94,7 +93,6 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
 	zval  **args[4];
-	zval   *arg_listener;
 	zval   *arg_fd;
 	zval   *arg_address;
 	zval   *arg_data     = l->data;
@@ -112,10 +110,8 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	 */
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
-		MAKE_STD_ZVAL(arg_listener);
-		ZVAL_ZVAL(arg_listener, l->self, 0, 0);
-		Z_ADDREF_P(l->self);
-		args[0] = &arg_listener;
+		args[0] = &l->self;
+		/*Z_ADDREF_P(l->self);*/
 
 		/* Convert the socket created by libevent to PHP stream
 	 	 * and save it's resource ID in l->stream_id */
@@ -133,8 +129,8 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 				l->stream_id = Z_LVAL_P(arg_fd);
 				zend_list_addref(l->stream_id);
 			} else {
-				l->stream_id = -1;
 				ALLOC_INIT_ZVAL(arg_fd);
+				l->stream_id = -1;
 			}
 		}
 		args[1] = &arg_fd;
@@ -164,7 +160,6 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
                     "An error occurred while invoking the callback");
         }
 
-        zval_ptr_dtor(&arg_listener);
         zval_ptr_dtor(&arg_fd);
         zval_ptr_dtor(&arg_address);
         zval_ptr_dtor(&arg_data);
@@ -184,7 +179,6 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
 	zval  **args[2];
-	zval   *arg_listener;
 	zval   *arg_data     = l->data;
 	zval   *retval_ptr;
 
@@ -194,10 +188,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	 * void cb (resource $listener, mixed $data); */
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
-		MAKE_STD_ZVAL(arg_listener);
-		ZVAL_ZVAL(arg_listener, l->self, 0, 0);
-		Z_ADDREF_P(l->self);
-		args[0] = &arg_listener;
+		args[0] = &l->self;
 
 		if (arg_data) {
 			Z_ADDREF_P(arg_data);
@@ -219,7 +210,6 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
                     "An error occurred while invoking the callback");
         }
 
-        zval_ptr_dtor(&arg_listener);
         zval_ptr_dtor(&arg_data);
 	}
 }
@@ -289,7 +279,7 @@ PHP_METHOD(EventListener, __construct)
 		/* Make sure that the socket is in non-blocking mode(libevent's tip) */
 		evutil_make_socket_nonblocking(fd);
 
-		PHP_EVENT_FETCH_LISTENER(l, getThis());
+		PHP_EVENT_FETCH_LISTENER(l, zself);
 
 		listener = evconnlistener_new(base->base, _php_event_listener_cb,
 				(void *) l, flags, backlog, fd);
@@ -322,11 +312,7 @@ PHP_METHOD(EventListener, __construct)
 
 	l->stream_id = -1;
 
-	l->base = zbase;
-	Z_ADDREF_P(zbase);
-
 	l->self = zself;
-	Z_ADDREF_P(zself);
 
 	TSRMLS_SET_CTX(l->thread_ctx);
 }
@@ -405,8 +391,8 @@ PHP_METHOD(EventListener, setCallback)
 			zval_ptr_dtor(&l->data);
 		}
 
-		Z_ADDREF_P(zarg);
 		l->data = zarg;
+		Z_ADDREF_P(zarg);
 	}
 
 	/*
@@ -455,6 +441,7 @@ PHP_METHOD(EventListener, getBase)
 {
 	php_event_listener_t *l;
 	zval                 *zlistener = getThis();
+	php_event_base_t     *b;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -464,11 +451,14 @@ PHP_METHOD(EventListener, getBase)
 
 	/* base = evconnlistener_get_base(l->listener); */
 
-	if (l->base) {
-		RETURN_ZVAL(l->base, 1, 0);
-	}
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_base_ce);
+	PHP_EVENT_FETCH_BASE(b, return_value);
+	/* Don't do this. It's normal to have refcount = 1 here.
+	 * If we got bugs, we most likely free'd an internal buffer somewhere
+	 * Z_ADDREF_P(return_value);*/
 
-	RETVAL_FALSE;
+	b->base = evconnlistener_get_base(l->listener);
+	b->internal = 1;
 }
 /* }}} */
 #endif

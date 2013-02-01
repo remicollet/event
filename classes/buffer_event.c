@@ -26,10 +26,11 @@
 static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_event_bevent_t *bev, zend_fcall_info *pfci, zend_fcall_info_cache *pfcc)
 {
 	PHP_EVENT_ASSERT(bev);
+	PHP_EVENT_ASSERT(bevent == bev->bevent);
 	PHP_EVENT_ASSERT(pfci && pfcc);
+	PHP_EVENT_ASSERT(bev->self);
 
-	zval  *arg_data   = bev->data;
-	zval  *arg_bevent;
+	zval  *arg_data = bev->data;
 	zval **args[2];
 	zval  *retval_ptr;
 
@@ -37,17 +38,11 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback args */
-		MAKE_STD_ZVAL(arg_bevent);
-
-		PHP_EVENT_ASSERT(bev->self);
 
 		if (bev->self) {
-			ZVAL_ZVAL(arg_bevent, bev->self, 1, 0);
-		} else {
-			ZVAL_NULL(arg_bevent);
+			args[0] = &bev->self;
+			Z_ADDREF_P(bev->self);
 		}
-		args[0] = &arg_bevent;
-
 		if (arg_data) {
 			Z_ADDREF_P(arg_data);
 		} else {
@@ -69,7 +64,6 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
                     "An error occurred while invoking the callback");
         }
 
-        zval_ptr_dtor(&arg_bevent);
         zval_ptr_dtor(&arg_data);
 	}
 }
@@ -101,9 +95,10 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	zend_fcall_info_cache *pfcc = bev->fcc_event;
 
 	PHP_EVENT_ASSERT(pfci && pfcc);
+	PHP_EVENT_ASSERT(bev->bevent == bevent);
+	PHP_EVENT_ASSERT(bev->self);
 
 	zval  *arg_data   = bev->data;
-	zval  *arg_bevent;
 	zval  *arg_events;
 	zval **args[3];
 	zval  *retval_ptr;
@@ -112,16 +107,8 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback args */
-		MAKE_STD_ZVAL(arg_bevent);
-
-		PHP_EVENT_ASSERT(bev->self);
-
-		if (bev->self) {
-			ZVAL_ZVAL(arg_bevent, bev->self, 1, 0);
-		} else {
-			ZVAL_NULL(arg_bevent);
-		}
-		args[0] = &arg_bevent;
+		args[0] = &bev->self;
+		Z_ADDREF_P(bev->self);
 
 		MAKE_STD_ZVAL(arg_events);
 		ZVAL_LONG(arg_events, events);
@@ -148,7 +135,6 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
                     "An error occurred while invoking the callback");
         }
 
-        zval_ptr_dtor(&arg_bevent);
         zval_ptr_dtor(&arg_events);
         zval_ptr_dtor(&arg_data);
 	}
@@ -192,7 +178,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 		fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
 
 		if (fd < 0) {
-			RETURN_FALSE;
+			return;
 		}
 		/* Make sure that the socket is in non-blocking mode(libevent's tip) */
 		evutil_make_socket_nonblocking(fd);
@@ -230,15 +216,28 @@ PHP_METHOD(EventBufferEvent, __construct)
 	}
 
 	bev->self = zself;
-#if 0
-	Z_ADDREF_P(zself);
-#endif
+}
+/* }}} */
 
-#if 0
-	/* Make sure base destroyed after the bufferevent
-	 * XXX Really need this? */
-	Z_ADDREF_P(zbase);
-#endif
+/* {{{ proto void EventBufferEvent::ref(void); */
+PHP_METHOD(EventBufferEvent, ref)
+{
+	Z_ADDREF_P(getThis());
+}
+/* }}} */
+
+/* {{{ proto void EventBufferEvent::free(void); */
+PHP_METHOD(EventBufferEvent, free)
+{
+	zval               *zbevent = getThis();
+	php_event_bevent_t *bev;
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	bufferevent_free(bev->bevent);
+	bev->bevent = 0;
+
+	zval_ptr_dtor(&zbevent);
 }
 /* }}} */
 
