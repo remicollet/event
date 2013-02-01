@@ -83,17 +83,6 @@ if test "$PHP_EVENT_CORE" != "no"; then
     -L$EVENT_DIR/lib
   ])
   dnl }}}
-  
-  event_src="php_event.c \
-    src/util.c \
-    src/fe.c \
-    src/pe.c \
-    classes/event.c \
-    classes/base.c \
-    classes/event_config.c \
-    classes/buffer_event.c \
-    classes/buffer.c \
-    classes/event_util.c"
 
   dnl {{{ --with-event-extra
   if test "$PHP_EVENT_EXTRA" != "no"; then
@@ -106,19 +95,11 @@ if test "$PHP_EVENT_CORE" != "no"; then
     ],[
       -L$EVENT_DIR/lib -levent_core
     ])
-
-    event_src="$event_src \
-      classes/dns.c \
-      classes/listener.c \
-      classes/http.c \
-      classes/http_connection.c"
   fi
   dnl }}}
  
+  event_src="event.c fe.c"
   PHP_NEW_EXTENSION(event, $event_src, $ext_shared,,$CFLAGS)
-  PHP_ADD_BUILD_DIR($ext_builddir/src)
-  PHP_ADD_BUILD_DIR($ext_builddir/classes)
-  PHP_ADD_INCLUDE($ext_builddir/src)
   PHP_ADD_EXTENSION_DEP(event, sockets, true)
   PHP_SUBST(EVENT_SHARED_LIBADD)
   PHP_SUBST(CFLAGS)
