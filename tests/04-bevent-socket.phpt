@@ -20,6 +20,8 @@ $bev->setCallbacks(NULL, NULL, function ($bev, $events, $data) {
 }, "data");
 
 $base->dispatch();
+
+$bev->free();
 ?>
 --EXPECT--
 Connected

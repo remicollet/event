@@ -324,6 +324,7 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 	if (b) {
 		if (b->data) {
 			zval_ptr_dtor(&b->data);
+			b->data = NULL;
 		}
 
 		PHP_EVENT_FREE_FCALL_INFO(b->fci_read,  b->fcc_read);
@@ -334,16 +335,20 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 			zend_list_delete(b->stream_id);
 		}
 
+#if 0
 		if (b->self) {
 			zval_ptr_dtor(&b->self);
+			b->self = NULL;
 		}
+#endif
 
 		if (b->bevent) {
 			bufferevent_free(b->bevent);
+			b->bevent = NULL;
 		}
-
-		event_generic_object_free_storage(ptr TSRMLS_CC);
 	}
+
+	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
 /* }}} */
 
@@ -401,9 +406,12 @@ static void event_listener_object_free_storage(void *ptr TSRMLS_DC)
 		zval_ptr_dtor(&l->data);
 	}
 
+#if 0
 	if (l->self) {
 		zval_ptr_dtor(&l->self);
+		l->self = NULL;
 	}
+#endif
 
 	PHP_EVENT_FREE_FCALL_INFO(l->fci, l->fcc);
 	PHP_EVENT_FREE_FCALL_INFO(l->fci_err, l->fcc_err);
@@ -837,6 +845,11 @@ static HashTable *object_get_debug_info(zval *object, int *is_temp TSRMLS_DC)
 	props = obj->prop_handler;
 
 	ALLOC_HASHTABLE(retval);
+
+	if (!props) {
+		ZEND_INIT_SYMTABLE_EX(retval, 1, 0);
+		return retval;
+	}
 
 	ZEND_INIT_SYMTABLE_EX(retval, zend_hash_num_elements(props) + 1, 0);
 

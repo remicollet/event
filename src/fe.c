@@ -325,13 +325,13 @@ ZEND_END_ARG_INFO();
 
 const zend_function_entry php_event_ce_functions[] = {/* {{{ */
 	PHP_ME(Event, __construct,         arginfo_event__construct,   ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(Event, free,                arginfo_event__void,        ZEND_ACC_PUBLIC)
 	PHP_ME(Event, set,                 arginfo_event_set,          ZEND_ACC_PUBLIC)
 	PHP_ME(Event, getSupportedMethods, arginfo_event__void,        ZEND_ACC_PUBLIC  | ZEND_ACC_STATIC)
 	PHP_ME(Event, add,                 arginfo_event_add,          ZEND_ACC_PUBLIC)
 	PHP_ME(Event, del,                 arginfo_event__void,        ZEND_ACC_PUBLIC)
 	PHP_ME(Event, setPriority,         arginfo_event_priority_set, ZEND_ACC_PUBLIC)
 	PHP_ME(Event, pending,             arginfo_event_pending,      ZEND_ACC_PUBLIC)
-	PHP_ME(Event, reInit,              arginfo_event_reinit,       ZEND_ACC_PUBLIC)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010200
 	PHP_ME(Event, removeTimer, arginfo_event__void, ZEND_ACC_PUBLIC)
 #endif
@@ -362,6 +362,7 @@ const zend_function_entry php_event_base_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBase, gotStop,            arginfo_event__void,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, gotExit,            arginfo_event__void,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, getTimeOfDayCached, arginfo_event__void,              ZEND_ACC_PUBLIC)
+	PHP_ME(EventBase, reInit,             arginfo_event_reinit,             ZEND_ACC_PUBLIC)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	PHP_ME(EventBase, updateCacheTime, arginfo_event__void, ZEND_ACC_PUBLIC)
 #endif
@@ -385,7 +386,6 @@ const zend_function_entry php_event_config_ce_functions[] = {/* {{{ */
 const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBufferEvent, __construct,       arginfo_bufferevent__construct,              ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(EventBufferEvent, free,              arginfo_event__void,                         ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, ref,               arginfo_event__void,                         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, connect,           arginfo_bufferevent_connect,                 ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, connectHost,       arginfo_bufferevent_socket_connect_hostname, ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, getDnsErrorString, arginfo_event__void,                         ZEND_ACC_PUBLIC)

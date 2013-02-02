@@ -21,13 +21,13 @@
 #include "common.h"
 
 PHP_METHOD(Event, __construct);
+PHP_METHOD(Event, free);
 PHP_METHOD(Event, set);
 PHP_METHOD(Event, add);
 PHP_METHOD(Event, del);
 PHP_METHOD(Event, removeTimer);
 PHP_METHOD(Event, setPriority);
 PHP_METHOD(Event, pending);
-PHP_METHOD(Event, reInit);
 PHP_METHOD(Event, getSupportedMethods);
 
 PHP_METHOD(Event, timer);
@@ -50,6 +50,7 @@ PHP_METHOD(EventBase, getTimeOfDayCached);
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 PHP_METHOD(EventBase, updateCacheTime);
 #endif
+PHP_METHOD(EventBase, reInit);
 
 PHP_METHOD(EventConfig, __construct);
 PHP_METHOD(EventConfig, avoidMethod);
@@ -60,7 +61,6 @@ PHP_METHOD(EventConfig, setMaxDispatchInterval);
 
 PHP_METHOD(EventBufferEvent, __construct);
 PHP_METHOD(EventBufferEvent, free);
-PHP_METHOD(EventBufferEvent, ref);
 PHP_METHOD(EventBufferEvent, createPair);
 PHP_METHOD(EventBufferEvent, connect);
 PHP_METHOD(EventBufferEvent, connectHost);

@@ -276,6 +276,22 @@ PHP_METHOD(Event, __construct)
 }
 /* }}} */
 
+/* {{{ proto void Event::free(void); */
+PHP_METHOD(Event, free)
+{
+	zval        *zself = getThis();
+	php_event_t *e;
+
+	PHP_EVENT_FETCH_EVENT(e, zself);
+
+	event_del(e->event);
+	event_free(e->event);
+	e->event = NULL;
+
+	zval_ptr_dtor(&zself);
+}
+/* }}} */
+
 /* {{{ proto bool Event::set(EventBase base, mixed fd,[ int what = NULL[, callable cb = NULL[, zval arg = NULL]]]);
  *
  * Re-configures event.
@@ -497,8 +513,7 @@ PHP_METHOD(Event, setPriority)
 /* }}} */
 
 /* {{{ proto bool Event::pending(int flags);
- *  Detect whether event is pending or scheduled.
- *  XXX move to properties */
+ *  Detect whether event is pending or scheduled. */
 PHP_METHOD(Event, pending)
 {
 	zval        *zevent = getThis();
@@ -513,28 +528,6 @@ PHP_METHOD(Event, pending)
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
 	if (event_pending(e->event, flags, NULL)) {
-		RETURN_TRUE;
-	}
-	RETVAL_FALSE;
-}
-/* }}} */
-
-/* {{{ proto bool Event::reInit(EventBase base);
- * Re-initialize event base. Should be called after a fork.
- * XXX pthread_atfork() in MINIT */
-PHP_METHOD(Event, reInit)
-{
-	zval             *zbase;
-	php_event_base_t *b;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
-				&zbase, php_event_base_ce) == FAILURE) {
-		return;
-	}
-
-	PHP_EVENT_FETCH_BASE(b, zbase);
-
-	if (event_reinit(b->base)) {
 		RETURN_TRUE;
 	}
 	RETVAL_FALSE;

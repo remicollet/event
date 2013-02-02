@@ -43,7 +43,7 @@ function accept_conn_cb($listener, $fd, $address, $ctx) {
 
     $bev->enable(Event::READ | Event::WRITE);
 
-	$bev->ref();
+	//$bev->ref();
 }
 
 function accept_error_cb($listener, $ctx) {
