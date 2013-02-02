@@ -80,24 +80,6 @@ PHP_METHOD(EventBuffer, unfreeze)
 }
 /* }}} */
 
-/* {{{ proto long EventBuffer::getLength(void);
- * XXX Create property?
- * Returns the total number of bytes stored in the event buffer. */
-PHP_METHOD(EventBuffer, getLength)
-{
-	zval               *zbuf = getThis();
-	php_event_buffer_t *b;
-
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
-
-	RETVAL_LONG(evbuffer_get_length(b->buf));
-}
-/* }}} */
-
 /* {{{ proto void EventBuffer::lock(void);
  * Acquire the lock on an evbuffer. 
  * Has no effect if locking was not enabled with evbuffer_enable_locking.

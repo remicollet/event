@@ -19,7 +19,53 @@
 #include "priv.h"
 #include "util.h"
 
+/* {{{ event_timer_pending_prop_read */
+static int event_timer_pending_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_t *e = (php_event_t *) obj;
+
+	PHP_EVENT_ASSERT(e->event);
+
+	MAKE_STD_ZVAL(*retval);
+	ZVAL_BOOL(*retval, (evtimer_pending(e->event, NULL) ? 1 : 0));
+
+	return SUCCESS;
+}
+/* }}} */
+
+
+
+/* {{{ event_buffer_length_prop_read */
+static int event_buffer_length_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_buffer_t *b = (php_event_buffer_t *) obj;
+
+	PHP_EVENT_ASSERT(b->buf);
+
+	MAKE_STD_ZVAL(*retval);
+	ZVAL_LONG(*retval, evbuffer_get_length(b->buf));
+
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ event_buffer_contiguous_space_prop_read */
+static int event_buffer_contiguous_space_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_buffer_t *b = (php_event_buffer_t *) obj;
+
+	PHP_EVENT_ASSERT(b->buf);
+
+	MAKE_STD_ZVAL(*retval);
+	ZVAL_LONG(*retval, evbuffer_get_contiguous_space(b->buf));
+
+	return SUCCESS;
+}
+/* }}} */
+
+
 const php_event_property_entry_t event_property_entries[] = {
+	{"timer_pending",           sizeof("timer_pending") - 1, event_timer_pending_prop_read, NULL, NULL},
     {NULL, 0, NULL, NULL, NULL}
 };
 const php_event_property_entry_t event_base_property_entries[] = {
@@ -32,6 +78,8 @@ const php_event_property_entry_t event_bevent_property_entries[] = {
     {NULL, 0, NULL, NULL, NULL}
 };
 const php_event_property_entry_t event_buffer_property_entries[] = {
+	{"length",           sizeof("length")           - 1, event_buffer_length_prop_read,           NULL, NULL},
+	{"contiguous_space", sizeof("contiguous_space") - 1, event_buffer_contiguous_space_prop_read, NULL, NULL},
     {NULL, 0, NULL, NULL, NULL}
 };
 const php_event_property_entry_t event_util_property_entries[] = {
@@ -39,6 +87,7 @@ const php_event_property_entry_t event_util_property_entries[] = {
 };
 
 const zend_property_info event_property_entry_info[] = {
+	{ZEND_ACC_PUBLIC, "timer_pending", sizeof("timer_pending") - 1, -1, 0, NULL, 0, NULL},
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
 const zend_property_info event_base_property_entry_info[] = {
@@ -51,6 +100,8 @@ const zend_property_info event_bevent_property_entry_info[] = {
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
 const zend_property_info event_buffer_property_entry_info[] = {
+	{ZEND_ACC_PUBLIC, "length",           sizeof("length")           - 1, -1, 0, NULL, 0, NULL},
+	{ZEND_ACC_PUBLIC, "contiguous_space", sizeof("contiguous_space") - 1, -1, 0, NULL, 0, NULL},
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
 const zend_property_info event_util_property_entry_info[] = {

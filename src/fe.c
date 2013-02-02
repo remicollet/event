@@ -412,7 +412,6 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, __construct,   arginfo_event__void,         ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
 	PHP_ME(EventBuffer, freeze,        arginfo_evbuffer_freeze,     ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, unfreeze,      arginfo_evbuffer_freeze,     ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, getLength,     arginfo_event__void,         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, lock,          arginfo_event__void,         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, unlock,        arginfo_event__void,         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, enableLocking, arginfo_event__void,         ZEND_ACC_PUBLIC)

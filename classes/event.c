@@ -38,13 +38,6 @@ static zend_always_inline evutil_socket_t zval_to_signum(zval **ppzfd)
 }
 /* }}} */
 
-/* {{{ timer_is_pending 
-Whether timer event is pending */
-static zend_always_inline zend_bool timer_is_pending(const struct event *e)
-{
-	return evtimer_pending(e, NULL);
-}
-/* }}} */
 
 /* {{{ timer_cb */
 static void timer_cb(evutil_socket_t fd, short what, void *arg)
@@ -600,7 +593,7 @@ PHP_METHOD(Event, setTimer)
 
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
-	if (timer_is_pending(e->event)) {
+	if (evtimer_pending(e->event, NULL)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Can't modify pending timer");
 		RETURN_FALSE;
 		return;
@@ -632,29 +625,6 @@ PHP_METHOD(Event, setTimer)
     RETVAL_TRUE;
 }
 /* }}} */
-
-/* {{{ proto bool Event::timerPending(void);
- * Detect whether timer event is pending or scheduled.
- * XXX move to properties */
-PHP_METHOD(Event, timerPending)
-{
-	zval        *zevent = getThis();
-	php_event_t *e;
-
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	PHP_EVENT_FETCH_EVENT(e, zevent);
-
-	if (timer_is_pending(e->event)) {
-		RETURN_TRUE;
-	}
-	RETVAL_FALSE;
-	
-}
-/* }}} */
-
 
 /* {{{ proto Event signal(EventBase base, int signum, callable cb[, zval arg = NULL]);
  * Factory method for signal event */

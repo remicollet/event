@@ -50,7 +50,6 @@ $bev->setCallbacks("readcb", /* writecb */ NULL, "eventcb", $base);
 $bev->enable(Event::READ | Event::WRITE);
 
 $output = $bev->getOutput();
-
 if (!$output->add(
 	"GET {$argv[2]} HTTP/1.0\r\n".
 	"Host: {$argv[1]}\r\n".

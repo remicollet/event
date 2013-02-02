@@ -82,7 +82,6 @@ PHP_METHOD(EventBufferEvent, setTimeouts);
 PHP_METHOD(EventBuffer, __construct);
 PHP_METHOD(EventBuffer, freeze);
 PHP_METHOD(EventBuffer, unfreeze);
-PHP_METHOD(EventBuffer, getLength);
 PHP_METHOD(EventBuffer, lock);
 PHP_METHOD(EventBuffer, unlock);
 PHP_METHOD(EventBuffer, enableLocking);
