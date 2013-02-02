@@ -284,9 +284,11 @@ PHP_METHOD(Event, free)
 
 	PHP_EVENT_FETCH_EVENT(e, zself);
 
-	event_del(e->event);
-	event_free(e->event);
-	e->event = NULL;
+	if (e->event) {
+		event_del(e->event);
+		event_free(e->event);
+		e->event = NULL;
+	}
 
 	zval_ptr_dtor(&zself);
 }

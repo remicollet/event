@@ -121,7 +121,7 @@ static void event_object_dtor(void *ptr, zend_object_handle handle TSRMLS_DC)
 {
 	php_event_t *e = (php_event_t *) ptr;
 
-	if (e && e->event) {
+	if (e->event) {
 		event_del(e->event);
 		event_free(e->event);
 		e->event = NULL;
