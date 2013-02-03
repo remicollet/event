@@ -19,7 +19,7 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "1.0.1-devel"
+#define PHP_EVENT_VERSION "1.1.0-devel"
 
 
 extern zend_module_entry event_module_entry;
@@ -104,11 +104,13 @@ ZEND_END_MODULE_GLOBALS(event)
 #define PHP_EVENT_FREE_FCALL_INFO(pfci, pfcc)                                                    \
     if (pfci && pfcc) {                                                                          \
         efree(pfcc);                                                                             \
+        pfcc = NULL;                                                                             \
                                                                                                  \
         if (ZEND_FCI_INITIALIZED(*pfci)) {                                                       \
             PHP_EVENT_FCI_DELREF(pfci);                                                          \
         }                                                                                        \
         efree(pfci);                                                                             \
+        pfci = NULL;                                                                             \
     }                                                                                            \
 
 #define PHP_EVENT_LIBEVENT_VERSION_REQUIRED(func, v)                                           \

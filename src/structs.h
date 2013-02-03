@@ -27,11 +27,22 @@
 # define PHP_EVENT_COMMON_THREAD_CTX
 #endif
 
-/* Represents an event */
+#define PHP_EVENT_OBJECT_HEAD \
+    zend_object  zo;          /* Extending zend_object */ \
+    HashTable   *prop_handler /* no ';' */
+
+/* php_event_abstract_object_t is for type casting only. However, all the
+ * class objects must have the same fields at the head of their structs */
 typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+} php_event_abstract_object_t; 
+
+/* Represents Event object */
+typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
 	struct event          *event;       /* Pointer returned by event_new                        */
-	int                    stream_id;   /* Resource ID of the file descriptor, or signal number */
-	int                    rsrc_id;     /* Resource ID of the event     */
+	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
 	zval                  *data;        /* User custom data                                     */
 	/* fci and fcc represent userspace callback */
 	zend_fcall_info       *fci;
@@ -40,12 +51,29 @@ typedef struct {
 	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_t;
 
-/* Represents a bufferevent */
+/* Represents EventBase object */
 typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
+	struct event_base *base;
+	zend_bool          internal;   /* Whether is an internal pointer, e.g. obtained with evconnlistener_get_base() */
+} php_event_base_t;
+
+/* Represents EventConfig object */
+typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
+	struct event_config *ptr;
+} php_event_config_t;
+
+/* Represents EventBufferEvent object */
+typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
 	struct bufferevent    *bevent;
-	int                    stream_id;   /* Resource ID of the file descriptor */
-	int                    rsrc_id;     /* Resource ID of the bufferevent     */
-	zval                  *data;        /* User custom data                   */
+	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
+	zval                  *self;        /* Object itself. For callbacks                   */
+	zval                  *data;        /* User custom data                               */
 
     /* fci and fcc members represent userspace callbacks */
 	zend_fcall_info       *fci_read;
@@ -58,28 +86,36 @@ typedef struct {
 	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_bevent_t;
 
+/* Represents EventBuffer object */
 typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+	zend_bool internal; /* Whether is an internal buffer of a bufferevent */
+
 	struct evbuffer *buf;
-	int              rsrc_id;    /* Resource ID of the event buffer                */
-	zend_bool        internal;   /* Whether is an internal buffer of a bufferevent */
 } php_event_buffer_t;
 
 #ifdef HAVE_EVENT_EXTRA_LIB/* {{{ */
 
+/* Represents EventDnsBase object */
 typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
 	struct evdns_base *dns_base;
-	int                rsrc_id;    /* Resource ID of the dns base */
 } php_event_dns_base_t;
 
+/* Represents EventListener object */
 typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
 	struct evconnlistener *listener;
-	int                    stream_id;   /* Resource ID of the socket file descriptor */
-	int                    base_id;     /* Resource ID of the event base      */
-	int                    rsrc_id;     /* Resource ID of the evconnlistener         */
+	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
+	zval                  *self;        /* Object itself. For callbacks              */
 	zval                  *data;        /* User custom data passed to callback       */
+
 	/* Accept callback */
 	zend_fcall_info       *fci;
 	zend_fcall_info_cache *fcc;
+
 	/* Error callback */
 	zend_fcall_info       *fci_err;
 	zend_fcall_info_cache *fcc_err;
@@ -87,28 +123,47 @@ typedef struct {
 	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_listener_t;
 
+/* Represents EventHttpConnection object */
 typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
 	struct evhttp_connection *conn;
-	int                       base_id;       /* Resource ID of the event base     */
-	int                       dns_base_id;   /* Resource ID of the event dns base */
-	int                       rsrc_id;       /* Resource ID of the evconnlistener */
+	zval                     *base;       /* Event base associated with the listener */
+	zval                     *dns_base;   /* Associated EventDnsBase                 */
 } php_event_http_conn_t;
 
+/* Represents EventHttp object */
 typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
 	struct evhttp *ptr;
-	int            rsrc_id;     /* Resource ID of the http server                */
-	int            base_id;     /* Resource ID of the event base                 */
+	zval          *base;        /* Event base associated with the listener       */
 	int            stream_id;   /* Resource ID of socket probably being listened */
 } php_event_http_t;
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
-typedef struct {
-	struct event_base *base;
-	int                rsrc_id;   /* Resource ID of the event base */
-} php_event_base_t;
-typedef struct event_config php_event_config_t;
 typedef double php_event_timestamp_t;
+
+typedef int (*php_event_prop_read_t)(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC);
+typedef int (*php_event_prop_write_t)(php_event_abstract_object_t *obj, zval *newval  TSRMLS_DC);
+typedef zval **(*php_event_prop_get_prop_ptr_ptr_t)(php_event_abstract_object_t *obj TSRMLS_DC);
+
+typedef struct {
+	const char                        *name;
+	size_t                             name_length;
+	php_event_prop_read_t              read_func;
+	php_event_prop_write_t             write_func;
+	php_event_prop_get_prop_ptr_ptr_t  get_ptr_ptr_func;
+} php_event_property_entry_t;
+
+typedef struct {
+	char                              *name;
+	size_t                             name_len;
+	php_event_prop_read_t              read_func;
+	php_event_prop_write_t             write_func;
+	php_event_prop_get_prop_ptr_ptr_t  get_ptr_ptr_func;
+} php_event_prop_handler_t;
 
 
 #ifndef LIBEVENT_VERSION_NUMBER

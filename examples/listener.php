@@ -5,70 +5,71 @@
  * Usage:
  * 1) In one terminal window run:
  *
- * $ php listener.php
+ * $ php listener.php 9881
  *
  * 2) In another terminal window open up connection, e.g.:
  *
- * $ nc 127.0.0.1 9876
+ * $ nc 127.0.0.1 9881
  *
  * 3) start typing. The server should repeat the input.
  */
 
 function echo_read_cb($bev, $ctx) {
-    /* This callback is invoked when there is data to read on $bev. */
-    $input  = bufferevent_get_input($bev);
-    $output = bufferevent_get_output($bev);
+	/* This callback is invoked when there is data to read on $bev. */
+	$input	= $bev->getInput();
+	$output = $bev->getOutput();
 
-    /* Copy all the data from the input buffer to the output buffer. */
-    evbuffer_add_buffer($output, $input);
+	/* Copy all the data from the input buffer to the output buffer. */
+	EventBuffer::addBuffer($output, $input);
 }
 
 function echo_event_cb($bev, $events, $ctx) {
-    if ($events & EVENT_BEV_EVENT_ERROR)
-        echo "Error from bufferevent";
-    if ($events & (EVENT_BEV_EVENT_EOF | EVENT_BEV_EVENT_ERROR)) {
-        bufferevent_free($bev);
-    }
+	if ($events & EventBufferEvent::ERROR)
+		echo "Error from bufferevent\n";
+
+	if ($events & (EventBufferEvent::EOF | EventBufferEvent::ERROR)) {
+		$bev->free();
+	}
 }
 
 function accept_conn_cb($listener, $fd, $address, $ctx) {
-    /* We got a new connection! Set up a bufferevent for it. */
+	/* We got a new connection! Set up a bufferevent for it. */
+	$base = $ctx;
+	//$base = $listener->getBase();
 
-    //$base = $ctx;
-    $base = evconnlistener_get_base($listener);
+	$bev = new EventBufferEvent($base, $fd, EventBufferEvent::OPT_CLOSE_ON_FREE);
 
-    $bev = bufferevent_socket_new($base, $fd, EVENT_BEV_OPT_CLOSE_ON_FREE);
+	$bev->setCallbacks("echo_read_cb", NULL, "echo_event_cb", NULL);
 
-    bufferevent_setcb($bev, "echo_read_cb", NULL, "echo_event_cb", NULL);
+	$bev->enable(Event::READ | Event::WRITE);
 
-    bufferevent_enable($bev, EVENT_READ | EVENT_WRITE);
+	//$bev->ref();
 }
 
 function accept_error_cb($listener, $ctx) {
-    $base = evconnlistener_get_base($listener);
+	$base = $listener->getBase();
 
-    fprintf(STDERR, "Got an error %d (%s) on the listener. "
-        ."Shutting down.\n",
-		event_socket_get_last_errno(),
-		event_socket_get_last_error());
+	fprintf(STDERR, "Got an error %d (%s) on the listener. "
+		."Shutting down.\n",
+		EventUtil::getLastSocketErrno(),
+		EventUtil::getLastSocketError());
 
-    event_base_loopexit($base, NULL);
+	$base->exit(NULL);
 }
 
-
-$port = 9876;
+$port = 9808;
 
 if ($argc > 1) {
-    $port = (int) $argv[1];
+	$port = (int) $argv[1];
 }
 if ($port <= 0 || $port > 65535) {
-    puts("Invalid port");
-    return 1;
+	puts("Invalid port");
+	return 1;
 }
 
-$base = event_base_new();
+$base = new EventBase();
 if (!$base) {
-    echo "Couldn't open event base";
+	echo "Couldn't open event base";
 	exit(1);
 }
 
@@ -78,19 +79,19 @@ if (!socket_bind($socket, '0.0.0.0', $port)) {
 	echo "Unable to bind socket\n";
 	exit(1);
 }
-$listener = evconnlistener_new($base, "accept_conn_cb", $base,
-    EVENT_LEV_OPT_CLOSE_ON_FREE | EVENT_LEV_OPT_REUSEABLE, -1, $socket);
+$listener = new EventListener($base, "accept_conn_cb", $base,
+	EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1, $socket);
 
 /* Variant #2 */
 /*
-$listener = evconnlistener_new_bind($base, "accept_conn_cb", $base,
-    EVENT_LEV_OPT_CLOSE_ON_FREE | EVENT_LEV_OPT_REUSEABLE, -1, "0.0.0.0:$port");
+$listener = new EventListener($base, "accept_conn_cb", $base,
+	EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1, "0.0.0.0:$port");
  */
 
 if (!$listener) {
-    echo "Couldn't create listener";
+	echo "Couldn't create listener";
 	exit(1);
 }
-evconnlistener_set_error_cb($listener, "accept_error_cb");
+$listener->setErrorCallback("accept_error_cb");
 
-event_base_dispatch($base);
+$base->dispatch();

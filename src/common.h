@@ -52,6 +52,10 @@
 # include <event2/tag.h>
 #endif
 
+#if !defined(_WIN32) && !defined(_MINIX)
+# include <pthread.h>
+#endif
+
 #ifdef ZTS
 # include <TSRM.h>
 #endif

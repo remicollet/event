@@ -12,11 +12,11 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-01-29</date>
+  <date>2013-02-03</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.0.1</release>
-    <api>1.0.0</api>
+    <release>1.1.0</release>
+    <api>1.1.0</api>
   </version>
   <stability>
     <release>devel</release>
@@ -24,9 +24,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fix: crash due to destruction of the internal bufferevent buffers (synced with oop branch)
-    Fix: extra memory consumption caused by continuous calls to bufferevent_get_input/_output
-    Fix: memory violation while parsing event_config_set_max_dispatch_interval parameters
+  Procedural API converted to OOP API
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -34,17 +32,49 @@
     <dir name="/">
       <file role="doc" name="CREDITS"/>
       <file role="doc" name="EXPERIMENTAL"/>
-      <file role="src" name="common.h"/>
+      <file role="doc" name="INSTALL.md"/>
+      <file role="doc" name="README.md"/>
       <file role="src" name="config.m4"/>
-      <file role="src" name="event.c"/>
-      <file role="src" name="fe.c"/>
-      <file role="src" name="fe.h"/>
+      <file role="src" name="php_event.c"/>
       <file role="src" name="php_event.h"/>
-      <file role="src" name="structs.h"/>
+      <dir name="classes">
+        <file role="src" name="base.c"/>
+        <file role="src" name="buffer.c"/>
+        <file role="src" name="buffer_event.c"/>
+        <file role="src" name="dns.c"/>
+        <file role="src" name="event.c"/>
+        <file role="src" name="event_config.c"/>
+        <file role="src" name="event_util.c"/>
+        <file role="src" name="http.c"/>
+        <file role="src" name="http_connection.c"/>
+        <file role="src" name="listener.c"/>
+      </dir>
+      <dir name="examples">
+        <file role="doc" name="buffer_proxy.php"/>
+        <file role="doc" name="eio.php"/>
+        <file role="doc" name="fibonacci_buffer.php"/>
+        <file role="doc" name="httpv0client.php"/>
+        <file role="doc" name="httpv0client2.php"/>
+        <file role="doc" name="listener.php"/>
+        <file role="doc" name="misc.php"/>
+        <file role="doc" name="signal.php"/>
+        <file role="doc" name="uppercase_proxy.php"/>
+      </dir>
+      <dir name="src">
+        <file role="src" name="common.h"/>
+        <file role="src" name="fe.c"/>
+        <file role="src" name="fe.h"/>
+        <file role="src" name="pe.c"/>
+        <file role="src" name="priv.h"/>
+        <file role="src" name="structs.h"/>
+        <file role="src" name="util.c"/>
+        <file role="src" name="util.h"/>
+      </dir>
       <dir name="tests">
         <file role="src" name="01-load.phpt"/>
         <file role="src" name="02-features.phpt"/>
         <file role="src" name="03-event-del.phpt"/>
+        <file role="src" name="04-bevent-socket.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -66,6 +96,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ Current version -->
+    <release>
+      <version>
+        <release>1.1.0</release>
+        <api>1.1.0</api>
+      </version>
+      <stability>
+        <release>devel</release>
+        <api>devel</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Procedural API converted to OOP API
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.0.1 -->
     <release>
       <version>

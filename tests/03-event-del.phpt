@@ -2,30 +2,29 @@
 Check for event_add and event_del
 --FILE--
 <?php 
-$base = event_base_new();
+$base = new EventBase();
 
-$e1 = event_timer_new($base, function () { echo "not ok 3\n"; });
-event_add($e1, 0.1);
+$e1 = Event::timer($base, function () { echo "not ok 3\n"; });
+$e1->add(0.1);
 
-$e2 = event_timer_new($base, function () { echo "ok 3\n"; });
-event_add($e2, 0.2);
+$e2 = Event::timer($base, function () { echo "ok 3\n"; });
+$e2->add(0.2);
 
-event_timer_pending($e1) and print("ok 1\n");
-event_timer_pending($e2) and print("ok 2\n");
+$e1->timer_pending and print("ok 1\n");
+$e2->timer_pending and print("ok 2\n");
 
-event_del($e1);
-event_timer_pending($e1) and print("not ok 4\n");
+$e1->del();
+$e1->timer_pending and print("not ok 4\n");
 
-event_base_loop($base, EVENT_LOOP_ONCE);
+$base->loop(EventBase::LOOP_ONCE);
 
-event_timer_set($e1, $base, function() { echo "ok 4\n"; });
-event_add($e1, 0.3);
-event_base_loop($base, EVENT_LOOP_ONCE);
+$e1->setTimer($base, function() { echo "ok 4\n"; });
+$e1->add(0.3);
+$base->loop(EventBase::LOOP_ONCE);
 
-event_del($e1);
-event_del($e2);
-event_base_loop($base);
-
+$e1->del();
+$e2->del();
+$base->loop();
 ?>
 --EXPECT--
 ok 1
