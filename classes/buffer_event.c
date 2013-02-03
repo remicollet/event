@@ -228,10 +228,12 @@ PHP_METHOD(EventBufferEvent, free)
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 
-	bufferevent_free(bev->bevent);
-	bev->bevent = 0;
+	if (bev->bevent) {
+		bufferevent_free(bev->bevent);
+		bev->bevent = 0;
+	}
 
-	zval_ptr_dtor(&zbevent);
+	/*zval_ptr_dtor(&zbevent);*/
 }
 /* }}} */
 

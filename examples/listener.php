@@ -15,61 +15,61 @@
  */
 
 function echo_read_cb($bev, $ctx) {
-    /* This callback is invoked when there is data to read on $bev. */
-    $input  = $bev->getInput();
-    $output = $bev->getOutput();
+	/* This callback is invoked when there is data to read on $bev. */
+	$input	= $bev->getInput();
+	$output = $bev->getOutput();
 
-    /* Copy all the data from the input buffer to the output buffer. */
-    EventBuffer::addBuffer($output, $input);
+	/* Copy all the data from the input buffer to the output buffer. */
+	EventBuffer::addBuffer($output, $input);
 }
 
 function echo_event_cb($bev, $events, $ctx) {
-    if ($events & EventBufferEvent::ERROR)
-        echo "Error from bufferevent\n";
+	if ($events & EventBufferEvent::ERROR)
+		echo "Error from bufferevent\n";
 
-    if ($events & (EventBufferEvent::EOF | EventBufferEvent::ERROR)) {
-        $bev->free();
-    }
+	if ($events & (EventBufferEvent::EOF | EventBufferEvent::ERROR)) {
+		$bev->free();
+	}
 }
 
 function accept_conn_cb($listener, $fd, $address, $ctx) {
-    /* We got a new connection! Set up a bufferevent for it. */
-    $base = $ctx;
-    //$base = $listener->getBase();
+	/* We got a new connection! Set up a bufferevent for it. */
+	$base = $ctx;
+	//$base = $listener->getBase();
 
-    $bev = new EventBufferEvent($base, $fd, EventBufferEvent::OPT_CLOSE_ON_FREE);
+	$bev = new EventBufferEvent($base, $fd, EventBufferEvent::OPT_CLOSE_ON_FREE);
 
-    $bev->setCallbacks("echo_read_cb", NULL, "echo_event_cb", NULL);
+	$bev->setCallbacks("echo_read_cb", NULL, "echo_event_cb", NULL);
 
-    $bev->enable(Event::READ | Event::WRITE);
+	$bev->enable(Event::READ | Event::WRITE);
 
 	//$bev->ref();
 }
 
 function accept_error_cb($listener, $ctx) {
-    $base = $listener->getBase();
+	$base = $listener->getBase();
 
-    fprintf(STDERR, "Got an error %d (%s) on the listener. "
-        ."Shutting down.\n",
+	fprintf(STDERR, "Got an error %d (%s) on the listener. "
+		."Shutting down.\n",
 		EventUtil::getLastSocketErrno(),
 		EventUtil::getLastSocketError());
 
-    $base->exit(NULL);
+	$base->exit(NULL);
 }
 
 $port = 9808;
 
 if ($argc > 1) {
-    $port = (int) $argv[1];
+	$port = (int) $argv[1];
 }
 if ($port <= 0 || $port > 65535) {
-    puts("Invalid port");
-    return 1;
+	puts("Invalid port");
+	return 1;
 }
 
 $base = new EventBase();
 if (!$base) {
-    echo "Couldn't open event base";
+	echo "Couldn't open event base";
 	exit(1);
 }
 
@@ -80,7 +80,7 @@ if (!socket_bind($socket, '0.0.0.0', $port)) {
 	exit(1);
 }
 $listener = new EventListener($base, "accept_conn_cb", $base,
-    EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1, $socket);
+	EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1, $socket);
 
 /* Variant #2 */
 /*
@@ -89,7 +89,7 @@ $listener = new EventListener($base, "accept_conn_cb", $base,
  */
 
 if (!$listener) {
-    echo "Couldn't create listener";
+	echo "Couldn't create listener";
 	exit(1);
 }
 $listener->setErrorCallback("accept_error_cb");
