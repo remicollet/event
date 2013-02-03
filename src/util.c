@@ -16,8 +16,8 @@
    +----------------------------------------------------------------------+
 */
 
-#include "common.h"
-#include "util.h"
+#include "src/common.h"
+#include "src/util.h"
 
 /* {{{ php_event_is_pending 
 Don't allow for pending or active event

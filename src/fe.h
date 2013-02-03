@@ -18,7 +18,7 @@
 #ifndef PHP_EVENT_FE_H
 #define PHP_EVENT_FE_H
 
-#include "common.h"
+#include "src/common.h"
 
 PHP_METHOD(Event, __construct);
 PHP_METHOD(Event, free);

@@ -15,9 +15,9 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "common.h"
-#include "util.h"
-#include "priv.h"
+#include "src/common.h"
+#include "src/util.h"
+#include "src/priv.h"
 
 /* {{{ proto EventConfig::__construct(void);
  * On success returns a valid resource representing an event configuration

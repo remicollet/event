@@ -15,9 +15,9 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "common.h"
-#include "util.h"
-#include "priv.h"
+#include "src/common.h"
+#include "src/util.h"
+#include "src/priv.h"
 
 /* {{{ proto EventHttpConnection EventHttpConnection::__construct(EventBase base, EventDnsBase dns_base, string address, int port);
  * */

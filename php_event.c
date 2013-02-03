@@ -16,9 +16,9 @@
    +----------------------------------------------------------------------+
 */
 
-#include "common.h"
-#include "util.h"
-#include "priv.h"
+#include "src/common.h"
+#include "src/util.h"
+#include "src/priv.h"
 
 /*
 ZEND_DECLARE_MODULE_GLOBALS(event)

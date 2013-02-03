@@ -15,9 +15,9 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "common.h"
-#include "util.h"
-#include "priv.h"
+#include "src/common.h"
+#include "src/util.h"
+#include "src/priv.h"
 
 /* {{{ Private */
 
@@ -283,7 +283,7 @@ PHP_METHOD(Event, free)
 		e->event = NULL;
 	}
 
-	zval_ptr_dtor(&zself);
+	/*zval_ptr_dtor(&zself);*/
 }
 /* }}} */
 

@@ -15,9 +15,9 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "common.h"
-#include "util.h"
-#include "priv.h"
+#include "src/common.h"
+#include "src/util.h"
+#include "src/priv.h"
 
 /* {{{ Private */
 
@@ -231,9 +231,11 @@ PHP_METHOD(EventBufferEvent, free)
 	if (bev->bevent) {
 		bufferevent_free(bev->bevent);
 		bev->bevent = 0;
-	}
 
-	zval_ptr_dtor(&zbevent);
+		/* Do it once */
+		Z_DELREF_P(zbevent);
+		/*zval_ptr_dtor(&zbevent);*/
+	}
 }
 /* }}} */
 
