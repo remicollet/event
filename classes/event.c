@@ -283,7 +283,7 @@ PHP_METHOD(Event, free)
 		e->event = NULL;
 	}
 
-	zval_ptr_dtor(&zself);
+	/*zval_ptr_dtor(&zself);*/
 }
 /* }}} */
 

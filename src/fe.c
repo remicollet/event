@@ -338,7 +338,6 @@ const zend_function_entry php_event_ce_functions[] = {/* {{{ */
 
 	PHP_ME(Event, timer,        arginfo_evtimer_new,  ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(Event, setTimer,     arginfo_evtimer_set,  ZEND_ACC_PUBLIC)
-	PHP_ME(Event, timerPending, arginfo_event__void,  ZEND_ACC_PUBLIC)
 	PHP_ME(Event, signal,       arginfo_evsignal_new, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 	PHP_MALIAS(Event, addTimer,  add, arginfo_event_add,   ZEND_ACC_PUBLIC)

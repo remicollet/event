@@ -32,7 +32,6 @@ PHP_METHOD(Event, getSupportedMethods);
 
 PHP_METHOD(Event, timer);
 PHP_METHOD(Event, setTimer);
-PHP_METHOD(Event, timerPending);
 
 PHP_METHOD(Event, signal);
 
