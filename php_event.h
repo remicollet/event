@@ -19,13 +19,13 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "1.1.0-devel"
+#define PHP_EVENT_VERSION "1.1.1-devel"
 
 
 extern zend_module_entry event_module_entry;
 #define phpext_event_ptr &event_module_entry
 
-#include "common.h"
+#include "src/common.h"
 
 #define PHP_EVENT_RES_NAME "Event"
 #define PHP_EVENT_BASE_RES_NAME "Event Base"
