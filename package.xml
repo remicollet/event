@@ -12,10 +12,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-02-03</date>
+  <date>2013-02-04</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.1.0</release>
+    <release>1.1.1</release>
     <api>1.1.0</api>
   </version>
   <stability>
@@ -24,7 +24,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Procedural API converted to OOP API
+  Fix: the installer failed to determine location of src/common.h
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -96,7 +96,23 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ Current version -->
+    <!--{{{ 1.1.1-devel -->
+    <release>
+      <version>
+        <release>1.1.1</release>
+        <api>1.1.0</api>
+      </version>
+      <stability>
+        <release>devel</release>
+        <api>devel</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Fix: the installer failed to determine location of src/common.h
+  ]]></notes>
+    </release>
+    <!--}}}-->
+    <!--{{{ 1.1.0-devel -->
     <release>
       <version>
         <release>1.1.0</release>
@@ -112,7 +128,7 @@
   ]]></notes>
     </release>
     <!--}}}-->
-    <!--{{{ 1.0.1 -->
+    <!--{{{ 1.0.1-devel -->
     <release>
       <version>
         <release>1.0.1</release>
@@ -130,7 +146,7 @@
   ]]></notes>
     </release>
     <!--}}}-->
-    <!--{{{ 1.0.0 -->
+    <!--{{{ 1.0.0-devel -->
     <release>
       <date>2013-01-19</date>
       <version>
