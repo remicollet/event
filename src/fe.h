@@ -87,6 +87,14 @@ PHP_METHOD(EventBuffer, enableLocking);
 PHP_METHOD(EventBuffer, add);
 PHP_METHOD(EventBuffer, remove);
 PHP_METHOD(EventBuffer, addBuffer);
+PHP_METHOD(EventBuffer, removeBuffer);
+PHP_METHOD(EventBuffer, expand);
+PHP_METHOD(EventBuffer, prepend);
+PHP_METHOD(EventBuffer, prependBuffer);
+PHP_METHOD(EventBuffer, drain);
+PHP_METHOD(EventBuffer, copyout);
+PHP_METHOD(EventBuffer, readLine);
+PHP_METHOD(EventBuffer, search);
 
 PHP_METHOD(EventUtil, getLastSocketErrno);
 PHP_METHOD(EventUtil, getLastSocketError);

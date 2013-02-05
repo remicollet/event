@@ -64,6 +64,9 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC);
 #define PHP_EVENT_FETCH_HTTP(b, zb) \
 	b = (php_event_http_t *) zend_object_store_get_object(zb TSRMLS_CC);
 
+#define PHP_EVENT_FETCH_BUFFER_POS(p, zp) \
+	ZEND_FETCH_RESOURCE((p), struct evbuffer_ptr *, &(zp), -1, PHP_EVENT_BUFFER_POS_RES_NAME, le_event_buffer_pos)
+
 #define PHP_EVENT_TIMEVAL_SET(tv, t)                     \
         do {                                             \
             tv.tv_sec  = (long) t;                       \

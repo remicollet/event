@@ -27,18 +27,7 @@ extern zend_module_entry event_module_entry;
 
 #include "src/common.h"
 
-#define PHP_EVENT_RES_NAME "Event"
-#define PHP_EVENT_BASE_RES_NAME "Event Base"
-#define PHP_EVENT_CONFIG_RES_NAME "Event Config"
-#define PHP_EVENT_BEVENT_RES_NAME "Buffer Event"
-#define PHP_EVENT_BUFFER_RES_NAME "Event Buffer"
-
-#if HAVE_EVENT_EXTRA_LIB
-# define PHP_EVENT_DNS_BASE_RES_NAME "Event DNS Base"
-# define PHP_EVENT_LISTENER_RES_NAME "Event Connection Listener"
-# define PHP_EVENT_HTTP_CONN_RES_NAME "Event HTTP Connection"
-# define PHP_EVENT_HTTP_RES_NAME "Event HTTP Server"
-#endif
+#define PHP_EVENT_BUFFER_POS_RES_NAME "EventBuffer Position"
 
 PHP_MINIT_FUNCTION(event);
 PHP_MSHUTDOWN_FUNCTION(event);

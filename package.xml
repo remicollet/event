@@ -12,7 +12,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-02-05</date>
+  <date>2013-02-06</date>
   <!--{{{ Current version -->
   <version>
     <release>1.1.1</release>
@@ -25,6 +25,8 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: non-static zend_always_inline function failed to compile with some (non-zts) php setups
+  Change: static EventBuffer::addBuffer made non-static with one argument
+  Add: EventBuffer expand, prepend, prependBuffer, drain, copyout, readLine, search methods
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -108,6 +110,9 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
+  Fix: non-static zend_always_inline function failed to compile with some (non-zts) php setups
+  Change: static EventBuffer::addBuffer made non-static with one argument
+  Add: EventBuffer expand, prepend, prependBuffer, drain, copyout, readLine, search methods
   ]]></notes>
   </release>
   <!--}}}-->

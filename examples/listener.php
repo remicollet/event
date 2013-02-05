@@ -20,7 +20,7 @@ function echo_read_cb($bev, $ctx) {
 	$output = $bev->getOutput();
 
 	/* Copy all the data from the input buffer to the output buffer. */
-	EventBuffer::addBuffer($output, $input);
+	$output->addBuffer($input);
 }
 
 function echo_event_cb($bev, $events, $ctx) {

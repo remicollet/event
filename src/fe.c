@@ -189,14 +189,33 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_add, 0, 0, 1)
 	ZEND_ARG_INFO(0, data) 
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_add_buffer, 0, 0, 2)
-	ZEND_ARG_INFO(0, outbuf)
-	ZEND_ARG_INFO(0, inbuf) 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_add_buffer, 0, 0, 1)
+	ZEND_ARG_INFO(0, buf)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove_buffer, 0, 0, 2)
+	ZEND_ARG_INFO(0, buf)
+	ZEND_ARG_INFO(0, len)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_len, 0, 0, 1)
+	ZEND_ARG_INFO(0, len)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove, 0, 0, 2)
 	ZEND_ARG_INFO(1, data)
 	ZEND_ARG_INFO(0, max_bytes)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_read_line, 0, 0, 2)
+	ZEND_ARG_INFO(0, len)
+	ZEND_ARG_INFO(0, eol_style)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_search, 0, 0, 1)
+	ZEND_ARG_INFO(0, what)
+	ZEND_ARG_INFO(0, start)
+	ZEND_ARG_INFO(0, end)
 ZEND_END_ARG_INFO();
 
 
@@ -408,15 +427,23 @@ const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
 /* }}} */
 
 const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
-	PHP_ME(EventBuffer, __construct,   arginfo_event__void,         ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
-	PHP_ME(EventBuffer, freeze,        arginfo_evbuffer_freeze,     ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, unfreeze,      arginfo_evbuffer_freeze,     ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, lock,          arginfo_event__void,         ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, unlock,        arginfo_event__void,         ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, enableLocking, arginfo_event__void,         ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, add,           arginfo_evbuffer_add,        ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, addBuffer,     arginfo_evbuffer_add_buffer, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-	PHP_ME(EventBuffer, remove,        arginfo_evbuffer_remove,     ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, __construct,   arginfo_event__void,            ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(EventBuffer, freeze,        arginfo_evbuffer_freeze,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, unfreeze,      arginfo_evbuffer_freeze,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, lock,          arginfo_event__void,            ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, unlock,        arginfo_event__void,            ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, enableLocking, arginfo_event__void,            ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, add,           arginfo_evbuffer_add,           ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, addBuffer,     arginfo_evbuffer_add_buffer,    ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, removeBuffer,  arginfo_evbuffer_remove_buffer, ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, remove,        arginfo_evbuffer_remove,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, expand,        arginfo_evbuffer_len,           ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, prepend,       arginfo_evbuffer_add,           ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, prependBuffer, arginfo_evbuffer_add_buffer,    ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, drain,         arginfo_evbuffer_len,           ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, copyout,       arginfo_evbuffer_remove,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, readLine,      arginfo_evbuffer_read_line,     ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, search,        arginfo_evbuffer_search,        ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };

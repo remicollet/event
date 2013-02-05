@@ -46,18 +46,9 @@ static HashTable event_config_properties;
 static HashTable event_bevent_properties;
 static HashTable event_buffer_properties;
 
-#if 0
-static HashTable event_util_properties;
-
-#if HAVE_EVENT_EXTRA_LIB
-static HashTable event_dns_base_properties;
-static HashTable event_listener_properties;
-static HashTable event_http_conn_properties;
-static HashTable event_http_properties;
-#endif
-#endif
-
 static zend_object_handlers object_handlers;
+
+int le_event_buffer_pos;
 
 static const zend_module_dep event_deps[] = {
 	ZEND_MOD_OPTIONAL("sockets")
@@ -866,6 +857,15 @@ static zend_always_inline void register_classes(TSRMLS_D)
 }
 /* }}} */
 
+/* {{{ php_event_buffer_pos_dtor */
+static void php_event_buffer_pos_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+{
+	struct evbuffer_ptr *p = (struct evbuffer_ptr *) rsrc->ptr;
+
+	efree(p);
+}
+/* }}} */
+
 /* Private functions }}} */
 
 
@@ -876,6 +876,8 @@ static zend_always_inline void register_classes(TSRMLS_D)
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
 {
+	le_event_buffer_pos = zend_register_list_destructors_ex(php_event_buffer_pos_dtor, NULL, PHP_EVENT_BUFFER_POS_RES_NAME, module_number);
+
 	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 
 	memcpy(&object_handlers, std_hnd, sizeof(zend_object_handlers));
@@ -966,6 +968,14 @@ PHP_MINIT_FUNCTION(event)
 #endif
 
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, LIBEVENT_VERSION_NUMBER, LIBEVENT_VERSION_NUMBER);
+
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_ANY,         EVBUFFER_EOL_ANY);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_CRLF,        EVBUFFER_EOL_CRLF);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_CRLF_STRICT, EVBUFFER_EOL_CRLF_STRICT);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_LF,          EVBUFFER_EOL_LF);
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_NUL,         EVBUFFER_EOL_NUL);
+#endif
 
 	/* Handle libevent's error logging more gracefully than it's default
 	 * logging to stderr, or calling abort()/exit() */

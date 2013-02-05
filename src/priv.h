@@ -70,6 +70,7 @@ extern const zend_property_info event_http_property_entry_info[];
 
 #endif
 
+
 #endif /* PHP_EVENT_PRIV_H */
 
 /* 

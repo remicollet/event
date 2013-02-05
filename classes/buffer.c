@@ -19,6 +19,8 @@
 #include "src/util.h"
 #include "src/priv.h"
 
+extern int le_event_buffer_pos;
+
 /* {{{ proto resource EventBuffer::__construct(void); */
 PHP_METHOD(EventBuffer, __construct)
 {
@@ -166,32 +168,6 @@ PHP_METHOD(EventBuffer, add)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::addBuffer(EventBuffer outbuf, EventBuffer inbuf); 
- * Move all data from one evbuffer into another evbuffer.
- * This is a destructive add. The data from one buffer moves into the other buffer. However, no unnecessary memory copies occur.
- */
-PHP_METHOD(EventBuffer, addBuffer)
-{
-	php_event_buffer_t *b_out     , *b_in;
-	zval               *zbuf_out  , *zbuf_in;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OO",
-				&zbuf_out, php_event_buffer_ce,
-				&zbuf_in, php_event_buffer_ce) == FAILURE) {
-		return;
-	}
-
-	PHP_EVENT_FETCH_BUFFER(b_out, zbuf_out);
-	PHP_EVENT_FETCH_BUFFER(b_in, zbuf_in);
-
-	if (evbuffer_add_buffer(b_out->buf, b_in->buf)) {
-		RETURN_FALSE;
-	}
-
-	RETVAL_TRUE;
-}
-/* }}} */
-
 /* {{{ proto int EventBuffer::remove(string &data, long max_bytes);
  *
  * Read data from an evbuffer and drain the bytes read.  If more bytes are
@@ -235,6 +211,299 @@ PHP_METHOD(EventBuffer, remove)
 	efree(data);
 
 	RETVAL_LONG(ret);
+}
+/* }}} */
+
+/* {{{ proto bool EventBuffer::addBuffer(EventBuffer buf); 
+ * Move all data from the buffer provided in buf parameter to the current instance of EventBuffer.
+ * This is a destructive add. The data from one buffer moves into the other buffer. However, no unnecessary memory copies occur.
+ */
+PHP_METHOD(EventBuffer, addBuffer)
+{
+	php_event_buffer_t *b_dst;
+	php_event_buffer_t *b_src;
+	zval               *zbuf_dst = getThis();
+	zval               *zbuf_src;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
+				&zbuf_src, php_event_buffer_ce) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b_dst, zbuf_dst);
+	PHP_EVENT_FETCH_BUFFER(b_src, zbuf_src);
+
+	if (evbuffer_add_buffer(b_dst->buf, b_src->buf)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool EventBuffer::removeBuffer(EventBuffer buf, int len); 
+ * Moves exactly len bytes from buf to the end of current instance of EventBuffer
+ */
+PHP_METHOD(EventBuffer, removeBuffer)
+{
+	php_event_buffer_t *b_dst;
+	php_event_buffer_t *b_src;
+	zval               *zbuf_dst = getThis();
+	zval               *zbuf_src;
+	long                len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ol",
+				&zbuf_src, php_event_buffer_ce, &len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b_dst, zbuf_dst);
+	PHP_EVENT_FETCH_BUFFER(b_src, zbuf_src);
+
+	if (evbuffer_remove_buffer(b_src->buf, b_dst->buf, (size_t) len)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool EventBuffer::expand(int len); 
+ * Alters the last chunk of memory in the buffer, or adds a new chunk, such that the buffer is now large enough to contain datlen bytes without any further allocations.
+ */
+PHP_METHOD(EventBuffer, expand)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf = getThis();
+	long                len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (evbuffer_expand(b->buf, (size_t) len)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool EventBuffer::prepend(string data); 
+ *
+ * Prepend data to the front of the event buffer.
+ */
+PHP_METHOD(EventBuffer, prepend)
+{
+	php_event_buffer_t  *b;
+	zval                *zbuf    = getThis();
+	zval               **ppzdata;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z",
+				&ppzdata) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	convert_to_string_ex(ppzdata);
+
+	if (evbuffer_prepend(b->buf, (void *) Z_STRVAL_PP(ppzdata), Z_STRLEN_PP(ppzdata))) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool EventBuffer::prependBuffer(EventBuffer buf); 
+ * Behaves as EventBuffer::addBuffer, except that it moves data to the front of the buffer.
+ */
+PHP_METHOD(EventBuffer, prependBuffer)
+{
+	php_event_buffer_t *b_dst;
+	php_event_buffer_t *b_src;
+	zval               *zbuf_dst = getThis();
+	zval               *zbuf_src;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
+				&zbuf_src, php_event_buffer_ce) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b_dst, zbuf_dst);
+	PHP_EVENT_FETCH_BUFFER(b_src, zbuf_src);
+
+	if (evbuffer_prepend_buffer(b_dst->buf, b_src->buf)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool EventBuffer::drain(long len);
+ *
+ * Behaves as EventBuffer::remove(), except that it does not copy the data: it
+ * just removes it from the front of the buffer.
+ */
+PHP_METHOD(EventBuffer, drain)
+{
+	zval               *zbuf = getThis();
+	php_event_buffer_t *b;
+	long                len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (evbuffer_drain(b->buf, len)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto int EventBuffer::copyout(string &data, long max_bytes);
+ *
+ * Behaves just like EventBuffer::remove(), but does not drain any data from the buffer.
+ * I.e. it copies the first max_bytes bytes from the front of the buffer into data.
+ * If there are fewer than datlen bytes available, the function copies all the bytes there are.
+ *
+ * Returns the number of bytes copied, or -1 on failure.
+ */
+PHP_METHOD(EventBuffer, copyout)
+{
+	php_event_buffer_t *b;
+	zval               *zbuf      = getThis();
+	zval               *zdata;
+	long                max_bytes;
+	long                ret;
+	char               *data;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zl",
+				&zdata, &max_bytes) == FAILURE) {
+		return;
+	}
+
+	if (!Z_ISREF_P(zdata)) {
+		/* Was not passed by reference */
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	data = emalloc(sizeof(char) * max_bytes + 1);
+
+	ret = evbuffer_copyout(b->buf, data, max_bytes);
+
+	if (ret > 0) {
+		convert_to_string(zdata);
+		zval_dtor(zdata);
+		Z_STRVAL_P(zdata) = estrndup(data, ret);
+		Z_STRLEN_P(zdata) = ret;
+	}
+
+	efree(data);
+
+	RETVAL_LONG(ret);
+}
+/* }}} */
+
+/* {{{ proto mixed EventBuffer::readLine(int len, int eol_style);
+ *
+ * Extracts a line from the front of the buffer and returns it in a newly
+ * allocated NUL-terminated string. If there is not a whole
+ * line to read, the function returns NULL. The line terminator is not included
+ * in the copied string.
+ *
+ * eol_style is one of EventBuffer:EOL_* constants.
+ *
+ * On success returns the line read from the buffer, otherwise NULL.
+ */
+PHP_METHOD(EventBuffer, readLine)
+{
+	zval               *zbuf      = getThis();
+	php_event_buffer_t *b;
+	long                len;
+	long                eol_style;
+	char               *res;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ll",
+				&len, &eol_style) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	res = evbuffer_readln(b->buf, (size_t *) &len, eol_style);
+
+	if (!res) {
+		RETURN_NULL();
+	}
+
+	RETVAL_STRINGL(res, len, 0);
+}
+/* }}} */
+
+/* {{{ proto resource EventBuffer::search(string what[, resource start = NULL[, resource end = NULL]]);
+ *
+ * Scans the buffer for an occurrence of the len-character string what. It
+ * returns resource representing the position of the string, or NULL if the
+ * string was not found. If the start argument is provided, it's the position
+ * at which the search should begin; otherwise, the search is from the start
+ * of the string. If end argument provided, the search is performed between
+ * start and end buffer positions.
+ *
+ * Returns resource representing position of the first occurance of the string
+ * in the buffer, or NULL if string is not found
+ */
+PHP_METHOD(EventBuffer, search)
+{
+	zval                *zbuf       = getThis();
+	zval                *zstart_pos = NULL;
+	zval                *zend_pos   = NULL;
+	zval                *zwhat;
+	php_event_buffer_t  *b;
+	struct evbuffer_ptr *start_pos  = NULL;
+	struct evbuffer_ptr *end_pos    = NULL;
+	struct evbuffer_ptr *res_pos;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|r!r!",
+				&zwhat, &zstart_pos, &zend_pos) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (zstart_pos) {
+		PHP_EVENT_FETCH_BUFFER_POS(start_pos, zstart_pos);
+	}
+
+	res_pos = emalloc(sizeof(struct evbuffer_ptr));
+
+	if (zend_pos) {
+		PHP_EVENT_FETCH_BUFFER_POS(end_pos, zend_pos);
+
+		*res_pos = evbuffer_search(b->buf, Z_STRVAL_P(zwhat), (size_t) Z_STRLEN_P(zwhat), start_pos);
+	} else {
+		*res_pos = evbuffer_search_range(b->buf, Z_STRVAL_P(zwhat), (size_t) Z_STRLEN_P(zwhat),
+				start_pos, end_pos);
+	}
+
+	if (res_pos->pos == -1) {
+		efree(res_pos);
+		RETURN_NULL();
+	}
+
+	ZEND_REGISTER_RESOURCE(return_value, res_pos, le_event_buffer_pos);
 }
 /* }}} */
 
