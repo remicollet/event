@@ -19,15 +19,6 @@
 #include "src/common.h"
 #include "src/util.h"
 
-/* {{{ php_event_is_pending 
-Don't allow for pending or active event
-See http://www.wangafu.net/~nickm/libevent-book/Ref4_event.html */
-zend_always_inline zend_bool php_event_is_pending(const struct event *e)
-{
-	return event_pending(e, EV_READ | EV_WRITE | EV_SIGNAL | EV_TIMEOUT, NULL);
-}
-/* }}} */
-
 /* {{{ php_event_zval_to_fd
  * Get numeric file descriptor from PHP stream or Socket resource */
 php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
@@ -107,8 +98,6 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 	return file_desc;
 }
 /* }}} */
-
-
 
 /*
  * Local variables:

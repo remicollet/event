@@ -18,8 +18,10 @@
 #ifndef PHP_EVENT_UTIL_H
 #define PHP_EVENT_UTIL_H
 
-zend_always_inline zend_bool php_event_is_pending(const struct event *e);
 php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC);
+
+#define php_event_is_pending(e) \
+	event_pending((e), EV_READ | EV_WRITE | EV_SIGNAL | EV_TIMEOUT, NULL)
 
 #define PHP_EVENT_REGISTER_CLASS(name, create_func, ce, ce_functions) \
 {                                                                     \
