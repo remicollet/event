@@ -30,6 +30,7 @@ zend_class_entry *php_event_config_ce;
 zend_class_entry *php_event_bevent_ce;
 zend_class_entry *php_event_buffer_ce;
 zend_class_entry *php_event_util_ce;
+zend_class_entry *php_event_buffer_pos_ce;
 
 #if HAVE_EVENT_EXTRA_LIB
 zend_class_entry *php_event_dns_base_ce;
@@ -45,10 +46,9 @@ static HashTable event_base_properties;
 static HashTable event_config_properties;
 static HashTable event_bevent_properties;
 static HashTable event_buffer_properties;
+static HashTable event_buffer_pos_properties;
 
 static zend_object_handlers object_handlers;
-
-int le_event_buffer_pos;
 
 static const zend_module_dep event_deps[] = {
 	ZEND_MOD_OPTIONAL("sockets")
@@ -306,6 +306,13 @@ static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 }
 /* }}} */
 
+/* {{{ event_buffer_pos_object_free_storage */
+static void event_buffer_pos_object_free_storage(void *ptr TSRMLS_DC)
+{
+	event_generic_object_free_storage(ptr TSRMLS_CC);
+}
+/* }}} */
+
 
 /* {{{ register_object */
 static zend_always_inline zend_object_value register_object(zend_class_entry *ce, void *obj, zend_objects_store_dtor_t func_dtor, zend_objects_free_object_storage_t func_free_storage TSRMLS_DC)
@@ -410,6 +417,17 @@ static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
 			event_generic_object_free_storage TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_buffer_pos_object_create
+ * EventBufferPosition object ctor */
+static zend_object_value event_buffer_pos_object_create(zend_class_entry *ce TSRMLS_DC)
+{
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_buffer_pos_t) TSRMLS_CC);
+
+	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
+			event_buffer_pos_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -825,6 +843,15 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_buffer_property_entry_info);
 	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_buffer_properties, sizeof(event_buffer_properties), NULL);
 
+	PHP_EVENT_REGISTER_CLASS("EventBufferPosition", event_buffer_pos_object_create, php_event_buffer_pos_ce,
+			php_event_buffer_pos_ce_functions);
+	ce = php_event_buffer_pos_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+	zend_hash_init(&event_buffer_pos_properties, 0, NULL, NULL, 1);
+	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_buffer_pos_properties, event_buffer_pos_property_entries);
+	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_buffer_pos_property_entry_info);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_buffer_pos_properties, sizeof(event_buffer_pos_properties), NULL);
+
 #if HAVE_EVENT_EXTRA_LIB
 
 	PHP_EVENT_REGISTER_CLASS("EventDnsBase", event_dns_base_object_create, php_event_dns_base_ce,
@@ -857,15 +884,6 @@ static zend_always_inline void register_classes(TSRMLS_D)
 }
 /* }}} */
 
-/* {{{ php_event_buffer_pos_dtor */
-static void php_event_buffer_pos_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
-{
-	struct evbuffer_ptr *p = (struct evbuffer_ptr *) rsrc->ptr;
-
-	efree(p);
-}
-/* }}} */
-
 /* Private functions }}} */
 
 
@@ -876,8 +894,6 @@ static void php_event_buffer_pos_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
 {
-	le_event_buffer_pos = zend_register_list_destructors_ex(php_event_buffer_pos_dtor, NULL, PHP_EVENT_BUFFER_POS_RES_NAME, module_number);
-
 	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 
 	memcpy(&object_handlers, std_hnd, sizeof(zend_object_handlers));
@@ -976,6 +992,8 @@ PHP_MINIT_FUNCTION(event)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_NUL,         EVBUFFER_EOL_NUL);
 #endif
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, PTR_SET,         EVBUFFER_PTR_SET);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, PTR_ADD,         EVBUFFER_PTR_ADD);
 
 	/* Handle libevent's error logging more gracefully than it's default
 	 * logging to stderr, or calling abort()/exit() */

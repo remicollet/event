@@ -4,6 +4,9 @@
 function readcb($bev, $base) {
 	$input = $bev->getInput();
 
+	$pos = $input->search("TTP");
+	var_dump($pos);
+
 	while (($n = $input->remove($buf, 1024)) > 0) {
 		echo $buf;
 	}

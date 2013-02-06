@@ -24,12 +24,14 @@ extern const zend_function_entry php_event_config_ce_functions[];
 extern const zend_function_entry php_event_bevent_ce_functions[];
 extern const zend_function_entry php_event_buffer_ce_functions[];
 extern const zend_function_entry php_event_util_ce_functions[];
+extern const zend_function_entry php_event_buffer_pos_ce_functions[];
 
 extern zend_class_entry *php_event_ce;
 extern zend_class_entry *php_event_base_ce;
 extern zend_class_entry *php_event_config_ce;
 extern zend_class_entry *php_event_bevent_ce;
 extern zend_class_entry *php_event_buffer_ce;
+extern zend_class_entry *php_event_buffer_pos_ce;
 extern zend_class_entry *php_event_util_ce;
 
 extern const php_event_property_entry_t event_property_entries[];
@@ -37,14 +39,14 @@ extern const php_event_property_entry_t event_base_property_entries[];
 extern const php_event_property_entry_t event_config_property_entries[];
 extern const php_event_property_entry_t event_bevent_property_entries[];
 extern const php_event_property_entry_t event_buffer_property_entries[];
-extern const php_event_property_entry_t event_util_property_entries[];
+extern const php_event_property_entry_t event_buffer_pos_property_entries[];
 
 extern const zend_property_info event_property_entry_info[];
 extern const zend_property_info event_base_property_entry_info[];
 extern const zend_property_info event_config_property_entry_info[];
 extern const zend_property_info event_bevent_property_entry_info[];
 extern const zend_property_info event_buffer_property_entry_info[];
-extern const zend_property_info event_util_property_entry_info[];
+extern const zend_property_info event_buffer_pos_property_entry_info[];
 
 #if HAVE_EVENT_EXTRA_LIB
 

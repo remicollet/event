@@ -110,6 +110,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
     classes/event_config.c \
     classes/buffer_event.c \
     classes/buffer.c \
+    classes/buffer_pos.c \
     classes/event_util.c"
 
   dnl {{{ --with-event-extra

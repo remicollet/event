@@ -218,6 +218,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_search, 0, 0, 1)
 	ZEND_ARG_INFO(0, end)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_set_position, 0, 0, 3)
+	ZEND_ARG_INFO(1, pos)
+	ZEND_ARG_INFO(0, value)
+	ZEND_ARG_INFO(0, how)
+ZEND_END_ARG_INFO();
+
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_socket_1, 0, 0, 0)
 	ZEND_ARG_INFO(0, socket)
@@ -444,6 +450,7 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, copyout,       arginfo_evbuffer_remove,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, readLine,      arginfo_evbuffer_read_line,     ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, search,        arginfo_evbuffer_search,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, setPosition,   arginfo_evbuffer_set_position,  ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };
@@ -454,6 +461,13 @@ const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 
 	PHP_ME(EventUtil, getLastSocketErrno, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventUtil, getLastSocketError, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+	PHP_FE_END
+};
+/* }}} */
+
+const zend_function_entry php_event_buffer_pos_ce_functions[] = {/* {{{ */
+	PHP_ME(EventBufferPosition, __construct, arginfo_event__void, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 
 	PHP_FE_END
 };

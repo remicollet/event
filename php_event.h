@@ -19,15 +19,13 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "1.1.1-beta"
+#define PHP_EVENT_VERSION "1.1.2-beta"
 
 
 extern zend_module_entry event_module_entry;
 #define phpext_event_ptr &event_module_entry
 
 #include "src/common.h"
-
-#define PHP_EVENT_BUFFER_POS_RES_NAME "EventBuffer Position"
 
 PHP_MINIT_FUNCTION(event);
 PHP_MSHUTDOWN_FUNCTION(event);

@@ -95,9 +95,12 @@ PHP_METHOD(EventBuffer, drain);
 PHP_METHOD(EventBuffer, copyout);
 PHP_METHOD(EventBuffer, readLine);
 PHP_METHOD(EventBuffer, search);
+PHP_METHOD(EventBuffer, setPosition);
 
 PHP_METHOD(EventUtil, getLastSocketErrno);
 PHP_METHOD(EventUtil, getLastSocketError);
+
+PHP_METHOD(EventBufferPosition, __construct);
 
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API */

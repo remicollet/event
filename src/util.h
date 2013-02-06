@@ -38,34 +38,34 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC);
         Z_SET_ISREF_P((pz))
 
 #define PHP_EVENT_FETCH_EVENT(e, ze) \
-	e = (php_event_t *) zend_object_store_get_object(ze TSRMLS_CC);
+	e = (php_event_t *) zend_object_store_get_object(ze TSRMLS_CC)
 
 #define PHP_EVENT_FETCH_BASE(base, zbase) \
-	base = (php_event_base_t *) zend_object_store_get_object(zbase TSRMLS_CC);
+	base = (php_event_base_t *) zend_object_store_get_object(zbase TSRMLS_CC)
 
 #define PHP_EVENT_FETCH_CONFIG(cfg, zcfg) \
-	cfg = (php_event_config_t *) zend_object_store_get_object(zcfg TSRMLS_CC);
+	cfg = (php_event_config_t *) zend_object_store_get_object(zcfg TSRMLS_CC)
 
 #define PHP_EVENT_FETCH_BEVENT(b, zb) \
-	b = (php_event_bevent_t *) zend_object_store_get_object(zb TSRMLS_CC);
+	b = (php_event_bevent_t *) zend_object_store_get_object(zb TSRMLS_CC)
 
 #define PHP_EVENT_FETCH_BUFFER(b, zb) \
-	b = (php_event_buffer_t *) zend_object_store_get_object(zb TSRMLS_CC);
+	b = (php_event_buffer_t *) zend_object_store_get_object(zb TSRMLS_CC)
 
 #define PHP_EVENT_FETCH_DNS_BASE(b, zb) \
-	b = (php_event_dns_base_t *) zend_object_store_get_object(zb TSRMLS_CC);
+	b = (php_event_dns_base_t *) zend_object_store_get_object(zb TSRMLS_CC)
 
 #define PHP_EVENT_FETCH_LISTENER(b, zb) \
-	b = (php_event_listener_t *) zend_object_store_get_object(zb TSRMLS_CC);
+	b = (php_event_listener_t *) zend_object_store_get_object(zb TSRMLS_CC)
 
 #define PHP_EVENT_FETCH_HTTP_CONN(b, zb) \
-	b = (php_event_http_conn_t *) zend_object_store_get_object(zb TSRMLS_CC);
+	b = (php_event_http_conn_t *) zend_object_store_get_object(zb TSRMLS_CC)
 
 #define PHP_EVENT_FETCH_HTTP(b, zb) \
-	b = (php_event_http_t *) zend_object_store_get_object(zb TSRMLS_CC);
+	b = (php_event_http_t *) zend_object_store_get_object(zb TSRMLS_CC)
 
 #define PHP_EVENT_FETCH_BUFFER_POS(p, zp) \
-	ZEND_FETCH_RESOURCE((p), struct evbuffer_ptr *, &(zp), -1, PHP_EVENT_BUFFER_POS_RES_NAME, le_event_buffer_pos)
+	p = (php_event_buffer_pos_t *) zend_object_store_get_object(zp TSRMLS_CC)
 
 #define PHP_EVENT_TIMEVAL_SET(tv, t)                     \
         do {                                             \

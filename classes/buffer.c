@@ -19,9 +19,7 @@
 #include "src/util.h"
 #include "src/priv.h"
 
-extern int le_event_buffer_pos;
-
-/* {{{ proto resource EventBuffer::__construct(void); */
+/* {{{ proto EventBuffer EventBuffer::__construct(void); */
 PHP_METHOD(EventBuffer, __construct)
 {
 	php_event_buffer_t *b;
@@ -467,43 +465,80 @@ PHP_METHOD(EventBuffer, readLine)
  */
 PHP_METHOD(EventBuffer, search)
 {
-	zval                *zbuf       = getThis();
-	zval                *zstart_pos = NULL;
-	zval                *zend_pos   = NULL;
-	zval                *zwhat;
-	php_event_buffer_t  *b;
-	struct evbuffer_ptr *start_pos  = NULL;
-	struct evbuffer_ptr *end_pos    = NULL;
-	struct evbuffer_ptr *res_pos;
+	zval                   *zbuf       = getThis();
+	zval                   *zstart_pos = NULL;
+	zval                   *zend_pos   = NULL;
+	char                   *what;
+	int                     what_len;
+	php_event_buffer_t     *b;
+	php_event_buffer_pos_t *start_pos  = NULL;
+	php_event_buffer_pos_t *end_pos    = NULL;
+	php_event_buffer_pos_t *res_pos;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|r!r!",
-				&zwhat, &zstart_pos, &zend_pos) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|O!O!",
+				&what, &what_len,
+				&zstart_pos, php_event_buffer_pos_ce,
+				&zend_pos, php_event_buffer_pos_ce) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_pos_ce);
+	PHP_EVENT_FETCH_BUFFER_POS(res_pos, return_value);
+
 	if (zstart_pos) {
 		PHP_EVENT_FETCH_BUFFER_POS(start_pos, zstart_pos);
 	}
 
-	res_pos = emalloc(sizeof(struct evbuffer_ptr));
-
 	if (zend_pos) {
 		PHP_EVENT_FETCH_BUFFER_POS(end_pos, zend_pos);
 
-		*res_pos = evbuffer_search(b->buf, Z_STRVAL_P(zwhat), (size_t) Z_STRLEN_P(zwhat), start_pos);
+		res_pos->p = evbuffer_search_range(b->buf, what, (size_t) what_len,
+				&start_pos->p, &end_pos->p);
 	} else {
-		*res_pos = evbuffer_search_range(b->buf, Z_STRVAL_P(zwhat), (size_t) Z_STRLEN_P(zwhat),
-				start_pos, end_pos);
+		res_pos->p = evbuffer_search(b->buf, what, (size_t) what_len, &start_pos->p);
 	}
 
-	if (res_pos->pos == -1) {
-		efree(res_pos);
+	if (res_pos->p.pos == -1) {
 		RETURN_NULL();
 	}
+}
+/* }}} */
 
-	ZEND_REGISTER_RESOURCE(return_value, res_pos, le_event_buffer_pos);
+/* {{{ proto bool EventBuffer::setPosition(resource &pos, int value, int how);
+ *
+ * Manipulates the position pos within buffer. If how is EventBuffer::PTR_SET,
+ * the pointer is moved to an absolute position position within the buffer. If
+ * it is EventBuffer::PTR_ADD, the pointer moves position bytes forward.
+ */
+PHP_METHOD(EventBuffer, setPosition)
+{
+	zval                *zbuf  = getThis();
+	zval                *zpos;
+	long                 value;
+	long                 how;
+	php_event_buffer_t  *b;
+	php_event_buffer_pos_t *pos   = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Oll",
+				&zpos, php_event_buffer_pos_ce, &value, &how) == FAILURE) {
+		return;
+	}
+
+	if (how & ~(EVBUFFER_PTR_SET | EVBUFFER_PTR_ADD)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid mask");
+		RETURN_FALSE;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	PHP_EVENT_FETCH_BUFFER_POS(pos, zpos);
+
+	if (evbuffer_ptr_set(b->buf, &pos->p, value, how)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
 }
 /* }}} */
 

@@ -71,7 +71,7 @@ PHP_METHOD(EventBase, getFeatures)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BASE(b, zbase)
+	PHP_EVENT_FETCH_BASE(b, zbase);
 
 	RETVAL_LONG(event_base_get_features(b->base));
 }

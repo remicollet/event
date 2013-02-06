@@ -143,6 +143,12 @@ typedef struct {
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
+typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
+	struct evbuffer_ptr p;
+} php_event_buffer_pos_t;
+
 typedef double php_event_timestamp_t;
 
 typedef int (*php_event_prop_read_t)(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC);
