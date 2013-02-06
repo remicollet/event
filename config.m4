@@ -42,8 +42,8 @@ if test "$PHP_EVENT_CORE" != "no"; then
   SEARCH_PATH="/usr/local /usr /opt"
   SEARCH_FOR="/include/event2/event.h"
 
-  if test -r $PHP_EVENT/$SEARCH_FOR; then # path given as parameter
-    EVENT_DIR=$PHP_EVENT
+  if test -r $PHP_EVENT_CORE/$SEARCH_FOR; then # path given as parameter
+    EVENT_DIR=$PHP_EVENT_CORE
   else # search default path list
     AC_MSG_CHECKING([for event files in default path])
     for i in $SEARCH_PATH ; do
@@ -71,16 +71,33 @@ if test "$PHP_EVENT_CORE" != "no"; then
   fi
   dnl }}}
 
+  AC_MSG_CHECKING([for directory storing libevent binaries])
+  if test -r $EVENT_DIR/$PHP_LIBDIR/libevent_core.$SHLIB_SUFFIX_NAME; then 
+    EVENT_LIB_DIR=$EVENT_DIR/$PHP_LIBDIR
+    AC_MSG_RESULT(found in $EVENT_LIB_DIR)
+  else # Usually FreeBSD and other non-standard setups
+    for i in /usr/$PHP_LIBDIR /usr/local/$PHP_LIBDIR /usr/local/$PHP_LIBDIR/event2 /opt/$PHP_LIBDIR; do
+      if test -r $i/libevent_core.$SHLIB_SUFFIX_NAME; then
+        EVENT_LIB_DIR=$i
+        AC_MSG_RESULT(found in $i)
+      fi
+    done
+  fi
+  if test -z "$EVENT_LIB_DIR"; then
+    AC_MSG_RESULT([not found])
+    AC_MSG_ERROR([Please reinstall the event library using a common path prefix])
+  fi
+
   dnl {{{ --with-event-core
   dnl bufferevent_getfd first appeared in 2.0.2-alpha
   PHP_CHECK_LIBRARY(event_core, bufferevent_getfd,
   [
-    PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_DIR/lib, EVENT_SHARED_LIBADD)
+    PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_LIB_DIR, EVENT_SHARED_LIBADD)
     AC_DEFINE(HAVE_EVENT_CORE_LIB,1,[ ])
   ],[
     AC_MSG_ERROR([libevent_core >= 2.0.2-alpha not found])
   ],[
-    -L$EVENT_DIR/lib
+    -L$EVENT_LIB_DIR
   ])
   dnl }}}
   
@@ -99,12 +116,12 @@ if test "$PHP_EVENT_CORE" != "no"; then
   if test "$PHP_EVENT_EXTRA" != "no"; then
     PHP_CHECK_LIBRARY(event_extra, evhttp_new,
     [
-      PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_DIR/lib, EVENT_SHARED_LIBADD)
+      PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_LIB_DIR, EVENT_SHARED_LIBADD)
       AC_DEFINE(HAVE_EVENT_EXTRA_LIB,1,[ ])
     ],[
       AC_MSG_ERROR([libevent_extra >= 2.0 not found])
     ],[
-      -L$EVENT_DIR/lib -levent_core
+      -L$EVENT_LIB_DIR -levent_core
     ])
 
     event_src="$event_src \
