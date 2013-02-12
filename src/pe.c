@@ -75,8 +75,8 @@ static int event_buffer_pos_position_prop_read(php_event_abstract_object_t *obj,
 }
 /* }}} */
 
-/* {{{ event_bevent_priority_write */
-static int event_bevent_priority_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+/* {{{ event_bevent_priority_prop_write*/
+static int event_bevent_priority_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 	long priority           = Z_LVAL_P(value);
@@ -88,6 +88,13 @@ static int event_bevent_priority_write(php_event_abstract_object_t *obj, zval *v
 }
 /* }}} */
 
+/* {{{ event_bevent_priority_prop_read */
+static int event_bevent_priority_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	ALLOC_INIT_ZVAL(*retval);
+	return SUCCESS;
+}
+/* }}} */
 
 const php_event_property_entry_t event_property_entries[] = {
 	{"timer_pending",           sizeof("timer_pending") - 1, event_timer_pending_prop_read, NULL, NULL},
@@ -100,7 +107,7 @@ const php_event_property_entry_t event_config_property_entries[] = {
     {NULL, 0, NULL, NULL, NULL}
 };
 const php_event_property_entry_t event_bevent_property_entries[] = {
-	{"priority", sizeof("priority") - 1, NULL, event_bevent_priority_write, NULL},
+	{"priority", sizeof("priority") - 1, event_bevent_priority_prop_read, event_bevent_priority_prop_write, NULL },
     {NULL, 0, NULL, NULL, NULL}
 };
 const php_event_property_entry_t event_buffer_property_entries[] = {

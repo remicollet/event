@@ -12,15 +12,15 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-02-06</date>
+  <date>2013-02-12</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.1.2</release>
-    <api>1.1.0</api>
+    <release>1.2.0</release>
+    <api>1.2.0</api>
   </version>
   <stability>
-    <release>beta</release>
-    <api>beta</api>
+    <release>alpha</release>
+    <api>alpha</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
@@ -30,6 +30,8 @@
   setPosition methods
   Add: EventBufferPosition class
   Fix: configure error in FreeBSD
+  Add: OpenSSL support: EventBufferEvent methods: sslFilter, sslSocket, EventSslContext class
+  Add: EventBuffer::pullup
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -46,6 +48,7 @@
         <file role="src" name="base.c"/>
         <file role="src" name="buffer.c"/>
         <file role="src" name="buffer_event.c"/>
+        <file role="src" name="buffer_pos.c"/>
         <file role="src" name="dns.c"/>
         <file role="src" name="event.c"/>
         <file role="src" name="event_config.c"/>
@@ -53,9 +56,11 @@
         <file role="src" name="http.c"/>
         <file role="src" name="http_connection.c"/>
         <file role="src" name="listener.c"/>
+        <file role="src" name="ssl_context.c"/>
       </dir>
       <dir name="examples">
         <file role="doc" name="buffer_proxy.php"/>
+        <file role="doc" name="ssl_echo_server.php"/>
         <file role="doc" name="eio.php"/>
         <file role="doc" name="fibonacci_buffer.php"/>
         <file role="doc" name="httpv0client.php"/>
@@ -98,18 +103,20 @@
   <extsrcrelease>
     <configureoption default="no" name="enable-event-debug" prompt="Enable internal debugging in event"/>
     <configureoption default="yes" name="with-event-extra" prompt="Include libevent protocol-specific functionality support including HTTP, DNS, and RPC"/>
+    <configureoption default="yes" name="with-event-openssl" prompt="Include libevent OpenSSL support"/>
+    <configureoption default="yes" name="with-openssl-dir" prompt="Event: openssl install prefix"/>
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-  <!--{{{ 1.1.1-beta-->
+  <!--{{{ 1.2.0-alpha-->
   <release>
   <version>
-    <release>1.1.2</release>
-    <api>1.1.0</api>
+    <release>1.2.0</release>
+    <api>1.2.0</api>
   </version>
   <stability>
-    <release>beta</release>
-    <api>beta</api>
+    <release>alpha</release>
+    <api>alpha</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
@@ -119,6 +126,8 @@
   setPosition methods
   Add: EventBufferPosition class
   Fix: configure error in FreeBSD
+  Add: OpenSSL support: EventBufferEvent methods: sslFilter, sslSocket, EventSslContext class
+  Add: EventBuffer::pullup
   ]]></notes>
   </release>
   <!--}}}-->

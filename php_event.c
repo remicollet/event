@@ -20,9 +20,10 @@
 #include "src/util.h"
 #include "src/priv.h"
 
-/*
+#if 0
 ZEND_DECLARE_MODULE_GLOBALS(event)
-*/
+static PHP_GINIT_FUNCTION(event);
+#endif
 
 zend_class_entry *php_event_ce;
 zend_class_entry *php_event_base_ce;
@@ -31,8 +32,11 @@ zend_class_entry *php_event_bevent_ce;
 zend_class_entry *php_event_buffer_ce;
 zend_class_entry *php_event_util_ce;
 zend_class_entry *php_event_buffer_pos_ce;
+#ifdef HAVE_EVENT_OPENSSL_LIB
+zend_class_entry *php_event_ssl_context_ce;
+#endif
 
-#if HAVE_EVENT_EXTRA_LIB
+#ifdef HAVE_EVENT_EXTRA_LIB
 zend_class_entry *php_event_dns_base_ce;
 zend_class_entry *php_event_listener_ce;
 zend_class_entry *php_event_http_conn_ce;
@@ -52,6 +56,7 @@ static zend_object_handlers object_handlers;
 
 static const zend_module_dep event_deps[] = {
 	ZEND_MOD_OPTIONAL("sockets")
+	ZEND_MOD_OPTIONAL("openssl")
 	{NULL, NULL, NULL}
 };
 
@@ -74,7 +79,14 @@ zend_module_entry event_module_entry = {
 #if ZEND_MODULE_API_NO >= 20010901
 	PHP_EVENT_VERSION,
 #endif
-	STANDARD_MODULE_PROPERTIES
+#if 0
+    PHP_MODULE_GLOBALS(event),
+    PHP_GINIT(event),
+    NULL,
+    NULL,
+    STANDARD_MODULE_PROPERTIES_EX
+#endif
+    STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
 
@@ -313,6 +325,26 @@ static void event_buffer_pos_object_free_storage(void *ptr TSRMLS_DC)
 }
 /* }}} */
 
+/* {{{ event_ssl_context_object_free_storage */
+static void event_ssl_context_object_free_storage(void *ptr TSRMLS_DC)
+{
+	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) ptr;
+
+	if (ectx->ctx) {
+		SSL_CTX_free(ectx->ctx);
+		ectx->ctx = NULL;
+	}
+
+	if (ectx->ht) {
+		/*zend_hash_destroy(ectx->ht);*/
+		FREE_HASHTABLE(ectx->ht);
+		ectx->ht = NULL;
+	}
+
+	event_generic_object_free_storage(ptr TSRMLS_CC);
+}
+/* }}} */
+
 
 /* {{{ register_object */
 static zend_always_inline zend_object_value register_object(zend_class_entry *ce, void *obj, zend_objects_store_dtor_t func_dtor, zend_objects_free_object_storage_t func_free_storage TSRMLS_DC)
@@ -430,6 +462,21 @@ static zend_object_value event_buffer_pos_object_create(zend_class_entry *ce TSR
 			event_buffer_pos_object_free_storage TSRMLS_CC);
 }
 /* }}} */
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
+/* {{{ event_ssl_context_object_create
+ * EventBufferPosition object ctor */
+static zend_object_value event_ssl_context_object_create(zend_class_entry *ce TSRMLS_DC)
+{
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *)
+		object_new(ce, sizeof(php_event_ssl_context_t) TSRMLS_CC);
+
+	return register_object(ce, (void *) obj,
+			(zend_objects_store_dtor_t) zend_objects_destroy_object,
+			event_ssl_context_object_free_storage TSRMLS_CC);
+}
+/* }}} */
+#endif
 
 #if HAVE_EVENT_EXTRA_LIB
 
@@ -805,7 +852,8 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	zend_hash_init(&event_properties, 0, NULL, NULL, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_properties, event_property_entries);
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_property_entry_info);
-	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_properties, sizeof(event_properties), NULL);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_properties,
+			sizeof(event_properties), NULL);
 
 	PHP_EVENT_REGISTER_CLASS("EventBase", event_base_object_create, php_event_base_ce,
 			php_event_base_ce_functions);
@@ -814,7 +862,8 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	zend_hash_init(&event_base_properties, 0, NULL, NULL, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_base_properties, event_base_property_entries);
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_base_property_entry_info);
-	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_base_properties, sizeof(event_base_properties), NULL);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_base_properties,
+			sizeof(event_base_properties), NULL);
 
 	PHP_EVENT_REGISTER_CLASS("EventConfig", event_config_object_create, php_event_config_ce,
 			php_event_config_ce_functions);
@@ -823,7 +872,8 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	zend_hash_init(&event_config_properties, 0, NULL, NULL, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_config_properties, event_config_property_entries);
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_config_property_entry_info);
-	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_config_properties, sizeof(event_config_properties), NULL);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_config_properties,
+			sizeof(event_config_properties), NULL);
 
 	PHP_EVENT_REGISTER_CLASS("EventBufferEvent", event_bevent_object_create, php_event_bevent_ce,
 			php_event_bevent_ce_functions);
@@ -832,28 +882,31 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	zend_hash_init(&event_bevent_properties, 0, NULL, NULL, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_bevent_properties, event_bevent_property_entries);
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_bevent_property_entry_info);
-	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_bevent_properties, sizeof(event_bevent_properties), NULL);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_bevent_properties,
+			sizeof(event_bevent_properties), NULL);
 
 	PHP_EVENT_REGISTER_CLASS("EventBuffer", event_buffer_object_create, php_event_buffer_ce,
 			php_event_buffer_ce_functions);
 	ce = php_event_buffer_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-	zend_hash_init(&event_buffer_properties, 0, NULL, NULL, 1);
+	zend_hash_init(&event_buffer_properties, 2, NULL, NULL, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_buffer_properties, event_buffer_property_entries);
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_buffer_property_entry_info);
-	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_buffer_properties, sizeof(event_buffer_properties), NULL);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_buffer_properties,
+			sizeof(event_buffer_properties), NULL);
 
-	PHP_EVENT_REGISTER_CLASS("EventBufferPosition", event_buffer_pos_object_create, php_event_buffer_pos_ce,
+	PHP_EVENT_REGISTER_CLASS("EventBufferPosition", event_buffer_pos_object_create,
+			php_event_buffer_pos_ce,
 			php_event_buffer_pos_ce_functions);
 	ce = php_event_buffer_pos_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
 	zend_hash_init(&event_buffer_pos_properties, 0, NULL, NULL, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_buffer_pos_properties, event_buffer_pos_property_entries);
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_buffer_pos_property_entry_info);
-	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_buffer_pos_properties, sizeof(event_buffer_pos_properties), NULL);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_buffer_pos_properties,
+			sizeof(event_buffer_pos_properties), NULL);
 
 #if HAVE_EVENT_EXTRA_LIB
-
 	PHP_EVENT_REGISTER_CLASS("EventDnsBase", event_dns_base_object_create, php_event_dns_base_ce,
 			php_event_dns_base_ce_functions);
 	ce = php_event_dns_base_ce;
@@ -864,7 +917,8 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	ce = php_event_listener_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
 
-	PHP_EVENT_REGISTER_CLASS("EventHttpConnection", event_http_conn_object_create, php_event_http_conn_ce,
+	PHP_EVENT_REGISTER_CLASS("EventHttpConnection", event_http_conn_object_create,
+			php_event_http_conn_ce,
 			php_event_http_conn_ce_functions);
 	ce = php_event_http_conn_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
@@ -873,7 +927,6 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			php_event_http_ce_functions);
 	ce = php_event_http_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-
 #endif /* HAVE_EVENT_EXTRA_LIB */
 
 	PHP_EVENT_REGISTER_CLASS("EventUtil", event_util_object_create, php_event_util_ce,
@@ -881,11 +934,27 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	ce = php_event_util_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
 
+#ifdef HAVE_EVENT_OPENSSL_LIB
+	PHP_EVENT_REGISTER_CLASS("EventSslContext", event_ssl_context_object_create,
+			php_event_ssl_context_ce,
+			php_event_ssl_context_ce_functions);
+	ce = php_event_ssl_context_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+#endif /* HAVE_EVENT_OPENSSL_LIB */
+
 }
 /* }}} */
 
 /* Private functions }}} */
 
+#if 0
+/* {{{ PHP_GINIT_FUNCTION */ 
+static PHP_GINIT_FUNCTION(event)
+{
+	event_globals->ssl_dummy_stream = NULL;
+}
+/* }}} */
+#endif
 
 #define REGISTER_EVENT_CLASS_CONST_LONG(pce, const_name, value) \
     zend_declare_class_constant_long((pce), #const_name,        \
@@ -907,7 +976,7 @@ PHP_MINIT_FUNCTION(event)
 	object_handlers.get_debug_info       = object_get_debug_info;
 #endif
 
-	zend_hash_init(&classes, 0, NULL, NULL, 1);
+	zend_hash_init(&classes, 8, NULL, NULL, 1);
 	register_classes(TSRMLS_C);
 
 	/* Loop flags */
@@ -954,6 +1023,11 @@ PHP_MINIT_FUNCTION(event)
 #if LIBEVENT_VERSION_NUMBER >= 0x02000500
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, OPT_UNLOCK_CALLBACKS, BEV_OPT_UNLOCK_CALLBACKS);
 #endif
+#ifdef HAVE_EVENT_OPENSSL_LIB
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, SSL_OPEN,       BUFFEREVENT_SSL_OPEN);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, SSL_CONNECTING, BUFFEREVENT_SSL_CONNECTING);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, SSL_ACCEPTING,  BUFFEREVENT_SSL_ACCEPTING);
+#endif
 
 	/* Address families */
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_INET,   AF_INET);
@@ -995,6 +1069,27 @@ PHP_MINIT_FUNCTION(event)
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, PTR_SET,         EVBUFFER_PTR_SET);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, PTR_ADD,         EVBUFFER_PTR_ADD);
 
+#ifdef HAVE_EVENT_OPENSSL_LIB
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv2_CLIENT_METHOD,  PHP_EVENT_SSLv2_CLIENT_METHOD);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv3_CLIENT_METHOD,  PHP_EVENT_SSLv3_CLIENT_METHOD);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_CLIENT_METHOD, PHP_EVENT_SSLv23_CLIENT_METHOD);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS_CLIENT_METHOD,    PHP_EVENT_TLS_CLIENT_METHOD);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv2_SERVER_METHOD,  PHP_EVENT_SSLv2_SERVER_METHOD);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv3_SERVER_METHOD,  PHP_EVENT_SSLv3_SERVER_METHOD);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_SERVER_METHOD, PHP_EVENT_SSLv23_SERVER_METHOD);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS_SERVER_METHOD,    PHP_EVENT_TLS_SERVER_METHOD);
+
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_LOCAL_CERT,        PHP_EVENT_OPT_LOCAL_CERT);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_LOCAL_PK,          PHP_EVENT_OPT_LOCAL_PK);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_PASSPHRASE,        PHP_EVENT_OPT_PASSPHRASE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CA_FILE,           PHP_EVENT_OPT_CA_FILE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CA_PATH,           PHP_EVENT_OPT_CA_PATH);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_ALLOW_SELF_SIGNED, PHP_EVENT_OPT_ALLOW_SELF_SIGNED);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_VERIFY_PEER,       PHP_EVENT_OPT_VERIFY_PEER);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_VERIFY_DEPTH,      PHP_EVENT_OPT_VERIFY_DEPTH);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CIPHERS,           PHP_EVENT_OPT_CIPHERS);
+#endif
+
 	/* Handle libevent's error logging more gracefully than it's default
 	 * logging to stderr, or calling abort()/exit() */
 	event_set_fatal_callback(fatal_error_cb);
@@ -1032,6 +1127,17 @@ PHP_MINFO_FUNCTION(event)
 #else
 	php_info_print_table_row(2, "Debug support", "disabled");
 #endif
+#ifdef HAVE_EVENT_EXTRA_LIB
+	php_info_print_table_row(2, "Extra functionality support including HTTP, DNS, and RPC", "enabled");
+#else
+	php_info_print_table_row(2, "Extra functionality support including HTTP, DNS, and RPC", "disabled");
+#endif
+#ifdef HAVE_EVENT_OPENSSL_LIB
+	php_info_print_table_row(2, "OpenSSL support", "enabled");
+#else
+	php_info_print_table_row(2, "OpenSSL support", "disabled");
+#endif
+
 	php_info_print_table_row(2, "Version", PHP_EVENT_VERSION);
 	php_info_print_table_end();
 }

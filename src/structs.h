@@ -33,12 +33,12 @@
 
 /* php_event_abstract_object_t is for type casting only. However, all the
  * class objects must have the same fields at the head of their structs */
-typedef struct {
+typedef struct _php_event_abstract_object_t {
 	PHP_EVENT_OBJECT_HEAD;
-} php_event_abstract_object_t; 
+} php_event_abstract_object_t;
 
 /* Represents Event object */
-typedef struct {
+typedef struct _php_event_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct event          *event;       /* Pointer returned by event_new                        */
@@ -52,7 +52,7 @@ typedef struct {
 } php_event_t;
 
 /* Represents EventBase object */
-typedef struct {
+typedef struct _php_event_base_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct event_base *base;
@@ -60,14 +60,14 @@ typedef struct {
 } php_event_base_t;
 
 /* Represents EventConfig object */
-typedef struct {
+typedef struct _php_event_config_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct event_config *ptr;
 } php_event_config_t;
 
 /* Represents EventBufferEvent object */
-typedef struct {
+typedef struct _php_event_bevent_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct bufferevent    *bevent;
@@ -87,7 +87,7 @@ typedef struct {
 } php_event_bevent_t;
 
 /* Represents EventBuffer object */
-typedef struct {
+typedef struct _php_event_buffer_t {
 	PHP_EVENT_OBJECT_HEAD;
 	zend_bool internal; /* Whether is an internal buffer of a bufferevent */
 
@@ -97,14 +97,14 @@ typedef struct {
 #ifdef HAVE_EVENT_EXTRA_LIB/* {{{ */
 
 /* Represents EventDnsBase object */
-typedef struct {
+typedef struct _php_event_dns_base_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct evdns_base *dns_base;
 } php_event_dns_base_t;
 
 /* Represents EventListener object */
-typedef struct {
+typedef struct _php_event_listener_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct evconnlistener *listener;
@@ -124,7 +124,7 @@ typedef struct {
 } php_event_listener_t;
 
 /* Represents EventHttpConnection object */
-typedef struct {
+typedef struct _php_event_http_conn_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct evhttp_connection *conn;
@@ -143,11 +143,44 @@ typedef struct {
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
-typedef struct {
+typedef struct _php_event_buffer_pos_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct evbuffer_ptr p;
 } php_event_buffer_pos_t;
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
+
+enum {
+	PHP_EVENT_OPT_LOCAL_CERT        = 1,
+	PHP_EVENT_OPT_LOCAL_PK          = 2,
+	PHP_EVENT_OPT_PASSPHRASE        = 3,
+	PHP_EVENT_OPT_CA_FILE           = 4,
+	PHP_EVENT_OPT_CA_PATH           = 5,
+	PHP_EVENT_OPT_ALLOW_SELF_SIGNED = 6,
+	PHP_EVENT_OPT_VERIFY_PEER       = 7,
+	PHP_EVENT_OPT_VERIFY_DEPTH      = 8,
+	PHP_EVENT_OPT_CIPHERS           = 9
+};
+
+enum {
+    PHP_EVENT_SSLv2_CLIENT_METHOD  = 1,
+    PHP_EVENT_SSLv3_CLIENT_METHOD  = 2,
+    PHP_EVENT_SSLv23_CLIENT_METHOD = 3,
+    PHP_EVENT_TLS_CLIENT_METHOD    = 4,
+    PHP_EVENT_SSLv2_SERVER_METHOD  = 5,
+    PHP_EVENT_SSLv3_SERVER_METHOD  = 6,
+    PHP_EVENT_SSLv23_SERVER_METHOD = 7,
+    PHP_EVENT_TLS_SERVER_METHOD    = 8
+};
+
+typedef struct _php_event_ssl_context_t {
+	PHP_EVENT_OBJECT_HEAD;
+
+	SSL_CTX *ctx;
+	HashTable *ht;
+} php_event_ssl_context_t;
+#endif
 
 typedef double php_event_timestamp_t;
 
@@ -155,7 +188,7 @@ typedef int (*php_event_prop_read_t)(php_event_abstract_object_t *obj, zval **re
 typedef int (*php_event_prop_write_t)(php_event_abstract_object_t *obj, zval *newval  TSRMLS_DC);
 typedef zval **(*php_event_prop_get_prop_ptr_ptr_t)(php_event_abstract_object_t *obj TSRMLS_DC);
 
-typedef struct {
+typedef struct _php_event_property_entry_t {
 	const char                        *name;
 	size_t                             name_length;
 	php_event_prop_read_t              read_func;
@@ -163,7 +196,7 @@ typedef struct {
 	php_event_prop_get_prop_ptr_ptr_t  get_ptr_ptr_func;
 } php_event_property_entry_t;
 
-typedef struct {
+typedef struct _php_event_prop_handler_t {
 	char                              *name;
 	size_t                             name_len;
 	php_event_prop_read_t              read_func;

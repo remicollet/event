@@ -99,6 +99,21 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 }
 /* }}} */
 
+/* {{{ php_event_ssl_dummy_stream
+ * Creates a dummy ssl stream which may be used to detect whether a stream is an ssl stream */
+php_stream *php_event_ssl_dummy_stream(void)
+{
+	char *errstr = NULL;
+	int errcode  = 0;
+
+	php_stream *ssl_stream = php_stream_xport_create("ssl://127.0.0.1:445",
+			sizeof("ssl://127.0.0.1:445") - 1, 0,
+			STREAM_XPORT_CLIENT, NULL, NULL, NULL, &errstr, &errcode);
+
+	return ssl_stream;
+}
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4

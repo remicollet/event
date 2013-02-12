@@ -179,6 +179,23 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_set_timeouts, 0, 0, 2)
 	ZEND_ARG_INFO(0, timeout_write)
 ZEND_END_ARG_INFO();
 
+#ifdef HAVE_EVENT_OPENSSL_LIB
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_ssl_filter, 0, 0, 4)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, underlying)
+	ZEND_ARG_INFO(0, ctx)
+	ZEND_ARG_INFO(0, state)
+	ZEND_ARG_INFO(0, options)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_ssl_socket, 0, 0, 4)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, socket)
+	ZEND_ARG_INFO(0, ctx)
+	ZEND_ARG_INFO(0, state)
+	ZEND_ARG_INFO(0, options)
+ZEND_END_ARG_INFO();
+#endif
 
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_freeze, 0, 0, 1)
@@ -222,6 +239,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_set_position, 0, 0, 3)
 	ZEND_ARG_INFO(1, pos)
 	ZEND_ARG_INFO(0, value)
 	ZEND_ARG_INFO(0, how)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_pullup, 0, 0, 1)
+	ZEND_ARG_INFO(0, size)
 ZEND_END_ARG_INFO();
 
 
@@ -276,6 +297,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_bind, 0, 0, 2)
 	ZEND_ARG_INFO(0, port)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_ssl_context__construct, 0, 0, 2)
+	ZEND_ARG_INFO(0, method)
+	ZEND_ARG_INFO(0, options)
+ZEND_END_ARG_INFO();
 
 /* ARGINFO END }}} */
 
@@ -427,6 +452,10 @@ const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBufferEvent, createPair,        arginfo_bufferevent_pair_new,                ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, setPriority,       arginfo_bufferevent_priority_set,            ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, setTimeouts,       arginfo_bufferevent_set_timeouts,            ZEND_ACC_PUBLIC)
+#ifdef HAVE_EVENT_OPENSSL_LIB
+	PHP_ME(EventBufferEvent, sslFilter,         arginfo_bufferevent_ssl_filter,              ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventBufferEvent, sslSocket,         arginfo_bufferevent_ssl_socket,              ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+#endif
 
 	PHP_FE_END
 };
@@ -451,6 +480,7 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, readLine,      arginfo_evbuffer_read_line,     ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, search,        arginfo_evbuffer_search,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, setPosition,   arginfo_evbuffer_set_position,  ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, pullup,        arginfo_evbuffer_pullup,        ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };
@@ -461,6 +491,7 @@ const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 
 	PHP_ME(EventUtil, getLastSocketErrno, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventUtil, getLastSocketError, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, sslRandPoll,        arginfo_event__void,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 	PHP_FE_END
 };
@@ -526,6 +557,15 @@ const zend_function_entry php_event_listener_ce_functions[] = {
 };
 
 /* Extra API END}}} */
+#endif
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
+const zend_function_entry php_event_ssl_context_ce_functions[] = {/* {{{ */
+	PHP_ME(EventSslContext, __construct, arginfo_event_ssl_context__construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+
+	PHP_FE_END
+};
+/* }}} */
 #endif
 
 /*
