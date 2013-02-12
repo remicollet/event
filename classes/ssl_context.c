@@ -19,6 +19,8 @@
 #include "src/util.h"
 #include "src/priv.h"
 
+#include "classes/ssl_context.h"
+
 #ifndef HAVE_EVENT_OPENSSL_LIB
 # error "HAVE_EVENT_OPENSSL_LIB undefined"
 #endif
@@ -31,7 +33,7 @@ static int passwd_callback(char *buf, int num, int verify, void *data)
     HashTable  *ht  = (HashTable *) data;
     zval      **val = NULL;
 
-	if (zend_hash_find(ht, "passphrase", sizeof("passphrase"),
+	if (zend_hash_index_find(ht, PHP_EVENT_OPT_PASSPHRASE,
 				(void **) &val) == SUCCESS) {
         if (Z_STRLEN_PP(val) < num - 1) {
             memcpy(buf, Z_STRVAL_PP(val), Z_STRLEN_PP(val) + 1);
@@ -63,8 +65,30 @@ static zend_always_inline void set_ciphers(SSL_CTX *ctx, const char *cipher_list
 }
 /* }}} */
 
-/* {{{ set_local_cert */
-static int set_local_cert(SSL_CTX *ctx, const char *certfile, const char *private_key TSRMLS_DC)
+/* {{{ _php_event_ssl_ctx_set_private_key */
+int _php_event_ssl_ctx_set_private_key(SSL_CTX *ctx, const char *private_key TSRMLS_DC)
+{
+    if (private_key) {
+        char resolved_path_buff_pk[MAXPATHLEN];
+
+        if (VCWD_REALPATH(private_key, resolved_path_buff_pk)) {
+            if (SSL_CTX_use_PrivateKey_file(ctx, resolved_path_buff_pk, SSL_FILETYPE_PEM) != 1) {
+                php_error_docref(NULL TSRMLS_CC, E_WARNING,
+                    	"Unable to set private key file `%s'",
+                    	resolved_path_buff_pk);
+                return -1;
+            }
+
+    		return 0;
+        }
+    }
+
+    return -1;
+}
+/* }}} */
+
+/* {{{ _php_event_ssl_ctx_set_local_cert */
+int _php_event_ssl_ctx_set_local_cert(SSL_CTX *ctx, const char *certfile, const char *private_key TSRMLS_DC)
 {
 	char resolved_path_buff[MAXPATHLEN];
 
@@ -76,16 +100,9 @@ static int set_local_cert(SSL_CTX *ctx, const char *certfile, const char *privat
         }
 
         if (private_key) {
-            char resolved_path_buff_pk[MAXPATHLEN];
-
-            if (VCWD_REALPATH(private_key, resolved_path_buff_pk)) {
-                if (SSL_CTX_use_PrivateKey_file(ctx, resolved_path_buff_pk, SSL_FILETYPE_PEM) != 1) {
-                    php_error_docref(NULL TSRMLS_CC, E_WARNING,
-                    		"Unable to set private key file `%s'",
-                    		resolved_path_buff_pk);
-                    return -1;
-                }
-            }
+        	if (_php_event_ssl_ctx_set_private_key(ctx, private_key TSRMLS_CC)) {
+        		return -1;
+        	}
         } else {
             if (SSL_CTX_use_PrivateKey_file(ctx, resolved_path_buff, SSL_FILETYPE_PEM) != 1) {
                 php_error_docref(NULL TSRMLS_CC, E_WARNING,
@@ -136,9 +153,9 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 
 				if (zend_hash_index_find(ht, PHP_EVENT_OPT_LOCAL_PK,
 						(void **) &ppz_private_key) == SUCCESS) {
-					set_local_cert(ctx, Z_STRVAL_PP(ppzval), Z_STRVAL_PP(ppz_private_key));
+					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), Z_STRVAL_PP(ppz_private_key));
 				} else {
-					set_local_cert(ctx, Z_STRVAL_PP(ppzval), NULL);
+					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), NULL);
 				}
 				break;
 			case PHP_EVENT_OPT_LOCAL_PK:

@@ -51,6 +51,9 @@ static HashTable event_config_properties;
 static HashTable event_bevent_properties;
 static HashTable event_buffer_properties;
 static HashTable event_buffer_pos_properties;
+#ifdef HAVE_EVENT_OPENSSL_LIB
+static HashTable event_ssl_context_properties;
+#endif
 
 static zend_object_handlers object_handlers;
 
@@ -940,6 +943,11 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			php_event_ssl_context_ce_functions);
 	ce = php_event_ssl_context_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+	zend_hash_init(&event_ssl_context_properties, 0, NULL, NULL, 1);
+	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_ssl_context_properties, event_ssl_context_property_entries);
+	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_ssl_context_property_entry_info);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_ssl_context_properties,
+			sizeof(event_ssl_context_properties), NULL);
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
 }

@@ -44,6 +44,9 @@ extern const php_event_property_entry_t event_config_property_entries[];
 extern const php_event_property_entry_t event_bevent_property_entries[];
 extern const php_event_property_entry_t event_buffer_property_entries[];
 extern const php_event_property_entry_t event_buffer_pos_property_entries[];
+#ifdef HAVE_EVENT_OPENSSL_LIB
+extern const php_event_property_entry_t event_ssl_context_property_entries[];
+#endif
 
 extern const zend_property_info event_property_entry_info[];
 extern const zend_property_info event_base_property_entry_info[];
@@ -51,6 +54,9 @@ extern const zend_property_info event_config_property_entry_info[];
 extern const zend_property_info event_bevent_property_entry_info[];
 extern const zend_property_info event_buffer_property_entry_info[];
 extern const zend_property_info event_buffer_pos_property_entry_info[];
+#ifdef HAVE_EVENT_OPENSSL_LIB
+extern const zend_property_info event_ssl_context_property_entry_info[];
+#endif
 
 #if HAVE_EVENT_EXTRA_LIB
 extern const zend_function_entry php_event_dns_base_ce_functions[];
@@ -62,17 +68,8 @@ extern zend_class_entry *php_event_dns_base_ce;
 extern zend_class_entry *php_event_listener_ce;
 extern zend_class_entry *php_event_http_conn_ce;
 extern zend_class_entry *php_event_http_ce;
-
-extern const php_event_property_entry_t event_dns_base_property_entries[];
-extern const php_event_property_entry_t event_listener_property_entries[];
-extern const php_event_property_entry_t event_http_conn_property_entries[];
-extern const php_event_property_entry_t event_http_property_entries[];
-
-extern const zend_property_info event_dns_base_property_entry_info[];
-extern const zend_property_info event_listener_property_entry_info[];
-extern const zend_property_info event_http_conn_property_entry_info[];
-extern const zend_property_info event_http_property_entry_info[];
 #endif /* HAVE_EVENT_EXTRA_LIB */
+
 
 
 #endif /* PHP_EVENT_PRIV_H */

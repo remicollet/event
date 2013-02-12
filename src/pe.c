@@ -19,6 +19,20 @@
 #include "src/priv.h"
 #include "src/util.h"
 
+/* {{{ get_ssl_option */
+static zval **get_ssl_option(const HashTable *ht, ulong idx)
+{
+    zval **val;
+
+	if (zend_hash_index_find(ht, idx, (void **) &val) == SUCCESS) {
+		return val;
+    }
+
+    return NULL;
+}
+/* }}} */
+
+
 /* {{{ event_timer_pending_prop_read */
 static int event_timer_pending_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
 {
@@ -121,6 +135,72 @@ static int event_bevent_allow_ssl_dirty_shutdown_prop_read(php_event_abstract_ob
 /* }}} */
 #endif
 
+#ifdef HAVE_EVENT_OPENSSL_LIB
+#include "classes/ssl_context.h"
+
+/* {{{ event_ssl_context_local_cert_prop_write*/
+static int event_ssl_context_local_cert_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+{
+	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) obj;
+	zval **val                    = get_ssl_option(ectx->ht, PHP_EVENT_OPT_LOCAL_PK);
+	char *private_key             = val ? Z_STRVAL_PP(val) : NULL;
+
+	if (_php_event_ssl_ctx_set_local_cert(ectx->ctx, Z_STRVAL_P(value), private_key TSRMLS_CC)) {
+		return FAILURE;
+	}
+
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ event_ssl_context_local_cert_prop_read */
+static int event_ssl_context_local_cert_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) obj;
+	zval **val                    = get_ssl_option(ectx->ht, PHP_EVENT_OPT_LOCAL_CERT);
+
+	if (val) {
+		MAKE_STD_ZVAL(*retval);
+		ZVAL_STRINGL(*retval, Z_STRVAL_PP(val), Z_STRLEN_PP(val), 1);
+	} else {
+		ALLOC_INIT_ZVAL(*retval);
+	}
+
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ event_ssl_context_local_pk_prop_write */
+static int event_ssl_context_local_pk_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+{
+	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) obj;
+
+	if (_php_event_ssl_ctx_set_private_key(ectx->ctx, Z_STRVAL_P(value) TSRMLS_CC)) {
+		return FAILURE;
+	}
+
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ event_ssl_context_local_pk_prop_read */
+static int event_ssl_context_local_pk_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) obj;
+	zval **val                    = get_ssl_option(ectx->ht, PHP_EVENT_OPT_LOCAL_PK);
+
+	if (val) {
+		MAKE_STD_ZVAL(*retval);
+		ZVAL_STRINGL(*retval, Z_STRVAL_PP(val), Z_STRLEN_PP(val), 1);
+	} else {
+		ALLOC_INIT_ZVAL(*retval);
+	}
+
+	return SUCCESS;
+}
+/* }}} */
+#endif
+
 
 const php_event_property_entry_t event_property_entries[] = {
 	{"timer_pending",           sizeof("timer_pending") - 1, event_timer_pending_prop_read, NULL, NULL},
@@ -151,6 +231,13 @@ const php_event_property_entry_t event_buffer_pos_property_entries[] = {
 	{"position", sizeof("position") - 1, event_buffer_pos_position_prop_read, NULL, NULL},
     {NULL, 0, NULL, NULL, NULL}
 };
+#ifdef HAVE_EVENT_OPENSSL_LIB
+const php_event_property_entry_t event_ssl_context_property_entries[] = {
+	{"local_cert", sizeof("local_cert") - 1, event_ssl_context_local_cert_prop_read, event_ssl_context_local_cert_prop_write, NULL},
+	{"local_pk", sizeof("local_pk") - 1, event_ssl_context_local_pk_prop_read, event_ssl_context_local_pk_prop_write, NULL},
+    {NULL, 0, NULL, NULL, NULL}
+};
+#endif
 
 const zend_property_info event_property_entry_info[] = {
 	{ZEND_ACC_PUBLIC, "timer_pending", sizeof("timer_pending") - 1, -1, 0, NULL, 0, NULL},
@@ -178,37 +265,14 @@ const zend_property_info event_buffer_pos_property_entry_info[] = {
 	{ZEND_ACC_PUBLIC, "position", sizeof("position") - 1, -1, 0, NULL, 0, NULL},
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
-
-
-#if HAVE_EVENT_EXTRA_LIB
-
-const php_event_property_entry_t event_dns_base_property_entries[] = {
-    {NULL, 0, NULL, NULL, NULL}
-};
-const php_event_property_entry_t event_listener_property_entries[] = {
-    {NULL, 0, NULL, NULL, NULL}
-};
-const php_event_property_entry_t event_http_conn_property_entries[] = {
-    {NULL, 0, NULL, NULL, NULL}
-};
-const php_event_property_entry_t event_http_property_entries[] = {
-    {NULL, 0, NULL, NULL, NULL}
-};
-
-const zend_property_info event_dns_base_property_entry_info[] = {
+#ifdef HAVE_EVENT_OPENSSL_LIB
+const zend_property_info event_ssl_context_property_entry_info[] = {
+	{ZEND_ACC_PUBLIC, "local_cert", sizeof("local_cert") - 1, -1, 0, NULL, 0, NULL},
+	{ZEND_ACC_PUBLIC, "local_pk", sizeof("local_pk") - 1, -1, 0, NULL, 0, NULL},
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
-const zend_property_info event_listener_property_entry_info[] = {
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-const zend_property_info event_http_conn_property_entry_info[] = {
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-const zend_property_info event_http_property_entry_info[] = {
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-
 #endif
+
 /*
  * Local variables:
  * tab-width: 4
