@@ -96,6 +96,32 @@ static int event_bevent_priority_prop_read(php_event_abstract_object_t *obj, zva
 }
 /* }}} */
 
+
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+/* {{{ event_bevent_allow_ssl_dirty_shutdown_prop_write*/
+static int event_bevent_allow_ssl_dirty_shutdown_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+{
+	php_event_bevent_t *bev      = (php_event_bevent_t *) obj;
+	int allow_ssl_dirty_shutdown = (int) Z_BVAL_P(value);
+
+	bufferevent_openssl_set_allow_dirty_shutdown(bev->bevent, allow_ssl_dirty_shutdown);
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ event_bevent_allow_ssl_dirty_shutdown_prop_read */
+static int event_bevent_allow_ssl_dirty_shutdown_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_bevent_t *bev = (php_event_bevent_t *)obj;
+
+	MAKE_STD_ZVAL(*retval);
+	ZVAL_BOOL(*retval, (zend_bool) bufferevent_openssl_get_allow_dirty_shutdown(bev->bevent));
+	return SUCCESS;
+}
+/* }}} */
+#endif
+
+
 const php_event_property_entry_t event_property_entries[] = {
 	{"timer_pending",           sizeof("timer_pending") - 1, event_timer_pending_prop_read, NULL, NULL},
     {NULL, 0, NULL, NULL, NULL}
@@ -108,6 +134,12 @@ const php_event_property_entry_t event_config_property_entries[] = {
 };
 const php_event_property_entry_t event_bevent_property_entries[] = {
 	{"priority", sizeof("priority") - 1, event_bevent_priority_prop_read, event_bevent_priority_prop_write, NULL },
+
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+	{"allow_ssl_dirty_shutdown", sizeof("allow_ssl_dirty_shutdown") - 1,
+		event_bevent_allow_ssl_dirty_shutdown_prop_read,
+		event_bevent_allow_ssl_dirty_shutdown_prop_write, NULL },
+#endif
     {NULL, 0, NULL, NULL, NULL}
 };
 const php_event_property_entry_t event_buffer_property_entries[] = {
@@ -132,6 +164,9 @@ const zend_property_info event_config_property_entry_info[] = {
 };
 const zend_property_info event_bevent_property_entry_info[] = {
 	{ZEND_ACC_PUBLIC, "priority", sizeof("priority") - 1, -1, 0, NULL, 0, NULL},
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+	{ZEND_ACC_PUBLIC, "allow_ssl_dirty_shutdown", sizeof("allow_ssl_dirty_shutdown") - 1, -1, 0, NULL, 0, NULL},
+#endif
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
 const zend_property_info event_buffer_property_entry_info[] = {

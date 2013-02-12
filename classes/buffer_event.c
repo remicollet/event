@@ -971,6 +971,57 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	Z_ADDREF_P(return_value);
 }
 /* }}} */
+
+/* {{{ proto string EventBufferEvent::sslError(void);
+ *
+ * Returns most recent OpenSSL error reported on the buffer event. The function
+ * returns FALSE, if there is no more error to return. */
+PHP_METHOD(EventBufferEvent, sslError)
+{
+	zval               *zbevent  = getThis();
+	php_event_bevent_t *bev;
+	char                buf[512];
+	unsigned long       e;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	e = bufferevent_get_openssl_error(bev->bevent);
+	if (e) {
+		RETURN_STRING(ERR_error_string(e, buf), 1);	
+	}
+
+	RETVAL_FALSE;
+}
+/* }}} */
+
+/* {{{ proto void EventBufferEvent::sslRenegotiate(void);
+ *
+ * Tells a bufferevent to begin SSL renegotiation.
+ *
+ * Warning. Calling this function tells the SSL to renegotiate, and the
+ * bufferevent to invoke appropriate callbacks. This is an advanced topic; you
+ * should generally avoid it unless you really know what you’re doing,
+ * especially since many SSL versions have had known security issues related to
+ * renegotiation.
+ **/
+PHP_METHOD(EventBufferEvent, sslRenegotiate)
+{
+	zval               *zbevent  = getThis();
+	php_event_bevent_t *bev;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	bufferevent_ssl_renegotiate(bev->bevent);
+}
+/* }}} */
 #endif /* HAVE_EVENT_OPENSSL_LIB }}} */
 
 /*

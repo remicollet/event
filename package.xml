@@ -30,8 +30,8 @@
   setPosition methods
   Add: EventBufferPosition class
   Fix: configure error in FreeBSD
-  Add: OpenSSL support: EventBufferEvent methods: sslFilter, sslSocket, EventSslContext class
-  Add: EventBuffer::pullup
+  Add: OpenSSL support: EventBufferEvent methods: sslFilter, sslSocket, sslError, sslRenegotiate; EventSslContext class
+  Add: EventBuffer::pullup method
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -126,8 +126,8 @@
   setPosition methods
   Add: EventBufferPosition class
   Fix: configure error in FreeBSD
-  Add: OpenSSL support: EventBufferEvent methods: sslFilter, sslSocket, EventSslContext class
-  Add: EventBuffer::pullup
+  Add: OpenSSL support: EventBufferEvent methods: sslFilter, sslSocket, sslError, sslRenegotiate; EventSslContext class
+  Add: EventBuffer::pullup method
   ]]></notes>
   </release>
   <!--}}}-->

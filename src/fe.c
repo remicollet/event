@@ -455,6 +455,8 @@ const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
 #ifdef HAVE_EVENT_OPENSSL_LIB
 	PHP_ME(EventBufferEvent, sslFilter,         arginfo_bufferevent_ssl_filter,              ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventBufferEvent, sslSocket,         arginfo_bufferevent_ssl_socket,              ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventBufferEvent, sslError,          arginfo_event__void,                         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, sslRenegotiate,    arginfo_event__void,                         ZEND_ACC_PUBLIC)
 #endif
 
 	PHP_FE_END
