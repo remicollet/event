@@ -141,6 +141,17 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 }
 /* }}} */
 
+#ifdef HAVE_EVENT_OPENSSL_LIB
+/* {{{ is_valid_ssl_state */
+static zend_always_inline zend_bool is_valid_ssl_state(long state)
+{
+	return (zend_bool) (state == BUFFEREVENT_SSL_OPEN
+			|| state == BUFFEREVENT_SSL_CONNECTING
+			|| state == BUFFEREVENT_SSL_ACCEPTING);
+}
+/* }}} */
+#endif
+
 /* Private }}} */
 
 
@@ -171,7 +182,6 @@ PHP_METHOD(EventBufferEvent, __construct)
 	}
 
 	if (ppzfd) {
-#ifdef PHP_EVENT_SOCKETS_SUPPORT 
 		/* php_event_zval_to_fd reports error
 	 	 * in case if it is not a valid socket resource */
 		/*fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);*/
@@ -182,9 +192,6 @@ PHP_METHOD(EventBufferEvent, __construct)
 		}
 		/* Make sure that the socket is in non-blocking mode(libevent's tip) */
 		evutil_make_socket_nonblocking(fd);
-#else
-		fd = -1;
-#endif
 	} else {
  		/* User decided to assign fd later,
  		 * e.g. by means of bufferevent_socket_connect()
@@ -216,6 +223,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 	}
 
 	bev->self = zself;
+	/* Ensure the object won't be destroyed in case if we are in a callback */
 	Z_ADDREF_P(zself);
 }
 /* }}} */
@@ -830,6 +838,140 @@ PHP_METHOD(EventBufferEvent, setTimeouts)
 	RETVAL_TRUE;
 }
 /* }}} */
+
+#ifdef HAVE_EVENT_OPENSSL_LIB /* {{{ */
+/* {{{ proto EventBufferEvent EventBufferEvent::sslFilter(EventBase base, EventBufferEvent underlying, EventSslContext ctx, int state[, int options = 0]);
+ */
+PHP_METHOD(EventBufferEvent, sslFilter)
+{
+	zval                    *zbase;
+	php_event_base_t        *base;
+	zval                    *zunderlying;
+	php_event_bevent_t      *bev_underlying;
+	zval                    *zctx;
+	php_event_ssl_context_t *ectx;
+	long                     state;
+	long                     options        = 0;
+	php_event_bevent_t      *bev;
+	struct bufferevent      *bevent;
+	SSL                     *ssl;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OOOl|l",
+				&zbase, php_event_base_ce,
+				&zunderlying, php_event_bevent_ce,
+				&zctx, php_event_ssl_context_ce,
+				&state, &options) == FAILURE) {
+		return;
+	}
+
+	if (!is_valid_ssl_state(state)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Invalid state specified");
+		RETURN_FALSE;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+	PHP_EVENT_FETCH_BEVENT(bev_underlying, zunderlying);
+	PHP_EVENT_FETCH_SSL_CONTEXT(ectx, zctx);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
+	PHP_EVENT_FETCH_BEVENT(bev, return_value);
+
+	PHP_EVENT_ASSERT(ectx->ctx);
+	ssl = SSL_new(ectx->ctx);
+	if (!ssl) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Event: Failed creating SSL handle");
+		RETURN_FALSE;
+	}
+
+	bevent = bufferevent_openssl_filter_new(base->base,
+    		bev_underlying->bevent,
+    		ssl, state, options);
+	if (bevent == NULL) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Failed to allocate bufferevent filter");
+		RETURN_FALSE;
+	}
+	bev->bevent = bevent;
+
+	bev->stream_id = -1;
+
+	bev->self = return_value;
+	/* Ensure the object won't be destroyed in case if we are in a callback */
+	Z_ADDREF_P(return_value);
+}
+/* }}} */
+
+/* {{{ proto EventBufferEvent EventBufferEvent::sslSocket(EventBase base, resource socket, EventSslContext ctx, int state[, int options = 0]);
+ * */
+PHP_METHOD(EventBufferEvent, sslSocket)
+{
+	zval                     *zbase;
+	php_event_base_t         *base;
+	zval                     *zctx;
+	php_event_ssl_context_t  *ectx;
+	zval                    **ppzfd;
+	evutil_socket_t           fd;
+	long                      state;
+	long                      options = 0;
+	php_event_bevent_t       *bev;
+	struct bufferevent       *bevent;
+	SSL                      *ssl;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OZOl|l",
+				&zbase, php_event_base_ce,
+				&ppzfd, 
+				&zctx, php_event_ssl_context_ce,
+				&state, &options) == FAILURE) {
+		return;
+	}
+
+	if (!is_valid_ssl_state(state)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Invalid state specified");
+		RETURN_FALSE;
+	}
+
+	PHP_EVENT_FETCH_BASE(base, zbase);
+	PHP_EVENT_FETCH_SSL_CONTEXT(ectx, zctx);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
+	PHP_EVENT_FETCH_BEVENT(bev, return_value);
+
+	fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
+	if (fd < 0) {
+		RETURN_FALSE;
+	}
+	/* Make sure that the socket is in non-blocking mode(libevent's tip) */
+	/*evutil_make_socket_nonblocking(fd);*/
+
+	PHP_EVENT_ASSERT(ectx->ctx);
+	ssl = SSL_new(ectx->ctx);
+	if (!ssl) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Event: Failed creating SSL handle");
+		RETURN_FALSE;
+	}
+
+	bevent = bufferevent_openssl_socket_new(base->base, fd, ssl, state, options);
+	if (bevent == NULL) {
+		php_error_docref(NULL TSRMLS_CC, E_ERROR,
+				"Failed to allocate bufferevent filter");
+		RETURN_FALSE;
+	}
+	bev->bevent = bevent;
+
+	/* lval of ppzfd is the resource ID */
+	bev->stream_id = Z_LVAL_PP(ppzfd);
+	zend_list_addref(Z_LVAL_PP(ppzfd));
+
+	bev->self = return_value;
+	/* Ensure the object won't be destroyed in case if we are in a callback */
+	Z_ADDREF_P(return_value);
+}
+/* }}} */
+#endif /* HAVE_EVENT_OPENSSL_LIB }}} */
 
 /*
  * Local variables:

@@ -20,6 +20,12 @@ PHP_ARG_WITH(event-core, for event core support,
 PHP_ARG_WITH(event-extra, for event extra functionality support,
 [  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, no)
 
+PHP_ARG_WITH(event-openssl, for OpenSSL support in event,
+[  --with-event-extra       Include libevent OpenSSL support], yes, no)
+
+PHP_ARG_WITH(openssl-dir, OpenSSL dir for FTP,
+[  --with-openssl-dir[=DIR]  Event: openssl install prefix], yes, no)
+
 PHP_ARG_ENABLE(event-debug, for ev debug support,
 [  --enable-event-debug     Enable event debug support], no, no)
 
@@ -118,7 +124,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
     PHP_CHECK_LIBRARY(event_extra, evhttp_new,
     [
       PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_LIB_DIR, EVENT_SHARED_LIBADD)
-      AC_DEFINE(HAVE_EVENT_EXTRA_LIB,1,[ ])
+      AC_DEFINE(HAVE_EVENT_EXTRA_LIB, 1, [ ])
     ],[
       AC_MSG_ERROR([libevent_extra >= 2.0 not found])
     ],[
@@ -132,12 +138,39 @@ if test "$PHP_EVENT_CORE" != "no"; then
       classes/http_connection.c"
   fi
   dnl }}}
+  
+  dnl {{{ --with-event-openssl
+  if test "$PHP_EVENT_OPENSSL" != "no"; then
+    test -z "$PHP_OPENSSL" && PHP_OPENSSL=no
+
+    if test -z "$PHP_OPENSSL_DIR" || test $PHP_OPENSSL_DIR == "no"; then
+      PHP_OPENSSL_DIR=yes
+    fi
+
+    PHP_SETUP_OPENSSL(EVENT_SHARED_LIBADD)
+
+    PHP_CHECK_LIBRARY(event_openssl, bufferevent_openssl_filter_new,
+    [
+      PHP_ADD_LIBRARY_WITH_PATH(event_openssl, $EVENT_LIB_DIR, EVENT_SHARED_LIBADD)
+      AC_DEFINE(HAVE_EVENT_OPENSSL_LIB, 1, [ ])
+    ], [
+        AC_MSG_ERROR([libevent_openssl >= 2.0 not found])
+    ], [
+      -L$EVENT_LIB_DIR -levent_core
+    ])
+
+    event_src="$event_src classes/ssl_context.c"
+  fi
+  dnl }}}
  
   PHP_NEW_EXTENSION(event, $event_src, $ext_shared,,$CFLAGS)
   PHP_ADD_BUILD_DIR($ext_builddir/src)
   PHP_ADD_BUILD_DIR($ext_builddir/classes)
   PHP_ADD_INCLUDE($ext_builddir/src)
   PHP_ADD_EXTENSION_DEP(event, sockets, true)
+  dnl We have this dep only because of the need of ssl transports defined in
+  dnl openssl ext.
+  PHP_ADD_EXTENSION_DEP(event, openssl, true)
   PHP_SUBST(EVENT_SHARED_LIBADD)
   PHP_SUBST(CFLAGS)
 fi

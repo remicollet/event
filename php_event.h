@@ -19,7 +19,7 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "1.1.2-beta"
+#define PHP_EVENT_VERSION "1.2.0-beta"
 
 
 extern zend_module_entry event_module_entry;
@@ -35,7 +35,9 @@ PHP_MINFO_FUNCTION(event);
 
 #if 0
 ZEND_BEGIN_MODULE_GLOBALS(event)
+	php_stream *ssl_dummy_stream;
 ZEND_END_MODULE_GLOBALS(event)
+ZEND_EXTERN_MODULE_GLOBALS(event)
 #endif
 
 #ifdef ZTS

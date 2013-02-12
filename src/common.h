@@ -52,6 +52,10 @@
 # include <event2/tag.h>
 #endif
 
+#ifdef HAVE_EVENT_OPENSSL_LIB
+# include <event2/bufferevent_ssl.h>
+#endif
+
 #if !defined(_WIN32) && !defined(_MINIX)
 # include <pthread.h>
 #endif
@@ -62,6 +66,19 @@
 
 #if !defined(LIBEVENT_VERSION_NUMBER) || LIBEVENT_VERSION_NUMBER < 0x02000200
 # error "This version of Libevent is not supported; get 2.0.2-alpha or later."
+#endif
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
+# include <openssl/evp.h>
+# include <openssl/x509.h>
+# include <openssl/x509v3.h>
+# include <openssl/crypto.h>
+# include <openssl/pem.h>
+# include <openssl/err.h>
+# include <openssl/conf.h>
+# include <openssl/rand.h>
+# include <openssl/ssl.h>
+# include <openssl/pkcs12.h>
 #endif
 
 #include "php_event.h"

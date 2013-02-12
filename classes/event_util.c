@@ -71,6 +71,18 @@ PHP_METHOD(EventUtil, getLastSocketError)
 }
 /* }}} */
 
+#ifdef HAVE_EVENT_OPENSSL_LIB/* {{{ */
+/* {{{ proto bool EventUtil::sslRandPoll(void);
+ * 
+ * Generates entropy by means of OpenSSL's RAND_poll()
+ */
+PHP_METHOD(EventUtil, sslRandPoll)
+{
+	RETVAL_BOOL((zend_bool) RAND_poll());
+}
+/* }}} */
+#endif/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4

@@ -19,6 +19,7 @@
 #define PHP_EVENT_UTIL_H
 
 php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC);
+php_stream *php_event_ssl_dummy_stream(void);
 
 #define php_event_is_pending(e) \
 	event_pending((e), EV_READ | EV_WRITE | EV_SIGNAL | EV_TIMEOUT, NULL)
@@ -66,6 +67,9 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC);
 
 #define PHP_EVENT_FETCH_BUFFER_POS(p, zp) \
 	p = (php_event_buffer_pos_t *) zend_object_store_get_object(zp TSRMLS_CC)
+
+#define PHP_EVENT_FETCH_SSL_CONTEXT(p, zp) \
+	p = (php_event_ssl_context_t *) zend_object_store_get_object(zp TSRMLS_CC)
 
 #define PHP_EVENT_TIMEVAL_SET(tv, t)                     \
         do {                                             \

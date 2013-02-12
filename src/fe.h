@@ -77,6 +77,10 @@ PHP_METHOD(EventBufferEvent, read);
 PHP_METHOD(EventBufferEvent, readBuffer);
 PHP_METHOD(EventBufferEvent, setPriority);
 PHP_METHOD(EventBufferEvent, setTimeouts);
+#ifdef HAVE_EVENT_OPENSSL_LIB
+PHP_METHOD(EventBufferEvent, sslFilter);
+PHP_METHOD(EventBufferEvent, sslSocket);
+#endif
 
 PHP_METHOD(EventBuffer, __construct);
 PHP_METHOD(EventBuffer, freeze);
@@ -96,11 +100,17 @@ PHP_METHOD(EventBuffer, copyout);
 PHP_METHOD(EventBuffer, readLine);
 PHP_METHOD(EventBuffer, search);
 PHP_METHOD(EventBuffer, setPosition);
+PHP_METHOD(EventBuffer, pullup);
 
 PHP_METHOD(EventUtil, getLastSocketErrno);
 PHP_METHOD(EventUtil, getLastSocketError);
+PHP_METHOD(EventUtil, sslRandPoll);
 
 PHP_METHOD(EventBufferPosition, __construct);
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
+PHP_METHOD(EventSslContext, __construct);
+#endif
 
 #if HAVE_EVENT_EXTRA_LIB
 /* {{{ Extra API */

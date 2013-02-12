@@ -542,6 +542,41 @@ PHP_METHOD(EventBuffer, setPosition)
 }
 /* }}} */
 
+/* {{{ proto string EventBuffer::pullup(int size);
+ *
+ * "Linearizes" the first size bytes of the buffer, copying or moving them as needed to
+ * ensure that they are all contiguous and occupying the same chunk of memory. If size is
+ * negative, the function linearizes the entire buffer. If size is greater than the number
+ * of bytes in the buffer, the function returns NULL. Otherwise, EventBuffer::pullup()
+ * returns string.
+ *
+ * Calling EventBuffer::pullup() with a large size can be quite slow, since it potentially
+ * needs to copy the entire buffer's contents.
+ */
+PHP_METHOD(EventBuffer, pullup)
+{
+	zval               *zbuf = getThis();
+	php_event_buffer_t *b;
+	long                size;
+	unsigned char      *mem;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&size) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	mem = evbuffer_pullup(b->buf, size);
+
+	if (mem == NULL) {
+		RETURN_NULL();
+	}
+
+	RETVAL_STRING((const char *)mem, 1);
+}
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4
