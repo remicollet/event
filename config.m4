@@ -51,7 +51,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   AC_MSG_CHECKING([for event2/event.h])
   EVENT_DIR=
   for i in "$PHP_EVENT_CORE" "$PHP_EVENT_LIBEVENT_DIR" /usr/local /usr /opt; do
-	  if test -f "$i/include/event.h"; then
+	  if test -f "$i/include/event2/event.h"; then
 		  EVENT_DIR=$i
 		  break
 	  fi
@@ -78,8 +78,18 @@ if test "$PHP_EVENT_CORE" != "no"; then
   dnl }}}
 	
 	PHP_ADD_INCLUDE($EVENT_DIR/include)
-	PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_DIR/$PHP_LIBDIR, EVENT_SHARED_LIBADD)
-  LDFLAGS="-L$EVENT_DIR -levent_core $LDFLAGS"
+	PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
+
+  dnl FreeBSD
+  if test -d $EVENT_DIR/$PHP_LIBDIR/event2; then
+    EVENT_LIBS="-L$EVENT_DIR/$PHP_LIBDIR -L$EVENT_DIR/$PHP_LIBDIR/event2"
+    EVENT_LIBDIR=$EVENT_DIR/$PHP_LIBDIR/event2
+  else
+    EVENT_LIBS="-L$EVENT_DIR/$PHP_LIBDIR"
+    EVENT_LIBDIR=$EVENT_DIR/$PHP_LIBDIR
+  fi
+
+  LDFLAGS="$EVENT_LIBS -levent_core $LDFLAGS"
   dnl }}}
 
   dnl {{{ --enable-event-debug
@@ -105,7 +115,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
 
   dnl {{{ --with-event-extra
   if test "$PHP_EVENT_EXTRA" != "no"; then
-	  PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_DIR/$PHP_LIBDIR, EVENT_SHARED_LIBADD)
+	  PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
     LDFLAGS="-levent_extra $LDFLAGS"
     AC_DEFINE(HAVE_EVENT_EXTRA_LIB, 1, [ ])
 
@@ -126,7 +136,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
     fi
 
     PHP_SETUP_OPENSSL(EVENT_SHARED_LIBADD)
-    PHP_ADD_LIBRARY_WITH_PATH(event_openssl, $EVENT_LIB_DIR, EVENT_SHARED_LIBADD)
+    PHP_ADD_LIBRARY_WITH_PATH(event_openssl, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
     LDFLAGS="-levent_openssl $LDFLAGS"
     AC_DEFINE(HAVE_EVENT_OPENSSL_LIB, 1, [ ])
 
@@ -142,6 +152,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   PHP_ADD_EXTENSION_DEP(event, sockets, true)
   PHP_SUBST(EVENT_SHARED_LIBADD)
   PHP_SUBST(CFLAGS)
+  PHP_SUBST(LDLAGS)
 fi
 
 dnl vim: ft=m4.sh fdm=marker cms=dnl\ %s
