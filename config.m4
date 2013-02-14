@@ -24,7 +24,7 @@ PHP_ARG_WITH(event-openssl, for OpenSSL support in event,
 [  --with-event-extra       Include libevent OpenSSL support], yes, yes)
 
 PHP_ARG_WITH(openssl-dir, OpenSSL installation prefix,
-[  --with-openssl-dir[=DIR]  Event: openssl installation prefix], $PHP_EVENT_CORE, $PHP_EVENT_CORE)
+[  --with-openssl-dir[=DIR]  Event: openssl installation prefix], yes, yes)
 
 PHP_ARG_WITH([event-libevent-dir], [],
 [  --with-event-libevent-dir[=DIR] Event: libevent installation prefix], $PHP_EVENT_CORE, $PHP_EVENT_CORE)
