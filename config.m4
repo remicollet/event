@@ -18,16 +18,19 @@ PHP_ARG_WITH(event-core, for event core support,
 [  --with-event-core        Include core libevent support])
 
 PHP_ARG_WITH(event-extra, for event extra functionality support,
-[  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, no)
+[  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, yes)
 
 PHP_ARG_WITH(event-openssl, for OpenSSL support in event,
-[  --with-event-extra       Include libevent OpenSSL support], yes, no)
+[  --with-event-extra       Include libevent OpenSSL support], yes, yes)
 
-PHP_ARG_WITH(openssl-dir, OpenSSL dir for FTP,
-[  --with-openssl-dir[=DIR]  Event: openssl install prefix], yes, no)
+PHP_ARG_WITH(openssl-dir, OpenSSL installation prefix,
+[  --with-openssl-dir[=DIR]  Event: openssl installation prefix], $PHP_EVENT_CORE, $PHP_EVENT_CORE)
 
-PHP_ARG_ENABLE(event-debug, for ev debug support,
-[  --enable-event-debug     Enable event debug support], no, no)
+PHP_ARG_WITH([event-libevent-dir], [],
+[  --with-event-libevent-dir[=DIR] Event: libevent installation prefix], $PHP_EVENT_CORE, $PHP_EVENT_CORE)
+
+PHP_ARG_ENABLE(event-debug, Event: debug support,
+[  --enable-event-debug     Enable debug support in event], no, no)
 
 if test "$PHP_EVENT_CORE" != "no"; then
   dnl {{{ Check for PHP version
@@ -44,28 +47,39 @@ if test "$PHP_EVENT_CORE" != "no"; then
   export CPPFLAGS="$OLD_CPPFLAGS"
   dnl }}}
 
-  dnl {{{ include path
-  SEARCH_PATH="/usr/local /usr /opt"
-  SEARCH_FOR="/include/event2/event.h"
+  dnl {{{ Include libevent
+  AC_MSG_CHECKING([for event2/event.h])
+  EVENT_DIR=
+  for i in "$PHP_EVENT_CORE" "$PHP_EVENT_LIBEVENT_DIR" /usr/local /usr /opt; do
+	  if test -f "$i/include/event.h"; then
+		  EVENT_DIR=$i
+		  break
+	  fi
+  done
 
-  if test -r $PHP_EVENT_CORE/$SEARCH_FOR; then # path given as parameter
-    EVENT_DIR=$PHP_EVENT_CORE
-  else # search default path list
-    AC_MSG_CHECKING([for event files in default path])
-    for i in $SEARCH_PATH ; do
-      if test -r $i/$SEARCH_FOR; then
-        EVENT_DIR=$i
-        AC_MSG_RESULT(found in $i)
-      fi
-    done
-  fi
-
-  if test -z "$EVENT_DIR"; then
+  if test "x$EVENT_DIR" = "x"; then
     AC_MSG_RESULT([not found])
-    AC_MSG_ERROR([Please reinstall the event library])
+    AC_MSG_ERROR([Please reinstall the event library, or provide the installation prefix via --with-event-libevent-dir option])
   fi
+	AC_MSG_RESULT([found in $EVENT_DIR])
 
-  PHP_ADD_INCLUDE($EVENT_DIR/include)
+	dnl {{{ Check if it's at least libevent 2.0.2-alpha
+  export OLD_CPPFLAGS="$CPPFLAGS"
+  export CPPFLAGS="$CPPFLAGS $INCLUDES -DHAVE_EV"
+  AC_MSG_CHECKING(for libevent version)
+  AC_TRY_COMPILE([#include <event2/event.h>], [
+  #if LIBEVENT_VERSION_NUMBER < 0x02000200
+  # error this extension requires at least libevent version 2.0.2-alpha
+  #endif
+  ],
+  [AC_MSG_RESULT(ok)],
+  [AC_MSG_ERROR([need at least libevent 2.0.2-alpha])])
+  export CPPFLAGS="$OLD_CPPFLAGS"
+  dnl }}}
+	
+	PHP_ADD_INCLUDE($EVENT_DIR/include)
+	PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_DIR/$PHP_LIBDIR, EVENT_SHARED_LIBADD)
+  LDFLAGS="-L$EVENT_DIR -levent_core $LDFLAGS"
   dnl }}}
 
   dnl {{{ --enable-event-debug
@@ -75,42 +89,6 @@ if test "$PHP_EVENT_CORE" != "no"; then
   else
     AC_DEFINE(NDEBUG, 1, [With NDEBUG defined assert generates no code])
   fi
-  dnl }}}
-
-  if test -d $EVENT_DIR/lib64; then
-    PHP_EVENT_EXTA_LIB=$EVENT_DIR/lib64
-  else
-    PHP_EVENT_EXTA_LIB=
-  fi
-
-  AC_MSG_CHECKING([for directory storing libevent binaries])
-  if test -r $EVENT_DIR/$PHP_LIBDIR/libevent_core.$SHLIB_SUFFIX_NAME; then 
-    EVENT_LIB_DIR=$EVENT_DIR/$PHP_LIBDIR
-    AC_MSG_RESULT(found in $EVENT_LIB_DIR)
-  else # Usually FreeBSD and other non-standard setups
-    for i in $PHP_EVENT_EXTA_LIB /usr/$PHP_LIBDIR /usr/local/$PHP_LIBDIR /usr/local/$PHP_LIBDIR/event2 /opt/$PHP_LIBDIR; do
-      if test -r $i/libevent_core.$SHLIB_SUFFIX_NAME; then
-        EVENT_LIB_DIR=$i
-        AC_MSG_RESULT(found in $i)
-      fi
-    done
-  fi
-  if test -z "$EVENT_LIB_DIR"; then
-    AC_MSG_RESULT([not found])
-    AC_MSG_ERROR([Please reinstall the event library using a common path prefix])
-  fi
-
-  dnl {{{ --with-event-core
-  dnl bufferevent_getfd first appeared in 2.0.2-alpha
-  PHP_CHECK_LIBRARY(event_core, bufferevent_getfd,
-  [
-    PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_LIB_DIR, EVENT_SHARED_LIBADD)
-    AC_DEFINE(HAVE_EVENT_CORE_LIB,1,[ ])
-  ],[
-    AC_MSG_ERROR([libevent_core >= 2.0.2-alpha not found])
-  ],[
-    -L$EVENT_LIB_DIR -L$PHP_EVENT_EXTA_LIB
-  ])
   dnl }}}
   
   event_src="php_event.c \
@@ -127,15 +105,9 @@ if test "$PHP_EVENT_CORE" != "no"; then
 
   dnl {{{ --with-event-extra
   if test "$PHP_EVENT_EXTRA" != "no"; then
-    PHP_CHECK_LIBRARY(event_extra, evhttp_new,
-    [
-      PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_LIB_DIR, EVENT_SHARED_LIBADD)
-      AC_DEFINE(HAVE_EVENT_EXTRA_LIB, 1, [ ])
-    ],[
-      AC_MSG_ERROR([libevent_extra >= 2.0 not found])
-    ],[
-      -L$EVENT_LIB_DIR -L$PHP_EVENT_EXTA_LIB -levent_core
-    ])
+	  PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_DIR/$PHP_LIBDIR, EVENT_SHARED_LIBADD)
+    LDFLAGS="-levent_extra $LDFLAGS"
+    AC_DEFINE(HAVE_EVENT_EXTRA_LIB, 1, [ ])
 
     event_src="$event_src \
       classes/dns.c \
@@ -154,16 +126,9 @@ if test "$PHP_EVENT_CORE" != "no"; then
     fi
 
     PHP_SETUP_OPENSSL(EVENT_SHARED_LIBADD)
-
-    PHP_CHECK_LIBRARY(event_openssl, bufferevent_openssl_filter_new,
-    [
-      PHP_ADD_LIBRARY_WITH_PATH(event_openssl, $EVENT_LIB_DIR, EVENT_SHARED_LIBADD)
-      AC_DEFINE(HAVE_EVENT_OPENSSL_LIB, 1, [ ])
-    ], [
-        AC_MSG_ERROR([libevent_openssl >= 2.0 not found])
-    ], [
-      -L$EVENT_LIB_DIR -L$PHP_EVENT_EXTA_LIB -levent_core
-    ])
+    PHP_ADD_LIBRARY_WITH_PATH(event_openssl, $EVENT_LIB_DIR, EVENT_SHARED_LIBADD)
+    LDFLAGS="-levent_openssl $LDFLAGS"
+    AC_DEFINE(HAVE_EVENT_OPENSSL_LIB, 1, [ ])
 
     event_src="$event_src classes/ssl_context.c"
   fi
@@ -175,7 +140,6 @@ if test "$PHP_EVENT_CORE" != "no"; then
   PHP_ADD_INCLUDE($ext_builddir/src)
   PHP_ADD_INCLUDE($ext_builddir/classes)
   PHP_ADD_EXTENSION_DEP(event, sockets, true)
-  dnl PHP_ADD_EXTENSION_DEP(event, openssl, true)
   PHP_SUBST(EVENT_SHARED_LIBADD)
   PHP_SUBST(CFLAGS)
 fi
