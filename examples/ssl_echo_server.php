@@ -30,8 +30,11 @@ function ssl_read_cb($bev, $ctx) {
 }
 
 function ssl_event_cb($bev, $events, $ctx) {
-	if ($events & EventBufferEvent::ERROR)
-		echo "Error from bufferevent\n";
+	if ($events & EventBufferEvent::ERROR) {
+		while ($err = $bev->sslError()) {
+			fprintf(STDERR, "Bufferevent error %s.\n", $err);
+		}
+	}
 
 	if ($events & (EventBufferEvent::EOF | EventBufferEvent::ERROR)) {
 		$bev->free();

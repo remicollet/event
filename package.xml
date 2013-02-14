@@ -56,6 +56,7 @@
         <file role="src" name="http.c"/>
         <file role="src" name="http_connection.c"/>
         <file role="src" name="listener.c"/>
+        <file role="src" name="ssl_context.h"/>
         <file role="src" name="ssl_context.c"/>
       </dir>
       <dir name="examples">

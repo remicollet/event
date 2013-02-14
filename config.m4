@@ -167,10 +167,9 @@ if test "$PHP_EVENT_CORE" != "no"; then
   PHP_ADD_BUILD_DIR($ext_builddir/src)
   PHP_ADD_BUILD_DIR($ext_builddir/classes)
   PHP_ADD_INCLUDE($ext_builddir/src)
+  PHP_ADD_INCLUDE($ext_builddir/classes)
   PHP_ADD_EXTENSION_DEP(event, sockets, true)
-  dnl We have this dep only because of the need of ssl transports defined in
-  dnl openssl ext.
-  PHP_ADD_EXTENSION_DEP(event, openssl, true)
+  dnl PHP_ADD_EXTENSION_DEP(event, openssl, true)
   PHP_SUBST(EVENT_SHARED_LIBADD)
   PHP_SUBST(CFLAGS)
 fi

@@ -59,7 +59,7 @@ static zend_object_handlers object_handlers;
 
 static const zend_module_dep event_deps[] = {
 	ZEND_MOD_OPTIONAL("sockets")
-	ZEND_MOD_OPTIONAL("openssl")
+	/*ZEND_MOD_OPTIONAL("openssl")*/
 	{NULL, NULL, NULL}
 };
 
