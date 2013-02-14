@@ -228,6 +228,8 @@ static void event_buffer_object_free_storage(void *ptr TSRMLS_DC)
 }
 /* }}} */
 
+#ifdef HAVE_EVENT_EXTRA_LIB
+
 /* {{{ event_dns_base_object_free_storage */
 static void event_dns_base_object_free_storage(void *ptr TSRMLS_DC)
 {
@@ -321,6 +323,8 @@ static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 }
 /* }}} */
 
+#endif /* HAVE_EVENT_EXTRA_LIB */
+
 /* {{{ event_buffer_pos_object_free_storage */
 static void event_buffer_pos_object_free_storage(void *ptr TSRMLS_DC)
 {
@@ -328,6 +332,8 @@ static void event_buffer_pos_object_free_storage(void *ptr TSRMLS_DC)
 }
 /* }}} */
 
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
 /* {{{ event_ssl_context_object_free_storage */
 static void event_ssl_context_object_free_storage(void *ptr TSRMLS_DC)
 {
@@ -347,6 +353,7 @@ static void event_ssl_context_object_free_storage(void *ptr TSRMLS_DC)
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
 /* }}} */
+#endif
 
 
 /* {{{ register_object */
@@ -1042,6 +1049,7 @@ PHP_MINIT_FUNCTION(event)
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_INET6,  AF_INET6);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_UNSPEC, AF_UNSPEC);
 
+#ifdef HAVE_EVENT_EXTRA_LIB
 	/* DNS options */
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_SEARCH,      DNS_OPTION_SEARCH);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_NAMESERVERS, DNS_OPTION_NAMESERVERS);
@@ -1049,7 +1057,6 @@ PHP_MINIT_FUNCTION(event)
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_HOSTSFILE,   DNS_OPTION_HOSTSFILE);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTIONS_ALL,        DNS_OPTIONS_ALL);
 
-#if HAVE_EVENT_EXTRA_LIB
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_LEAVE_SOCKETS_BLOCKING, LEV_OPT_LEAVE_SOCKETS_BLOCKING);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_CLOSE_ON_FREE,          LEV_OPT_CLOSE_ON_FREE);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_CLOSE_ON_EXEC,          LEV_OPT_CLOSE_ON_EXEC);

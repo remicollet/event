@@ -18,16 +18,16 @@ PHP_ARG_WITH(event-core, for event core support,
 [  --with-event-core        Include core libevent support])
 
 PHP_ARG_WITH(event-extra, for event extra functionality support,
-[  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, yes)
+[  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, no)
 
 PHP_ARG_WITH(event-openssl, for OpenSSL support in event,
-[  --with-event-extra       Include libevent OpenSSL support], yes, yes)
+[  --with-event-openssl Include libevent OpenSSL support], yes, no)
 
 PHP_ARG_WITH(openssl-dir, OpenSSL installation prefix,
-[  --with-openssl-dir[=DIR]  Event: openssl installation prefix], yes, yes)
+[  --with-openssl-dir[=DIR]  Event: openssl installation prefix], yes, no)
 
 PHP_ARG_WITH([event-libevent-dir], [],
-[  --with-event-libevent-dir[=DIR] Event: libevent installation prefix], $PHP_EVENT_CORE, $PHP_EVENT_CORE)
+[  --with-event-libevent-dir[=DIR] Event: libevent installation prefix], $PHP_EVENT_CORE, no)
 
 PHP_ARG_ENABLE(event-debug, Event: debug support,
 [  --enable-event-debug     Enable debug support in event], no, no)

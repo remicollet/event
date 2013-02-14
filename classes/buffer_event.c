@@ -390,11 +390,20 @@ PHP_METHOD(EventBufferEvent, connectHost)
 	long                port;
 	long                family;
 
+#if HAVE_EVENT_EXTRA_LIB
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O!sl|l",
 				&zdns_base, php_event_dns_base_ce, &hostname, &hostname_len,
 				&port, &family) == FAILURE) {
 		return;
 	}
+#else
+	zval *zunused;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zsl|l",
+				&zunused, &hostname, &hostname_len,
+				&port, &family) == FAILURE) {
+		return;
+	}
+#endif
 	
 	if (family & ~(AF_INET | AF_INET6 | AF_UNSPEC)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING,
@@ -408,7 +417,7 @@ PHP_METHOD(EventBufferEvent, connectHost)
 	 * didn't provide the file descriptor to the bufferevent before, e.g. with
 	 * bufferevent_socket_new() */
 
-#if HAVE_EVENT_EXTRA_LIB
+#ifdef HAVE_EVENT_EXTRA_LIB
 	php_event_dns_base_t *dnsb;
 
 	if (zdns_base) {
