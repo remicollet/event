@@ -153,9 +153,9 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 
 				if (zend_hash_index_find(ht, PHP_EVENT_OPT_LOCAL_PK,
 						(void **) &ppz_private_key) == SUCCESS) {
-					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), Z_STRVAL_PP(ppz_private_key));
+					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), Z_STRVAL_PP(ppz_private_key) TSRMLS_CC);
 				} else {
-					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), NULL);
+					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), NULL TSRMLS_CC);
 				}
 				break;
 			case PHP_EVENT_OPT_LOCAL_PK:
@@ -187,7 +187,7 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 			case PHP_EVENT_OPT_CIPHERS:
 				got_ciphers = 1;
 				convert_to_string_ex(ppzval);
-				set_ciphers(ctx, Z_STRVAL_PP(ppzval));
+				set_ciphers(ctx, Z_STRVAL_PP(ppzval) TSRMLS_CC);
 				break;
 			default:
 				php_error_docref(NULL TSRMLS_CC, E_WARNING,
@@ -196,11 +196,11 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 	}
 
 	if (got_ciphers == 0) {
-		set_ciphers(ctx, "DEFAULT");
+		set_ciphers(ctx, "DEFAULT" TSRMLS_CC);
 	}
 
 	if (cafile || capath) {
-		set_ca(ctx, cafile, capath);
+		set_ca(ctx, cafile, capath TSRMLS_CC);
 	}
 }
 /* }}} */

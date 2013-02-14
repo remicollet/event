@@ -77,12 +77,18 @@ if test "$PHP_EVENT_CORE" != "no"; then
   fi
   dnl }}}
 
+  if test -d $EVENT_DIR/lib64; then
+    PHP_EVENT_EXTA_LIB=$EVENT_DIR/lib64
+  else
+    PHP_EVENT_EXTA_LIB=
+  fi
+
   AC_MSG_CHECKING([for directory storing libevent binaries])
   if test -r $EVENT_DIR/$PHP_LIBDIR/libevent_core.$SHLIB_SUFFIX_NAME; then 
     EVENT_LIB_DIR=$EVENT_DIR/$PHP_LIBDIR
     AC_MSG_RESULT(found in $EVENT_LIB_DIR)
   else # Usually FreeBSD and other non-standard setups
-    for i in /usr/$PHP_LIBDIR /usr/local/$PHP_LIBDIR /usr/local/$PHP_LIBDIR/event2 /opt/$PHP_LIBDIR; do
+    for i in $PHP_EVENT_EXTA_LIB /usr/$PHP_LIBDIR /usr/local/$PHP_LIBDIR /usr/local/$PHP_LIBDIR/event2 /opt/$PHP_LIBDIR; do
       if test -r $i/libevent_core.$SHLIB_SUFFIX_NAME; then
         EVENT_LIB_DIR=$i
         AC_MSG_RESULT(found in $i)
@@ -103,7 +109,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   ],[
     AC_MSG_ERROR([libevent_core >= 2.0.2-alpha not found])
   ],[
-    -L$EVENT_LIB_DIR
+    -L$EVENT_LIB_DIR -L$PHP_EVENT_EXTA_LIB
   ])
   dnl }}}
   
@@ -128,7 +134,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
     ],[
       AC_MSG_ERROR([libevent_extra >= 2.0 not found])
     ],[
-      -L$EVENT_LIB_DIR -levent_core
+      -L$EVENT_LIB_DIR -L$PHP_EVENT_EXTA_LIB -levent_core
     ])
 
     event_src="$event_src \
@@ -156,7 +162,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
     ], [
         AC_MSG_ERROR([libevent_openssl >= 2.0 not found])
     ], [
-      -L$EVENT_LIB_DIR -levent_core
+      -L$EVENT_LIB_DIR -L$PHP_EVENT_EXTA_LIB -levent_core
     ])
 
     event_src="$event_src classes/ssl_context.c"
