@@ -206,14 +206,22 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 /* }}} */
 
 /* {{{ get_ssl_method */
-static zend_always_inline SSL_METHOD *get_ssl_method(long in_method)
+static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 {
 	SSL_METHOD *method;
 
 	switch (in_method) {
     	case PHP_EVENT_SSLv2_CLIENT_METHOD:
+
+#ifdef OPENSSL_NO_SSL2
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"SSLv2 support is not compiled into the "
+					"OpenSSL library PHP is linked against");
+			return NULL;
+#else
     		method = (SSL_METHOD *) SSLv2_client_method();
 			break;
+#endif
     	case PHP_EVENT_SSLv3_CLIENT_METHOD:
     		method = (SSL_METHOD *) SSLv3_client_method();
 			break;
@@ -224,8 +232,15 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method)
     		method = (SSL_METHOD *) TLSv1_client_method();
 			break;
     	case PHP_EVENT_SSLv2_SERVER_METHOD:
+#ifdef OPENSSL_NO_SSL2
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"SSLv2 support is not compiled into the "
+					"OpenSSL library PHP is linked against");
+			return NULL;
+#else
     		method = (SSL_METHOD *) SSLv2_server_method();
 			break;
+#endif
     	case PHP_EVENT_SSLv3_SERVER_METHOD:
     		method = (SSL_METHOD *) SSLv3_server_method();
 			break;
@@ -265,7 +280,7 @@ PHP_METHOD(EventSslContext, __construct)
 		return;
 	}
 
-	method = get_ssl_method(in_method);
+	method = get_ssl_method(in_method TSRMLS_CC);
 	if (method == NULL) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING,
 			"Invalid method passed: %ld", in_method);
