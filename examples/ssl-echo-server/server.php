@@ -1,24 +1,6 @@
 <?php
 /*
  * SSL echo server
- *
- * To test it:
- * 1) Generate certificates:
- *
- *	$ ./pem-server.sh
- *	# Fill fields ...
- *	$ ./pem-client.sh
- *
- * 2) Run the server:
- *	$ php ./server.php
- *	Optionally provide port:
- *	$ php ./server.php 9999
- *
- * 3) In another terminal window run client:
- *
- *	$ ./client.sh
- *	Optionally provide port:
- *	$ ./client.sh 9999
  */
 
 // This callback is invoked when there is data to read on $bev.
@@ -85,21 +67,27 @@ function init_ssl($port) {
 		exit("EventUtil::sslRandPoll failed\n");
 	}
 
-	$pem_passphrase = "echo server";
-	$pem_file       = __DIR__. "/server.pem";
-	$ca_file        = __DIR__. "/client.crt";
+	$local_cert = __DIR__."/cert.pem";
+	$local_pk   = __DIR__."/privkey.pem";
 
-	if (!file_exists($pem_file)) {
-		system("./pem-server.sh; ./pem-client.sh");
+	if (!file_exists($local_cert) || !file_exists($local_pk)) {
+		echo "Couldn't read $local_cert or $local_pk file.  To generate a key\n",
+			"and self-signed certificate, run:\n",
+			"  openssl genrsa -out $local_pk 2048\n",
+			"  openssl req -new -key $local_pk -out cert.req\n",
+			"  openssl x509 -req -days 365 -in cert.req -signkey $local_pk -out $local_cert\n";
+
+		return FALSE;
 	}
 
 	$ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, array (
- 		EventSslContext::OPT_LOCAL_CERT        => $pem_file,
- 		EventSslContext::OPT_CA_FILE           => $ca_file,
- 		EventSslContext::OPT_PASSPHRASE        => $pem_passphrase,
- 		EventSslContext::OPT_ALLOW_SELF_SIGNED => true,
- 		EventSslContext::OPT_VERIFY_PEER       => true,
+ 		EventSslContext::OPT_LOCAL_CERT  => $local_cert,
+ 		EventSslContext::OPT_LOCAL_PK    => $local_pk,
+ 		//EventSslContext::OPT_PASSPHRASE  => "echo server",
+ 		EventSslContext::OPT_VERIFY_PEER => true,
+ 		EventSslContext::OPT_ALLOW_SELF_SIGNED => false,
 	));
+
 	return $ctx;
 }
 
