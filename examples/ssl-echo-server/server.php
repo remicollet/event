@@ -89,15 +89,6 @@ function init_ssl($port) {
 	$pem_file       = __DIR__. "/server.pem";
 	$ca_file        = __DIR__. "/client.crt";
 
-	$pem_dn = array (
- 		"countryName"            => "RU",
- 		"stateOrProvinceName"    => "Moscow",
- 		"localityName"           => "Moscow",
- 		"organizationName"       => "Fancy Company",
- 		"organizationalUnitName" => "Fancy Department",
- 		"commonName"             => "devbox",
- 		"emailAddress"           => "rrosmanov@gmail.com"
-	);
 	if (!file_exists($pem_file)) {
 		system("./pem-server.sh; ./pem-client.sh");
 	}
