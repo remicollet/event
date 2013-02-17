@@ -1,22 +1,25 @@
 <?php
-//
-// To test: socat - SSL:devbox:9999,verify=0
-//
-
-// Creates self-signed certificate in PEM format
-function create_cert($pem_file, $pem_passphrase, $pem_dn) {
- 	$privkey = openssl_pkey_new();
- 	$cert    = openssl_csr_new($pem_dn, $privkey);
- 	$cert    = openssl_csr_sign($cert, null, $privkey, 365);
-
- 	$pem = array();
- 	openssl_x509_export($cert, $pem[0]);
- 	openssl_pkey_export($privkey, $pem[1], $pem_passphrase);
- 	$pem = implode($pem);
-
- 	file_put_contents($pem_file, $pem);
- 	chmod($pem_file, 0600);
-}
+/*
+ * SSL echo server
+ *
+ * To test it:
+ * 1) Generate certificates:
+ *
+ *	$ ./pem-server.sh
+ *	# Fill fields ...
+ *	$ ./pem-client.sh
+ *
+ * 2) Run the server:
+ *	$ php ./server.php
+ *	Optionally provide port:
+ *	$ php ./server.php 9999
+ *
+ * 3) In another terminal window run client:
+ *
+ *	$ ./client.sh
+ *	Optionally provide port:
+ *	$ ./client.sh 9999
+ */
 
 // This callback is invoked when there is data to read on $bev.
 function ssl_read_cb($bev, $ctx) {
@@ -29,8 +32,11 @@ function ssl_read_cb($bev, $ctx) {
 	$bev->writeBuffer($in);
 }
 
+// This callback is invoked when some even occurs on the event listener,
+// e.g. connection closed, or an error occured
 function ssl_event_cb($bev, $events, $ctx) {
 	if ($events & EventBufferEvent::ERROR) {
+		// Fetch errors from the SSL error stack
 		while ($err = $bev->sslError()) {
 			fprintf(STDERR, "Bufferevent error %s.\n", $err);
 		}
@@ -41,6 +47,7 @@ function ssl_event_cb($bev, $events, $ctx) {
 	}
 }
 
+// This callback is invoked when a client accepts new connection
 function ssl_accept_cb($listener, $fd, $address, $ctx) {
 	// We got a new connection! Set up a bufferevent for it.
 	$base = $listener->getBase();
@@ -58,6 +65,7 @@ function ssl_accept_cb($listener, $fd, $address, $ctx) {
 	$bev->setCallbacks("ssl_read_cb", NULL, "ssl_event_cb", NULL);
 }
 
+// This callback is invoked when we failed to setup new connection for a client
 function accept_error_cb($listener, $ctx) {
 	$base = $listener->getBase();
 
@@ -69,14 +77,17 @@ function accept_error_cb($listener, $ctx) {
 	$base->exit(NULL);
 }
 
-function init_ssl() {
+// Initialize SSL structures, create an EventSslContext
+// Optionally create self-signed certificates
+function init_ssl($port) {
 	// We *must* have entropy. Otherwise there's no point to crypto.
 	if (!EventUtil::sslRandPoll()) {
 		exit("EventUtil::sslRandPoll failed\n");
 	}
 
 	$pem_passphrase = "echo server";
-	$pem_file       = "cert.pem";
+	$pem_file       = __DIR__. "/server.pem";
+	$ca_file        = __DIR__. "/client.crt";
 
 	$pem_dn = array (
  		"countryName"            => "RU",
@@ -87,17 +98,21 @@ function init_ssl() {
  		"commonName"             => "devbox",
  		"emailAddress"           => "rrosmanov@gmail.com"
 	);
-	create_cert($pem_file, $pem_passphrase, $pem_dn);
+	if (!file_exists($pem_file)) {
+		system("./pem-server.sh; ./pem-client.sh");
+	}
 
-	$ctx = new EventSslContext(EventSslContext::SSLv23_SERVER_METHOD, array (
+	$ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, array (
  		EventSslContext::OPT_LOCAL_CERT        => $pem_file,
+ 		EventSslContext::OPT_CA_FILE           => $ca_file,
  		EventSslContext::OPT_PASSPHRASE        => $pem_passphrase,
  		EventSslContext::OPT_ALLOW_SELF_SIGNED => true,
- 		EventSslContext::OPT_VERIFY_PEER       => false,
+ 		EventSslContext::OPT_VERIFY_PEER       => true,
 	));
 	return $ctx;
 }
 
+// Allow to override the port
 $port = 9999;
 if ($argc > 1) {
 	$port = (int) $argv[1];
@@ -108,7 +123,7 @@ if ($port <= 0 || $port > 65535) {
 
 $host = "127.0.0.1";
 
-$ctx = init_ssl();
+$ctx = init_ssl($port);
 if (!$ctx) {
 	exit("Failed creating SSL context\n");
 }

@@ -18,6 +18,10 @@
 #ifndef PHP_EVENT_PRIV_H
 #define PHP_EVENT_PRIV_H
 
+#ifdef HAVE_EVENT_OPENSSL_LIB
+extern int php_event_ssl_data_index;
+#endif
+
 extern const zend_function_entry php_event_ce_functions[];
 extern const zend_function_entry php_event_base_ce_functions[];
 extern const zend_function_entry php_event_config_ce_functions[];
@@ -69,8 +73,6 @@ extern zend_class_entry *php_event_listener_ce;
 extern zend_class_entry *php_event_http_conn_ce;
 extern zend_class_entry *php_event_http_ce;
 #endif /* HAVE_EVENT_EXTRA_LIB */
-
-
 
 #endif /* PHP_EVENT_PRIV_H */
 

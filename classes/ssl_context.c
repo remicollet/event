@@ -27,6 +27,51 @@
 
 /* {{{ Private */
 
+/* {{{ verify_callback */
+static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
+{
+	SSL                      *ssl;
+	X509                     *err_cert;
+	int                       ret      = preverify_ok;
+	int                       err;
+	int                       depth;
+	php_event_ssl_context_t  *ectx;
+	zval                    **ppzval   = NULL;
+	HashTable                *ht;
+
+	ssl  = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
+	ectx = (php_event_ssl_context_t *) SSL_get_ex_data(ssl, php_event_ssl_data_index);
+
+	PHP_EVENT_ASSERT(ectx && ectx->ht);
+	ht = ectx->ht;
+
+	err_cert = X509_STORE_CTX_get_current_cert(ctx);
+	err      = X509_STORE_CTX_get_error(ctx);
+	depth    = X509_STORE_CTX_get_error_depth(ctx);
+
+	/* If OPT_ALLOW_SELF_SIGNED is set and is TRUE, ret = 1 */
+	if (err == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
+			&& zend_hash_index_find(ht, PHP_EVENT_OPT_ALLOW_SELF_SIGNED,
+				(void **) &ppzval) == SUCCESS
+			&& zval_is_true(*ppzval)) {
+		ret = 1;
+	}
+
+	/* Verify depth, if OPT_VERIFY_DEPTH option is set */
+	if (zend_hash_index_find(ht, PHP_EVENT_OPT_VERIFY_DEPTH,
+				(void **) &ppzval) == SUCCESS) {
+		convert_to_long_ex(ppzval);
+
+		if (depth > Z_LVAL_PP(ppzval)) {
+			ret = 0;
+			X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_CHAIN_TOO_LONG);
+		}
+	}
+
+	return ret;
+}
+/* }}} */
+
 /* {{{ passwd_callback */
 static int passwd_callback(char *buf, int num, int verify, void *data)
 {
@@ -178,7 +223,11 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 				/* Skip */
 				break;
 			case PHP_EVENT_OPT_VERIFY_PEER:
-				/* Skip */
+				if (zval_is_true(*ppzval)) {
+					SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
+				} else {
+					SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+				}
 				break;
 			case PHP_EVENT_OPT_VERIFY_DEPTH:
 				convert_to_long_ex(ppzval);

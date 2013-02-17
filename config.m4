@@ -24,10 +24,10 @@ PHP_ARG_WITH(event-openssl, for OpenSSL support in event,
 [  --with-event-openssl Include libevent OpenSSL support], yes, no)
 
 PHP_ARG_WITH(openssl-dir, OpenSSL installation prefix,
-[  --with-openssl-dir[=DIR]  Event: openssl installation prefix], yes, no)
+[  --with-openssl-dir[=DIR]  Event: openssl installation prefix], no, no)
 
 PHP_ARG_WITH([event-libevent-dir], [],
-[  --with-event-libevent-dir[=DIR] Event: libevent installation prefix], $PHP_EVENT_CORE, no)
+[  --with-event-libevent-dir[=DIR] Event: libevent installation prefix], no, no)
 
 PHP_ARG_ENABLE(event-debug, Event: debug support,
 [  --enable-event-debug     Enable debug support in event], no, no)
@@ -46,9 +46,18 @@ if test "$PHP_EVENT_CORE" != "no"; then
   [AC_MSG_ERROR([need at least PHP 5.4.0])])
   export CPPFLAGS="$OLD_CPPFLAGS"
   dnl }}}
+  
+  dnl {{{ --enable-event-debug
+  if test "$PHP_EVENT_DEBUG" != "no"; then
+    CFLAGS="$CFLAGS -Wall -g -ggdb -O0"
+    AC_DEFINE(PHP_EVENT_DEBUG, 1, [Enable event debug support])
+  else
+    AC_DEFINE(NDEBUG, 1, [With NDEBUG defined assert generates no code])
+  fi
+  dnl }}}
 
-  dnl {{{ Include libevent
-  AC_MSG_CHECKING([for event2/event.h])
+  dnl {{{ Include libevent headers
+  AC_MSG_CHECKING([for include/event2/event.h])
   EVENT_DIR=
   for i in "$PHP_EVENT_CORE" "$PHP_EVENT_LIBEVENT_DIR" /usr/local /usr /opt; do
 	  if test -f "$i/include/event2/event.h"; then
@@ -62,6 +71,9 @@ if test "$PHP_EVENT_CORE" != "no"; then
     AC_MSG_ERROR([Please reinstall the event library, or provide the installation prefix via --with-event-libevent-dir option])
   fi
 	AC_MSG_RESULT([found in $EVENT_DIR])
+
+	PHP_ADD_INCLUDE($EVENT_DIR/include)
+  dnl }}}
 
 	dnl {{{ Check if it's at least libevent 2.0.2-alpha
   export OLD_CPPFLAGS="$CPPFLAGS"
@@ -77,30 +89,23 @@ if test "$PHP_EVENT_CORE" != "no"; then
   export CPPFLAGS="$OLD_CPPFLAGS"
   dnl }}}
 	
-	PHP_ADD_INCLUDE($EVENT_DIR/include)
-	PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
-
-  dnl FreeBSD
   if test -d $EVENT_DIR/$PHP_LIBDIR/event2; then
+    dnl FreeBSD
     EVENT_LIBS="-L$EVENT_DIR/$PHP_LIBDIR -L$EVENT_DIR/$PHP_LIBDIR/event2"
     EVENT_LIBDIR=$EVENT_DIR/$PHP_LIBDIR/event2
   else
     EVENT_LIBS="-L$EVENT_DIR/$PHP_LIBDIR"
     EVENT_LIBDIR=$EVENT_DIR/$PHP_LIBDIR
   fi
-
   LDFLAGS="$EVENT_LIBS -levent_core $LDFLAGS"
-  dnl }}}
 
-  dnl {{{ --enable-event-debug
-  if test "$PHP_EVENT_DEBUG" != "no"; then
-    CFLAGS="$CFLAGS -Wall -g -ggdb -O0"
-    AC_DEFINE(PHP_EVENT_DEBUG, 1, [Enable event debug support])
-  else
-    AC_DEFINE(NDEBUG, 1, [With NDEBUG defined assert generates no code])
-  fi
-  dnl }}}
-  
+  dnl {{{ event_core
+	AC_CHECK_LIB(event_core, event_free, [
+	  PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
+	], [
+    AC_MSG_ERROR([event_free not found in event_core library, or the library is not installed])
+	])
+
   event_src="php_event.c \
     src/util.c \
     src/fe.c \
@@ -112,12 +117,17 @@ if test "$PHP_EVENT_CORE" != "no"; then
     classes/buffer.c \
     classes/buffer_pos.c \
     classes/event_util.c"
+  dnl }}}
 
   dnl {{{ --with-event-extra
   if test "$PHP_EVENT_EXTRA" != "no"; then
-	  PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
-    LDFLAGS="-levent_extra $LDFLAGS"
-    AC_DEFINE(HAVE_EVENT_EXTRA_LIB, 1, [ ])
+    AC_CHECK_LIB(event_extra, evdns_base_free, [
+	    PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
+      LDFLAGS="-levent_extra $LDFLAGS"
+      AC_DEFINE(HAVE_EVENT_EXTRA_LIB, 1, [ ])
+    ], [
+      AC_MSG_ERROR([evdns_base_free not found in event_extra library, or the library is not installed])
+    ])
 
     event_src="$event_src \
       classes/dns.c \
@@ -136,9 +146,14 @@ if test "$PHP_EVENT_CORE" != "no"; then
     fi
 
     PHP_SETUP_OPENSSL(EVENT_SHARED_LIBADD)
-    PHP_ADD_LIBRARY_WITH_PATH(event_openssl, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
-    LDFLAGS="-levent_openssl $LDFLAGS"
-    AC_DEFINE(HAVE_EVENT_OPENSSL_LIB, 1, [ ])
+
+    AC_CHECK_LIB(event_openssl, bufferevent_openssl_get_ssl, [
+      PHP_ADD_LIBRARY_WITH_PATH(event_openssl, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
+      LDFLAGS="-levent_openssl $LDFLAGS"
+      AC_DEFINE(HAVE_EVENT_OPENSSL_LIB, 1, [ ])
+    ], [
+      AC_MSG_ERROR([bufferevent_openssl_get_ssl not found in event_openssl library, or the library is not installed])
+    ])
 
     event_src="$event_src classes/ssl_context.c"
   fi

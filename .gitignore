@@ -25,6 +25,9 @@ tmp-php.ini
 *.log
 *.out
 *.exp
+*.crt
+*.pem
+*.key
 Makefile*
 
 tests/*

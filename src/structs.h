@@ -177,7 +177,7 @@ enum {
 typedef struct _php_event_ssl_context_t {
 	PHP_EVENT_OBJECT_HEAD;
 
-	SSL_CTX *ctx;
+	SSL_CTX   *ctx;
 	HashTable *ht;
 } php_event_ssl_context_t;
 #endif

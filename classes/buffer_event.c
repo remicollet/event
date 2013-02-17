@@ -962,6 +962,8 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 				"Event: Failed creating SSL handle");
 		RETURN_FALSE;
 	}
+	/* Attach ectx to ssl for callbacks */
+	SSL_set_ex_data(ssl, php_event_ssl_data_index, ectx);
 
 	bevent = bufferevent_openssl_socket_new(base->base, fd, ssl, state, options);
 	if (bevent == NULL) {

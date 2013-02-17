@@ -53,13 +53,14 @@ static HashTable event_buffer_properties;
 static HashTable event_buffer_pos_properties;
 #ifdef HAVE_EVENT_OPENSSL_LIB
 static HashTable event_ssl_context_properties;
+int php_event_ssl_data_index;
 #endif
+
 
 static zend_object_handlers object_handlers;
 
 static const zend_module_dep event_deps[] = {
 	ZEND_MOD_OPTIONAL("sockets")
-	/*ZEND_MOD_OPTIONAL("openssl")*/
 	{NULL, NULL, NULL}
 };
 
@@ -1103,7 +1104,17 @@ PHP_MINIT_FUNCTION(event)
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_VERIFY_PEER,       PHP_EVENT_OPT_VERIFY_PEER);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_VERIFY_DEPTH,      PHP_EVENT_OPT_VERIFY_DEPTH);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CIPHERS,           PHP_EVENT_OPT_CIPHERS);
-#endif
+
+	/* Initialize openssl library */
+    SSL_library_init();
+    OpenSSL_add_all_ciphers();
+    OpenSSL_add_all_digests();
+    OpenSSL_add_all_algorithms();
+    SSL_load_error_strings();
+
+	/* Create new index which will be used to retreive custom data of the OpenSSL callbacks */
+    php_event_ssl_data_index = SSL_get_ex_new_index(0, "PHP EventSslContext index", NULL, NULL, NULL);
+#endif /* HAVE_EVENT_OPENSSL_LIB */
 
 	/* Handle libevent's error logging more gracefully than it's default
 	 * logging to stderr, or calling abort()/exit() */
@@ -1120,6 +1131,12 @@ PHP_MINIT_FUNCTION(event)
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(event)
 {
+#ifdef HAVE_EVENT_OPENSSL_LIB
+	/* Removes memory allocated when loading digest and cipher names
+	 * in the OpenSSL_add_all_ family of functions */
+	EVP_cleanup();
+#endif
+
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
 	/* libevent_global_shutdown is available since libevent 2.1.0-alpha.
 	 *
