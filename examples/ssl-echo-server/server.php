@@ -1,6 +1,13 @@
 <?php
 /*
  * SSL echo server
+ *
+ * To test:
+ * 1) Run:
+ * $ php examples/ssl-echo-server/server.php 9998
+ *
+ * 2) in another terminal window run:
+ * $ socat - SSL:127.0.0.1:9998,verify=1,cafile=examples/ssl-echo-server/cert.pem
  */
 
 // This callback is invoked when there is data to read on $bev.
