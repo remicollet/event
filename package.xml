@@ -12,7 +12,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-02-15</date>
+  <date>2013-02-18</date>
   <!--{{{ Current version -->
   <version>
     <release>1.2.3</release>
@@ -55,7 +55,9 @@
       </dir>
       <dir name="examples">
         <file role="doc" name="buffer_proxy.php"/>
-        <file role="doc" name="ssl_echo_server.php"/>
+        <dir name="ssl-echo-server">
+          <file role="doc" name="server.php"/>
+        </dir>
         <file role="doc" name="eio.php"/>
         <file role="doc" name="fibonacci_buffer.php"/>
         <file role="doc" name="httpv0client.php"/>
