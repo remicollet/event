@@ -554,7 +554,7 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 }
 /* }}} */
 
-/* {{{ proto void EventBufferEvent::enable(int events);
+/* {{{ proto bool EventBufferEvent::enable(int events);
  * Enable events EVENT_READ, EVENT_WRITE, or EVENT_READ | EVENT_WRITE on a buffer event. */
 PHP_METHOD(EventBufferEvent, enable)
 {
@@ -569,11 +569,15 @@ PHP_METHOD(EventBufferEvent, enable)
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 
-	bufferevent_enable(bev->bevent, events);
+	if (bufferevent_enable(bev->bevent, events)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
 }
 /* }}} */
 
-/* {{{ proto void EventBufferEvent::disable(int events);
+/* {{{ proto bool EventBufferEvent::disable(int events);
  * Disable events EVENT_READ, EVENT_WRITE, or EVENT_READ | EVENT_WRITE on a buffer event. */
 PHP_METHOD(EventBufferEvent,disable)
 {
@@ -588,7 +592,11 @@ PHP_METHOD(EventBufferEvent,disable)
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 
-	bufferevent_disable(bev->bevent, events);
+	if (bufferevent_disable(bev->bevent, events)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
 }
 /* }}} */
 

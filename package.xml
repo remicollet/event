@@ -25,6 +25,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: redundant Z_ADDREF_P() calls in EventListener, EventBufferEvent constructors and factory methods
+  Change: EventBufferEvent enable/disable methods return bool now
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -117,6 +118,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: redundant Z_ADDREF_P() calls in EventListener, EventBufferEvent constructors and factory methods
+  Change: EventBufferEvent enable/disable methods return bool now
   ]]></notes>
   <!--}}}-->
   <!--{{{ 1.2.4-alpha -->

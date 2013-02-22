@@ -28,6 +28,7 @@ class MyListener {
 		}
 
 		// Variant #1
+		/*
 		$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 		if (!socket_bind($this->socket, '0.0.0.0', $port)) {
 			echo "Unable to bind socket\n";
@@ -37,13 +38,13 @@ class MyListener {
 			array($this, "accept_conn_cb"), $this->base,
 			EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE,
 			-1, $this->socket);
+		 */
 
-/*		Variant #2
- *		$this->listener = new EventListener($this->base,
- *			array($this, "accept_conn_cb"), $this->base,
- *			EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1,
- *			"0.0.0.0:$port");
- */
+//		Variant #2
+ 		$this->listener = new EventListener($this->base,
+ 			array($this, "accept_conn_cb"), $this->base,
+ 			EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1,
+ 			"0.0.0.0:$port");
 
 		if (!$this->listener) {
 			echo "Couldn't create listener";
@@ -91,7 +92,10 @@ class MyListener {
 
 		$this->bev->setCallbacks(array($this, "echo_read_cb"), NULL, array($this, "echo_event_cb"), NULL);
 
-		$this->bev->enable(Event::READ | Event::WRITE);
+		if (!$this->bev->enable(Event::READ | Event::WRITE)) {
+			echo "Failed to enable READ | WRITE\n";
+			exit();
+		}
 	}
 
 	public function accept_error_cb($listener, $ctx) {
