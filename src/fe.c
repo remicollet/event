@@ -224,8 +224,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove, 0, 0, 2)
 	ZEND_ARG_INFO(0, max_bytes)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_read_line, 0, 0, 2)
-	ZEND_ARG_INFO(0, len)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_read_line, 0, 0, 1)
 	ZEND_ARG_INFO(0, eol_style)
 ZEND_END_ARG_INFO();
 

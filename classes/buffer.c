@@ -415,7 +415,7 @@ PHP_METHOD(EventBuffer, copyout)
 }
 /* }}} */
 
-/* {{{ proto mixed EventBuffer::readLine(int len, int eol_style);
+/* {{{ proto mixed EventBuffer::readLine(int eol_style);
  *
  * Extracts a line from the front of the buffer and returns it in a newly
  * allocated NUL-terminated string. If there is not a whole
@@ -434,8 +434,8 @@ PHP_METHOD(EventBuffer, readLine)
 	long                eol_style;
 	char               *res;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ll",
-				&len, &eol_style) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&eol_style) == FAILURE) {
 		return;
 	}
 

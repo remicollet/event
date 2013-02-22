@@ -12,11 +12,11 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-02-18</date>
+  <date>2013-02-22</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.2.3</release>
-    <api>1.2.0</api>
+    <release>1.2.4</release>
+    <api>1.2.1</api>
   </version>
   <stability>
     <release>alpha</release>
@@ -24,8 +24,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: build errors
-  Fix: undefined symbol SSLv2_*_method when SL_OP_NO_SSLv2 defined
+  Fix: deleted redundant len argument of EventBuffer::readLine
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -106,6 +105,20 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+  <!--{{{ 1.2.4-alpha -->
+  <version>
+    <release>1.2.4</release>
+    <api>1.2.1</api>
+  </version>
+  <stability>
+    <release>alpha</release>
+    <api>alpha</api>
+  </stability>
+  <license uri="http://www.php.net/license">PHP</license>
+  <notes><![CDATA[
+  Fix: deleted redundant len argument of EventBuffer::readLine
+  ]]></notes>
+  <!--}}}-->
     <!--{{{ 1.2.3-alpha -->
     <release>
       <version>
