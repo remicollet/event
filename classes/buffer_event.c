@@ -224,9 +224,11 @@ PHP_METHOD(EventBufferEvent, __construct)
 
 	bev->self = zself;
 	bev->input = bev->output = NULL;
-	/* Ensure the object won't be destroyed in case if we are in a callback
-	 * XXX Get rid of this! */
-	Z_ADDREF_P(zself);
+	/* Don't ensure the object won't be destroyed in case if we are in a callback
+	 * User should keep variable somewhere if he/she wants to prevent auto-destruction
+	 * within a callback.
+	 * Z_ADDREF_P(zself);
+	 */
 }
 /* }}} */
 
@@ -910,7 +912,11 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 
 	bev->self = return_value;
 	/* Ensure the object won't be destroyed in case if we are in a callback */
-	Z_ADDREF_P(return_value);
+	/* Don't ensure the object won't be destroyed in case if we are in a callback
+	 * User should keep variable somewhere if he/she wants to prevent auto-destruction
+	 * within a callback.
+	 * Z_ADDREF_P(return_value);
+	 */
 }
 /* }}} */
 
@@ -981,7 +987,11 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 
 	bev->self = return_value;
 	/* Ensure the object won't be destroyed in case if we are in a callback */
-	Z_ADDREF_P(return_value);
+	/* Don't ensure the object won't be destroyed in case if we are in a callback
+	 * User should keep variable somewhere if he/she wants to prevent auto-destruction
+	 * within a callback.
+	 * Z_ADDREF_P(return_value);
+	 */
 }
 /* }}} */
 

@@ -14,47 +14,97 @@
  * 3) start typing. The server should repeat the input.
  */
 
-function echo_read_cb($bev, $ctx) {
-	/* This callback is invoked when there is data to read on $bev. */
-	$input	= $bev->getInput();
-	$output = $bev->getOutput();
+class MyListener {
+	public $base,
+		$listener,
+		$bev,
+		$socket;
 
-	/* Copy all the data from the input buffer to the output buffer. */
-	$output->addBuffer($input);
-}
+	public function __construct($port) {
+		$this->base = new EventBase();
+		if (!$this->base) {
+			echo "Couldn't open event base";
+			exit(1);
+		}
 
-function echo_event_cb($bev, $events, $ctx) {
-	if ($events & EventBufferEvent::ERROR)
-		echo "Error from bufferevent\n";
+		// Variant #1
+		$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		if (!socket_bind($this->socket, '0.0.0.0', $port)) {
+			echo "Unable to bind socket\n";
+			exit(1);
+		}
+		$this->listener = new EventListener($this->base,
+			array($this, "accept_conn_cb"), $this->base,
+			EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE,
+			-1, $this->socket);
 
-	if ($events & (EventBufferEvent::EOF | EventBufferEvent::ERROR)) {
-		$bev->free();
+/*		Variant #2
+ *		$this->listener = new EventListener($this->base,
+ *			array($this, "accept_conn_cb"), $this->base,
+ *			EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1,
+ *			"0.0.0.0:$port");
+ */
+
+		if (!$this->listener) {
+			echo "Couldn't create listener";
+			exit(1);
+		}
+
+		$this->listener->setErrorCallback(array($this, "accept_error_cb"));
 	}
-}
 
-function accept_conn_cb($listener, $fd, $address, $ctx) {
-	/* We got a new connection! Set up a bufferevent for it. */
-	$base = $ctx;
-	//$base = $listener->getBase();
+	public function dispatch() {
+		$this->base->dispatch();
+	}
 
-	$bev = new EventBufferEvent($base, $fd, EventBufferEvent::OPT_CLOSE_ON_FREE);
+	// This callback is invoked when there is data to read on $bev
+	public function echo_read_cb($bev, $ctx) {
+		// Copy all the data from the input buffer to the output buffer
+		
+		// Variant #1
+		$bev->output->addBuffer($bev->input);
 
-	$bev->setCallbacks("echo_read_cb", NULL, "echo_event_cb", NULL);
+		/* Variant #2 */
+		/*
+		$input	= $bev->getInput();
+		$output = $bev->getOutput();
+		$output->addBuffer($input);
+		*/
+	}
 
-	$bev->enable(Event::READ | Event::WRITE);
+	public function echo_event_cb($bev, $events, $ctx) {
+		if ($events & EventBufferEvent::ERROR)
+			echo "Error from bufferevent\n";
 
-	//$bev->ref();
-}
+		if ($events & (EventBufferEvent::EOF | EventBufferEvent::ERROR)) {
+			$bev->free();
+		}
+	}
 
-function accept_error_cb($listener, $ctx) {
-	$base = $listener->getBase();
+	public function accept_conn_cb($listener, $fd, $address, $ctx) {
+		/* We got a new connection! Set up a bufferevent for it. */
+		//$base = $ctx;
+		//$base = $listener->getBase();
+		$base = $this->base;
 
-	fprintf(STDERR, "Got an error %d (%s) on the listener. "
-		."Shutting down.\n",
-		EventUtil::getLastSocketErrno(),
-		EventUtil::getLastSocketError());
+		$this->bev = new EventBufferEvent($base, $fd, EventBufferEvent::OPT_CLOSE_ON_FREE);
 
-	$base->exit(NULL);
+		$this->bev->setCallbacks(array($this, "echo_read_cb"), NULL, array($this, "echo_event_cb"), NULL);
+
+		$this->bev->enable(Event::READ | Event::WRITE);
+	}
+
+	public function accept_error_cb($listener, $ctx) {
+		//$base = $listener->getBase();
+		$base = $this->base;
+
+		fprintf(STDERR, "Got an error %d (%s) on the listener. "
+			."Shutting down.\n",
+			EventUtil::getLastSocketErrno(),
+			EventUtil::getLastSocketError());
+
+		$base->exit(NULL);
+	}
 }
 
 $port = 9808;
@@ -67,31 +117,5 @@ if ($port <= 0 || $port > 65535) {
 	return 1;
 }
 
-$base = new EventBase();
-if (!$base) {
-	echo "Couldn't open event base";
-	exit(1);
-}
-
-/* Variant #1 */
-$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-if (!socket_bind($socket, '0.0.0.0', $port)) {
-	echo "Unable to bind socket\n";
-	exit(1);
-}
-$listener = new EventListener($base, "accept_conn_cb", $base,
-	EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1, $socket);
-
-/* Variant #2 */
-/*
-$listener = new EventListener($base, "accept_conn_cb", $base,
-	EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1, "0.0.0.0:$port");
- */
-
-if (!$listener) {
-	echo "Couldn't create listener";
-	exit(1);
-}
-$listener->setErrorCallback("accept_error_cb");
-
-$base->dispatch();
+$l = new MyListener($port);
+$l->dispatch();
