@@ -2,11 +2,12 @@
 
 /* Read callback */
 function readcb($bev, $base) {
-	$input = $bev->input; //$bev->getInput();
+	//$input = $bev->input; //$bev->getInput();
+	
+	//$pos = $input->search("TTP");
+	$pos = $bev->input->search("TTP");
 
-	$pos = $input->search("TTP");
-
-	while (($n = $input->remove($buf, 1024)) > 0) {
+	while (($n = $bev->input->remove($buf, 1024)) > 0) {
 		echo $buf;
 	}
 }

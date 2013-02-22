@@ -197,6 +197,15 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 			b->self = NULL;
 		}
 #endif
+		if (b->input) {
+			zval_ptr_dtor(&b->input);
+			b->input = NULL;
+		}
+
+		if (b->output) {
+			zval_ptr_dtor(&b->output);
+			b->output= NULL;
+		}
 
 		if (b->bevent) {
 			bufferevent_free(b->bevent);

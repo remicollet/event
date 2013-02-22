@@ -115,15 +115,14 @@ static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval *
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 
+	MAKE_STD_ZVAL(*retval);
+
 	if (bev->input) {
-		*retval = bev->input;
-		Z_ADDREF_P(bev->input);
+		ZVAL_ZVAL(*retval, bev->input, 1, 0);
 		return SUCCESS;
 	}
 
 	php_event_buffer_t *b;
-
-	MAKE_STD_ZVAL(*retval);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(*retval, php_event_buffer_ce);
 	PHP_EVENT_FETCH_BUFFER(b, *retval);
@@ -131,8 +130,8 @@ static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval *
 	b->buf      = bufferevent_get_input(bev->bevent);
 	b->internal = 1;
 
-	// Cache the pointer
-	bev->input = *retval;
+	MAKE_STD_ZVAL(bev->input);
+	ZVAL_ZVAL(bev->input, *retval, 1, 0);
 	Z_ADDREF_P(bev->input);
 
 	return SUCCESS;
@@ -144,15 +143,14 @@ static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval 
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 
+	MAKE_STD_ZVAL(*retval);
 	if (bev->output) {
-		*retval = bev->output;
+		ZVAL_ZVAL(*retval, bev->output, 1, 0);
 		Z_ADDREF_P(bev->output);
 		return SUCCESS;
 	}
 
 	php_event_buffer_t *b;
-
-	MAKE_STD_ZVAL(*retval);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(*retval, php_event_buffer_ce);
 	PHP_EVENT_FETCH_BUFFER(b, *retval);
@@ -160,11 +158,30 @@ static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval 
 	b->buf      = bufferevent_get_output(bev->bevent);
 	b->internal = 1;
 
-	// Cache the pointer
-	bev->output = *retval;
+	MAKE_STD_ZVAL(bev->output);
+	ZVAL_ZVAL(bev->output, *retval, 1, 0);
 	Z_ADDREF_P(bev->output);
 
 	return SUCCESS;
+}
+/* }}} */
+
+
+/* {{{ event_bevent_input_prop_ptr_ptr */
+static zval **event_bevent_input_prop_ptr_ptr(php_event_abstract_object_t *obj TSRMLS_DC)
+{
+	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
+
+	return bev->input ? &bev->input : NULL;
+}
+/* }}} */
+
+/* {{{ event_bevent_output_prop_ptr_ptr */
+static zval **event_bevent_output_prop_ptr_ptr(php_event_abstract_object_t *obj TSRMLS_DC)
+{
+	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
+
+	return bev->output ? &bev->output : NULL;
 }
 /* }}} */
 
@@ -272,8 +289,8 @@ const php_event_property_entry_t event_config_property_entries[] = {
 };
 const php_event_property_entry_t event_bevent_property_entries[] = {
 	{"priority", sizeof("priority") - 1, event_bevent_priority_prop_read, event_bevent_priority_prop_write, NULL },
-	{"input",    sizeof("input")    - 1, event_bevent_input_prop_read,    NULL,                             NULL },
-	{"output",   sizeof("output")   - 1, event_bevent_output_prop_read,   NULL,                             NULL },
+	{"input",    sizeof("input")    - 1, event_bevent_input_prop_read,    NULL,                             event_bevent_input_prop_ptr_ptr},
+	{"output",   sizeof("output")   - 1, event_bevent_output_prop_read,   NULL,                             event_bevent_output_prop_ptr_ptr},
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	{"allow_ssl_dirty_shutdown", sizeof("allow_ssl_dirty_shutdown") - 1,
