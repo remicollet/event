@@ -25,6 +25,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: deleted redundant len argument of EventBuffer::readLine
+  Fix: EventBuffer::readLine returned non-dup'd string. Caused bugs with pointers.
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -117,6 +118,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: deleted redundant len argument of EventBuffer::readLine
+  Fix: EventBuffer::readLine returned non-dup'd string. Caused bugs with pointers.
   ]]></notes>
   <!--}}}-->
     <!--{{{ 1.2.3-alpha -->

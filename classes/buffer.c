@@ -447,7 +447,7 @@ PHP_METHOD(EventBuffer, readLine)
 		RETURN_NULL();
 	}
 
-	RETVAL_STRINGL(res, len, 0);
+	RETVAL_STRINGL(res, len, 1);
 }
 /* }}} */
 
