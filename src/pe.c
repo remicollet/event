@@ -110,6 +110,64 @@ static int event_bevent_priority_prop_read(php_event_abstract_object_t *obj, zva
 }
 /* }}} */
 
+/* {{{ event_bevent_input_prop_read */
+static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
+
+	if (bev->input) {
+		*retval = bev->input;
+		Z_ADDREF_P(bev->input);
+		return SUCCESS;
+	}
+
+	php_event_buffer_t *b;
+
+	MAKE_STD_ZVAL(*retval);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(*retval, php_event_buffer_ce);
+	PHP_EVENT_FETCH_BUFFER(b, *retval);
+
+	b->buf      = bufferevent_get_input(bev->bevent);
+	b->internal = 1;
+
+	// Cache the pointer
+	bev->input = *retval;
+	Z_ADDREF_P(bev->input);
+
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ event_bevent_output_prop_read */
+static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
+
+	if (bev->output) {
+		*retval = bev->output;
+		Z_ADDREF_P(bev->output);
+		return SUCCESS;
+	}
+
+	php_event_buffer_t *b;
+
+	MAKE_STD_ZVAL(*retval);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(*retval, php_event_buffer_ce);
+	PHP_EVENT_FETCH_BUFFER(b, *retval);
+
+	b->buf      = bufferevent_get_output(bev->bevent);
+	b->internal = 1;
+
+	// Cache the pointer
+	bev->output = *retval;
+	Z_ADDREF_P(bev->output);
+
+	return SUCCESS;
+}
+/* }}} */
+
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 /* {{{ event_bevent_allow_ssl_dirty_shutdown_prop_write*/
@@ -214,6 +272,8 @@ const php_event_property_entry_t event_config_property_entries[] = {
 };
 const php_event_property_entry_t event_bevent_property_entries[] = {
 	{"priority", sizeof("priority") - 1, event_bevent_priority_prop_read, event_bevent_priority_prop_write, NULL },
+	{"input",    sizeof("input")    - 1, event_bevent_input_prop_read,    NULL,                             NULL },
+	{"output",   sizeof("output")   - 1, event_bevent_output_prop_read,   NULL,                             NULL },
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	{"allow_ssl_dirty_shutdown", sizeof("allow_ssl_dirty_shutdown") - 1,
@@ -251,6 +311,8 @@ const zend_property_info event_config_property_entry_info[] = {
 };
 const zend_property_info event_bevent_property_entry_info[] = {
 	{ZEND_ACC_PUBLIC, "priority", sizeof("priority") - 1, -1, 0, NULL, 0, NULL},
+	{ZEND_ACC_PUBLIC, "input", sizeof("input") - 1, -1, 0, NULL, 0, NULL},
+	{ZEND_ACC_PUBLIC, "output", sizeof("output") - 1, -1, 0, NULL, 0, NULL},
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	{ZEND_ACC_PUBLIC, "allow_ssl_dirty_shutdown", sizeof("allow_ssl_dirty_shutdown") - 1, -1, 0, NULL, 0, NULL},
 #endif

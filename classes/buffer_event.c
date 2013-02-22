@@ -223,7 +223,8 @@ PHP_METHOD(EventBufferEvent, __construct)
 	}
 
 	bev->self = zself;
-	/* Ensure the object won't be destroyed in case if we are in a callback */
+	/* Ensure the object won't be destroyed in case if we are in a callback
+	 * XXX Get rid of this! */
 	Z_ADDREF_P(zself);
 }
 /* }}} */
