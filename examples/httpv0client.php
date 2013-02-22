@@ -2,12 +2,12 @@
 
 /* Read callback */
 function readcb($bev, $base) {
-	$input = $bev->getInput();
+	//$input = $bev->input; //$bev->getInput();
+	
+	//$pos = $input->search("TTP");
+	$pos = $bev->input->search("TTP");
 
-	$pos = $input->search("TTP");
-	var_dump($pos);
-
-	while (($n = $input->remove($buf, 1024)) > 0) {
+	while (($n = $bev->input->remove($buf, 1024)) > 0) {
 		echo $buf;
 	}
 }
@@ -52,7 +52,7 @@ if (!$bev) {
 $bev->setCallbacks("readcb", /* writecb */ NULL, "eventcb", $base);
 $bev->enable(Event::READ | Event::WRITE);
 
-$output = $bev->getOutput();
+$output = $bev->output; //$bev->getOutput();
 if (!$output->add(
 	"GET {$argv[2]} HTTP/1.0\r\n".
 	"Host: {$argv[1]}\r\n".

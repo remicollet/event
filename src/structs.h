@@ -74,6 +74,8 @@ typedef struct _php_event_bevent_t {
 	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
 	zval                  *self;        /* Object itself. For callbacks                   */
 	zval                  *data;        /* User custom data                               */
+	zval                  *input;       /* Input buffer */
+	zval                  *output;      /* Output buffer */
 
     /* fci and fcc members represent userspace callbacks */
 	zend_fcall_info       *fci_read;

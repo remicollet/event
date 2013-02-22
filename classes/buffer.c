@@ -497,7 +497,7 @@ PHP_METHOD(EventBuffer, search)
 		res_pos->p = evbuffer_search_range(b->buf, what, (size_t) what_len,
 				&start_pos->p, &end_pos->p);
 	} else {
-		res_pos->p = evbuffer_search(b->buf, what, (size_t) what_len, &start_pos->p);
+		res_pos->p = evbuffer_search(b->buf, what, (size_t) what_len, (start_pos ? &start_pos->p : NULL));
 	}
 
 	if (res_pos->p.pos == -1) {
