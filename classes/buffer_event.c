@@ -155,7 +155,7 @@ static zend_always_inline zend_bool is_valid_ssl_state(long state)
 /* Private }}} */
 
 
-/* {{{ proto EventBufferEvent EventBufferEvent::__construct(EventBase base[, mixed socket = NULL[, int options = 0]]);
+/* {{{ proto EventBufferEvent EventBufferEvent::__construct(EventBase base[, mixed socket = NULL[, int options = 0[, callable readcb[, callable writecb[, callable eventcb[, mixed arg = NULL]]]]]]);
  *
  * Create a socket-based buffer event.
  * options is one of EVENT_BEV_OPT_* constants, or 0.
@@ -167,17 +167,31 @@ static zend_always_inline zend_bool is_valid_ssl_state(long state)
  * Returns buffer event resource optionally associated with socket resource. */
 PHP_METHOD(EventBufferEvent, __construct)
 {
-	zval                *zself   = getThis();
-	zval                *zbase;
-	php_event_base_t    *base;
-	zval               **ppzfd   = NULL;
-	evutil_socket_t      fd;
-	long                 options = 0;
-	php_event_bevent_t  *bev;
-	struct bufferevent  *bevent;
+	zval                   *zself     = getThis();
+	zval                   *zbase;
+	php_event_base_t       *base;
+	zval                  **ppzfd     = NULL;
+	evutil_socket_t         fd;
+	long                    options   = 0;
+	php_event_bevent_t     *bev;
+	struct bufferevent     *bevent;
+	zend_fcall_info         fci_read  = empty_fcall_info;
+	zend_fcall_info_cache   fcc_read  = empty_fcall_info_cache;
+	zend_fcall_info         fci_write = empty_fcall_info;
+	zend_fcall_info_cache   fcc_write = empty_fcall_info_cache;
+	zend_fcall_info         fci_event = empty_fcall_info;
+	zend_fcall_info_cache   fcc_event = empty_fcall_info_cache;
+	zval                   *zarg      = NULL;
+	bufferevent_data_cb     read_cb;
+	bufferevent_data_cb     write_cb;
+	bufferevent_event_cb    event_cb;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O|Z!l",
-				&zbase, php_event_base_ce, &ppzfd, &options) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O|Z!lf!f!f!z!",
+				&zbase, php_event_base_ce, &ppzfd, &options,
+				&fci_read, &fcc_read,
+				&fci_write, &fcc_write,
+				&fci_event, &fcc_event,
+				&zarg) == FAILURE) {
 		return;
 	}
 
@@ -229,6 +243,41 @@ PHP_METHOD(EventBufferEvent, __construct)
 	 * within a callback.
 	 * Z_ADDREF_P(zself);
 	 */
+
+	if (ZEND_FCI_INITIALIZED(fci_read)) {
+		read_cb = bevent_read_cb;
+		PHP_EVENT_FREE_FCALL_INFO(bev->fci_read, bev->fcc_read);
+		PHP_EVENT_COPY_FCALL_INFO(bev->fci_read, bev->fcc_read, &fci_read, &fcc_read);
+	} else {
+		read_cb = NULL;
+	}
+
+	if (ZEND_FCI_INITIALIZED(fci_write)) {
+		write_cb = bevent_write_cb;
+		PHP_EVENT_FREE_FCALL_INFO(bev->fci_write, bev->fcc_write);
+		PHP_EVENT_COPY_FCALL_INFO(bev->fci_write, bev->fcc_write, &fci_write, &fcc_write);
+	} else {
+		write_cb = NULL;
+	}
+
+	if (ZEND_FCI_INITIALIZED(fci_event)) {
+		event_cb = bevent_event_cb;
+		PHP_EVENT_FREE_FCALL_INFO(bev->fci_event, bev->fcc_event);
+		PHP_EVENT_COPY_FCALL_INFO(bev->fci_event, bev->fcc_event, &fci_event, &fcc_event);
+	} else {
+		event_cb = NULL;
+	}
+
+	if (zarg) {
+		Z_ADDREF_P(zarg);
+		bev->data = zarg;
+	}
+
+	TSRMLS_SET_CTX(bev->thread_ctx);
+
+	if (read_cb || write_cb || event_cb || zarg) {
+		bufferevent_setcb(bev->bevent, read_cb, write_cb, event_cb, (void *) bev);
+	}
 }
 /* }}} */
 
@@ -498,12 +547,12 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 {
 	zval                  *zbevent   = getThis();
 	php_event_bevent_t    *bev;
-	zend_fcall_info        fci_read;
-	zend_fcall_info_cache  fcc_read;
-	zend_fcall_info        fci_write;
-	zend_fcall_info_cache  fcc_write;
-	zend_fcall_info        fci_event;
-	zend_fcall_info_cache  fcc_event;
+	zend_fcall_info        fci_read  = empty_fcall_info;
+	zend_fcall_info_cache  fcc_read  = empty_fcall_info_cache;
+	zend_fcall_info        fci_write = empty_fcall_info;
+	zend_fcall_info_cache  fcc_write = empty_fcall_info_cache;
+	zend_fcall_info        fci_event = empty_fcall_info;
+	zend_fcall_info_cache  fcc_event = empty_fcall_info_cache;
 	zval                  *zarg      = NULL;
 	bufferevent_data_cb    read_cb;
 	bufferevent_data_cb    write_cb;

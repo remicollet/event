@@ -36,6 +36,7 @@
   Fix: EventListener cached file descriptor for all connections
   Change: EventBufferEvent enable/disable methods return bool now
   Change: instead of stream pass numeric file descriptor to EventListener's accept-connection callback
+  Add: callbacks and the callback arg are now passed to EventBufferEvent::__construct as optional arguments
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -131,6 +132,7 @@
   Fix: EventListener cached file descriptor for all connections
   Change: EventBufferEvent enable/disable methods return bool now
   Change: instead of stream pass numeric file descriptor to EventListener's accept-connection callback
+  Add: callbacks and the callback arg are now passed to EventBufferEvent::__construct as optional arguments
   ]]></notes>
     <!--}}}-->
     <!--{{{ 1.2.4-alpha -->

@@ -32,6 +32,7 @@ if ($argc != 3) {
 Trivial HTTP 0.x client
 Syntax: php {$argv[0]} [hostname] [resource]
 Example: php {$argv[0]} www.google.com /
+
 EOS;
 	exit();
 }
@@ -44,12 +45,14 @@ if (!$dns_base) {
 }
 
 $bev = new EventBufferEvent($base, /* use internal socket */ NULL,
-	EventBufferEvent::OPT_CLOSE_ON_FREE | EventBufferEvent::OPT_DEFER_CALLBACKS);
+	EventBufferEvent::OPT_CLOSE_ON_FREE | EventBufferEvent::OPT_DEFER_CALLBACKS,
+	"readcb", /* writecb */ NULL, "eventcb", $base
+);
 if (!$bev) {
 	exit("Failed creating bufferevent socket\n");
 }
 
-$bev->setCallbacks("readcb", /* writecb */ NULL, "eventcb", $base);
+//$bev->setCallbacks("readcb", /* writecb */ NULL, "eventcb", $base);
 $bev->enable(Event::READ | Event::WRITE);
 
 $output = $bev->output; //$bev->getOutput();
