@@ -4,7 +4,15 @@
   <channel>pecl.php.net</channel>
   <summary>Provides interface to libevent library</summary>
   <description>
-  event provides interface to libevent library.
+  This is an extension to efficiently schedule I/O, time and signal based
+  events using the best I/O notification mechanism available for specific platform.
+  This is a port of libevent to the PHP infrastructure.
+  
+  Version 1.0.0 introduces:
+  * new OO API breaking backwards compatibility
+  * support of libevent 2+ including HTTP, DNS, OpenSSL and the event listener.
+
+  Note, event-1.0.0 and greater is not compatible with previous versions.
   </description>
   <lead>
     <name>Ruslan Osmanov</name>
@@ -24,7 +32,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: redundant Z_ADDREF_P() calls in EventListener, EventBufferEvent constructors and factory methods
+  Fix: unneeded Z_ADDREF_P() calls in EventListener, EventBufferEvent constructors and factory methods
   Fix: EventListener cached file descriptor for all connections
   Change: EventBufferEvent enable/disable methods return bool now
   Change: instead of stream pass numeric file descriptor to EventListener's accept-connection callback
@@ -108,38 +116,38 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-  <!--{{{ 1.2.5-alpha -->
-  <version>
-    <release>1.2.5</release>
-    <api>1.2.1</api>
-  </version>
-  <stability>
-    <release>alpha</release>
-    <api>alpha</api>
-  </stability>
-  <license uri="http://www.php.net/license">PHP</license>
-  <notes><![CDATA[
-  Fix: redundant Z_ADDREF_P() calls in EventListener, EventBufferEvent constructors and factory methods
+    <!--{{{ 1.2.5-alpha -->
+    <version>
+      <release>1.2.5</release>
+      <api>1.2.1</api>
+    </version>
+    <stability>
+      <release>alpha</release>
+      <api>alpha</api>
+    </stability>
+    <license uri="http://www.php.net/license">PHP</license>
+    <notes><![CDATA[
+  Fix: unneeded Z_ADDREF_P() calls in EventListener, EventBufferEvent constructors and factory methods
   Fix: EventListener cached file descriptor for all connections
   Change: EventBufferEvent enable/disable methods return bool now
   Change: instead of stream pass numeric file descriptor to EventListener's accept-connection callback
   ]]></notes>
-  <!--}}}-->
-  <!--{{{ 1.2.4-alpha -->
-  <version>
-    <release>1.2.4</release>
-    <api>1.2.1</api>
-  </version>
-  <stability>
-    <release>alpha</release>
-    <api>alpha</api>
-  </stability>
-  <license uri="http://www.php.net/license">PHP</license>
-  <notes><![CDATA[
+    <!--}}}-->
+    <!--{{{ 1.2.4-alpha -->
+    <version>
+      <release>1.2.4</release>
+      <api>1.2.1</api>
+    </version>
+    <stability>
+      <release>alpha</release>
+      <api>alpha</api>
+    </stability>
+    <license uri="http://www.php.net/license">PHP</license>
+    <notes><![CDATA[
   Fix: deleted redundant len argument of EventBuffer::readLine
   Fix: EventBuffer::readLine returned non-dup'd string. Caused bugs with pointers.
   ]]></notes>
-  <!--}}}-->
+    <!--}}}-->
     <!--{{{ 1.2.3-alpha -->
     <release>
       <version>
@@ -243,8 +251,49 @@
       </stability>
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
-        Initial release
+      Libevent 2+ support added
         ]]></notes>
+    </release>
+    <!--}}}-->
+    <!--{{{ Obsolete releases-->
+    <release>
+      <date>2004-12-16</date>
+      <lead>
+        <name>Wez Furlong</name>
+        <user>wez</user>
+        <email>wez@php.net</email>
+        <active>yes</active>
+      </lead>
+      <version>
+        <release>0.9.1</release>
+        <api>0.9.1</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+      Added event_timeout() function for easily scheduling a callback after a certain
+      period of time.  The timeout may be persistent to make the callback a recurrent
+      event.
+
+      Fixed an issue with timercmp() on windows that caused a busy wait when the
+      scheduler could have performed a sleep.
+
+      Windows scheduling engine now also processes the message queue while
+      waiting; useful for COM/GUI based scripts.
+
+      Fixed build for threaded systems with real signals.
+
+      Supports epoll(4), poll(2) and select(2) IO notification engines.
+      Support for /dev/poll and kqueue is pending.
+
+      On Windows, currently only sockets can participate in the IO notification engine.
+      ]]></notes>
+      <deps>
+        <dep type="php" rel="ge" version="4.3.0"/>
+      </deps>
     </release>
     <!--}}}-->
   </changelog>

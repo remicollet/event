@@ -451,7 +451,7 @@ PHP_METHOD(EventBuffer, readLine)
 }
 /* }}} */
 
-/* {{{ proto resource EventBuffer::search(string what[, resource start = NULL[, resource end = NULL]]);
+/* {{{ proto resource EventBuffer::search(string what[, EventBufferPosition start = NULL[, EventBufferPosition end = NULL]]);
  *
  * Scans the buffer for an occurrence of the len-character string what. It
  * returns resource representing the position of the string, or NULL if the
@@ -506,7 +506,7 @@ PHP_METHOD(EventBuffer, search)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::setPosition(resource &pos, int value, int how);
+/* {{{ proto bool EventBuffer::setPosition(EventBufferPosition &pos, int value, int how);
  *
  * Manipulates the position pos within buffer. If how is EventBuffer::PTR_SET,
  * the pointer is moved to an absolute position position within the buffer. If
