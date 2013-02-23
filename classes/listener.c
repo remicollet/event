@@ -98,8 +98,6 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	zval   *arg_data     = l->data;
 	zval   *retval_ptr;
 
-	php_stream *stream;
-
 	TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
 
 	/* Call user function having proto:
@@ -111,37 +109,26 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		args[0] = &l->self;
-		/*Z_ADDREF_P(l->self);*/
 
 		/* Convert the socket created by libevent to PHP stream
 	 	 * and save it's resource ID in l->stream_id */
 
 		/* Always create new resource, since every new connection creates new fd.
 		 * We are in the accept-connection callback now. */
-#if 0
-		if (l->stream_id > 0) {
+		/*
+		 * We might convert it to stream. But likely nobody wants it for any
+		 * purpose than passing back to event, e.g. to
+		 * EventBufferEvent::__construct
+		 *
+		 * php_stream *stream;
+		 * stream = php_stream_fopen_from_fd(fd, "r", NULL);
+		 * php_stream_to_zval(stream, arg_fd);
+		 *
+		 * Thus, we're just passing numeric fd here.
+		 */
+		if (fd) {
 			MAKE_STD_ZVAL(arg_fd);
-			ZVAL_RESOURCE(arg_fd, l->stream_id);
-			zend_list_addref(l->stream_id);
-		} else {
-			stream = php_stream_fopen_from_fd(fd, "r", NULL);
-			if (stream) {
-				MAKE_STD_ZVAL(arg_fd);
-				php_stream_to_zval(stream, arg_fd);
-
-				l->stream_id = Z_LVAL_P(arg_fd);
-				zend_list_addref(l->stream_id);
-			} else {
-				ALLOC_INIT_ZVAL(arg_fd);
-				l->stream_id = -1;
-			}
-		}
-#endif
-		stream = php_stream_fopen_from_fd(fd, "r", NULL);
-		if (stream) {
-			MAKE_STD_ZVAL(arg_fd);
-			php_stream_to_zval(stream, arg_fd);
-			/*zend_list_addref(Z_LVAL_P(arg_fd));*/
+			ZVAL_LONG(arg_fd, fd);
 		} else {
 			ALLOC_INIT_ZVAL(arg_fd);
 		}
