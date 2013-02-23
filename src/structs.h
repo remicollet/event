@@ -110,7 +110,6 @@ typedef struct _php_event_listener_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct evconnlistener *listener;
-	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
 	zval                  *self;        /* Object itself. For callbacks              */
 	zval                  *data;        /* User custom data passed to callback       */
 

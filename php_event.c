@@ -265,10 +265,6 @@ static void event_listener_object_free_storage(void *ptr TSRMLS_DC)
 
 	PHP_EVENT_ASSERT(l);
 
-	if (l->stream_id >= 0) {
-		zend_list_delete(l->stream_id);
-	}
-
 	if (l->data) {
 		zval_ptr_dtor(&l->data);
 	}

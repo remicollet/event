@@ -12,7 +12,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-02-22</date>
+  <date>2013-02-23</date>
   <!--{{{ Current version -->
   <version>
     <release>1.2.5</release>
@@ -26,6 +26,7 @@
   <notes><![CDATA[
   Fix: redundant Z_ADDREF_P() calls in EventListener, EventBufferEvent constructors and factory methods
   Change: EventBufferEvent enable/disable methods return bool now
+  Fix: EventListener cached file descriptor for all connections
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -119,6 +120,7 @@
   <notes><![CDATA[
   Fix: redundant Z_ADDREF_P() calls in EventListener, EventBufferEvent constructors and factory methods
   Change: EventBufferEvent enable/disable methods return bool now
+  Fix: EventListener cached file descriptor for all connections
   ]]></notes>
   <!--}}}-->
   <!--{{{ 1.2.4-alpha -->

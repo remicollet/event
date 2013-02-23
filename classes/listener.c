@@ -116,6 +116,9 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 		/* Convert the socket created by libevent to PHP stream
 	 	 * and save it's resource ID in l->stream_id */
 
+		/* Always create new resource, since every new connection creates new fd.
+		 * We are in the accept-connection callback now. */
+#if 0
 		if (l->stream_id > 0) {
 			MAKE_STD_ZVAL(arg_fd);
 			ZVAL_RESOURCE(arg_fd, l->stream_id);
@@ -132,6 +135,15 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 				ALLOC_INIT_ZVAL(arg_fd);
 				l->stream_id = -1;
 			}
+		}
+#endif
+		stream = php_stream_fopen_from_fd(fd, "r", NULL);
+		if (stream) {
+			MAKE_STD_ZVAL(arg_fd);
+			php_stream_to_zval(stream, arg_fd);
+			/*zend_list_addref(Z_LVAL_P(arg_fd));*/
+		} else {
+			ALLOC_INIT_ZVAL(arg_fd);
 		}
 		args[1] = &arg_fd;
 
@@ -309,8 +321,6 @@ PHP_METHOD(EventListener, __construct)
 	}
 
 	PHP_EVENT_COPY_FCALL_INFO(l->fci, l->fcc, &fci, &fcc);
-
-	l->stream_id = -1;
 
 	l->self = zself;
 
