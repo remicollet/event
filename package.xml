@@ -20,10 +20,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-02-23</date>
+  <date>2013-02-26</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.2.5</release>
+    <release>1.2.6</release>
     <api>1.2.1</api>
   </version>
   <stability>
@@ -32,11 +32,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: unneeded Z_ADDREF_P() calls in EventListener, EventBufferEvent constructors and factory methods
-  Fix: EventListener cached file descriptor for all connections
-  Change: EventBufferEvent enable/disable methods return bool now
-  Change: instead of stream pass numeric file descriptor to EventListener's accept-connection callback
-  Add: callbacks and the callback arg are now passed to EventBufferEvent::__construct as optional arguments
+  Fix: with OpenSSL turned off got error: undefined symbol: zim_EventUtil_sslRandPoll
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -117,6 +113,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ Current version -->
+    <release>
+      <version>
+        <release>1.2.6</release>
+        <api>1.2.1</api>
+      </version>
+      <stability>
+        <release>alpha</release>
+        <api>alpha</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+      Fix: with OpenSSL turned off got error: undefined symbol: zim_EventUtil_sslRandPoll
+      ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.2.5-alpha -->
     <version>
       <release>1.2.5</release>

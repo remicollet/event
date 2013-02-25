@@ -106,7 +106,9 @@ PHP_METHOD(EventBuffer, pullup);
 
 PHP_METHOD(EventUtil, getLastSocketErrno);
 PHP_METHOD(EventUtil, getLastSocketError);
+#ifdef HAVE_EVENT_OPENSSL_LIB
 PHP_METHOD(EventUtil, sslRandPoll);
+#endif
 
 PHP_METHOD(EventBufferPosition, __construct);
 

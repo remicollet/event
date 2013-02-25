@@ -492,7 +492,10 @@ const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 
 	PHP_ME(EventUtil, getLastSocketErrno, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventUtil, getLastSocketError, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
 	PHP_ME(EventUtil, sslRandPoll,        arginfo_event__void,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+#endif
 
 	PHP_FE_END
 };
