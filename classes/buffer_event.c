@@ -41,7 +41,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 
 		if (bev->self) {
 			args[0] = &bev->self;
-			/*Z_ADDREF_P(bev->self);*/
+			Z_ADDREF_P(bev->self);
 		}
 		if (arg_data) {
 			Z_ADDREF_P(arg_data);
@@ -108,7 +108,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback args */
 		args[0] = &bev->self;
-		/*Z_ADDREF_P(bev->self);*/
+		Z_ADDREF_P(bev->self);
 
 		MAKE_STD_ZVAL(arg_events);
 		ZVAL_LONG(arg_events, events);
