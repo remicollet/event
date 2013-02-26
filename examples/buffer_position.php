@@ -23,5 +23,4 @@ function count_instances($buf, $str) {
 $buf = new EventBuffer();
 $buf->add("Some string within a string inside another string");
 var_dump(count_instances($buf, "str"));
-
 ?>

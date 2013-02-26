@@ -33,6 +33,8 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: with OpenSSL turned off got error: undefined symbol: zim_EventUtil_sslRandPoll
+  Add: implemented get_properties property handler(is called when one casts an object to array)
+  Refact: removed memory alloc for empty property hashtables
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -113,7 +115,7 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ Current version -->
+    <!--{{{ 1.2.6-alpha -->
     <release>
       <version>
         <release>1.2.6</release>
@@ -126,6 +128,8 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
       Fix: with OpenSSL turned off got error: undefined symbol: zim_EventUtil_sslRandPoll
+      Add: implemented get_properties property handler(is called when one casts an object to array)
+      Refact: removed memory alloc for empty property hashtables
       ]]></notes>
     </release>
     <!--}}}-->

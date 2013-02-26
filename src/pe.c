@@ -117,6 +117,7 @@ static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval *
 
 	MAKE_STD_ZVAL(*retval);
 
+	/* XXX Is it safe to cache it here? */
 	if (bev->input) {
 		ZVAL_ZVAL(*retval, bev->input, 1, 0);
 		return SUCCESS;
@@ -144,6 +145,8 @@ static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval 
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 
 	MAKE_STD_ZVAL(*retval);
+
+	/* XXX Is it safe to cache it here? */
 	if (bev->output) {
 		ZVAL_ZVAL(*retval, bev->output, 1, 0);
 		Z_ADDREF_P(bev->output);
@@ -281,12 +284,6 @@ const php_event_property_entry_t event_property_entries[] = {
 	{"timer_pending",           sizeof("timer_pending") - 1, event_timer_pending_prop_read, NULL, NULL},
     {NULL, 0, NULL, NULL, NULL}
 };
-const php_event_property_entry_t event_base_property_entries[] = {
-    {NULL, 0, NULL, NULL, NULL}
-};
-const php_event_property_entry_t event_config_property_entries[] = {
-    {NULL, 0, NULL, NULL, NULL}
-};
 const php_event_property_entry_t event_bevent_property_entries[] = {
 	{"priority", sizeof("priority") - 1, event_bevent_priority_prop_read, event_bevent_priority_prop_write, NULL },
 	{"input",    sizeof("input")    - 1, event_bevent_input_prop_read,    NULL,                             event_bevent_input_prop_ptr_ptr},
@@ -318,12 +315,6 @@ const php_event_property_entry_t event_ssl_context_property_entries[] = {
 
 const zend_property_info event_property_entry_info[] = {
 	{ZEND_ACC_PUBLIC, "timer_pending", sizeof("timer_pending") - 1, -1, 0, NULL, 0, NULL},
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-const zend_property_info event_base_property_entry_info[] = {
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-const zend_property_info event_config_property_entry_info[] = {
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
 const zend_property_info event_bevent_property_entry_info[] = {

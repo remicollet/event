@@ -46,8 +46,6 @@ zend_class_entry *php_event_http_ce;
 static HashTable classes;
 
 static HashTable event_properties;
-static HashTable event_base_properties;
-static HashTable event_config_properties;
 static HashTable event_bevent_properties;
 static HashTable event_buffer_properties;
 static HashTable event_buffer_pos_properties;
@@ -835,6 +833,44 @@ static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_litera
 /* }}} */
 
 
+#if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 4
+/* {{{ get_properties
+   Returns all object properties. */
+static HashTable *get_properties(zval *object TSRMLS_DC)
+{
+	php_event_abstract_object_t *obj;
+	php_event_prop_handler_t    *hnd;
+	HashTable                   *props;
+	zval                        *val;
+	char                        *key;
+	uint                         key_len;
+	HashPosition                 pos;
+	ulong                        num_key;
+
+	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
+	props = zend_std_get_properties(object TSRMLS_CC);
+
+	if (obj->prop_handler) {
+		zend_hash_internal_pointer_reset_ex(obj->prop_handler, &pos);
+
+		while (zend_hash_get_current_data_ex(obj->prop_handler,
+					(void **) &hnd, &pos) == SUCCESS) {
+			zend_hash_get_current_key_ex(obj->prop_handler,
+					&key, &key_len, &num_key, 0, &pos);
+			if (!hnd->read_func || hnd->read_func(obj, &val TSRMLS_CC) != SUCCESS) {
+				val = EG(uninitialized_zval_ptr);
+				Z_ADDREF_P(val);
+			}
+			zend_hash_update(props, key, key_len, (void *) &val, sizeof(zval *), NULL);
+			zend_hash_move_forward_ex(obj->prop_handler, &pos);
+		}
+	}
+
+	return obj->zo.properties;
+}
+/* }}} */
+#endif
+
 #define PHP_EVENT_ADD_CLASS_PROPERTIES(a, b)                                           \
 {                                                                                      \
     int i = 0;                                                                         \
@@ -875,21 +911,11 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			php_event_base_ce_functions);
 	ce = php_event_base_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-	zend_hash_init(&event_base_properties, 0, NULL, NULL, 1);
-	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_base_properties, event_base_property_entries);
-	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_base_property_entry_info);
-	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_base_properties,
-			sizeof(event_base_properties), NULL);
 
 	PHP_EVENT_REGISTER_CLASS("EventConfig", event_config_object_create, php_event_config_ce,
 			php_event_config_ce_functions);
 	ce = php_event_config_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-	zend_hash_init(&event_config_properties, 0, NULL, NULL, 1);
-	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_config_properties, event_config_property_entries);
-	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_config_property_entry_info);
-	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_config_properties,
-			sizeof(event_config_properties), NULL);
 
 	PHP_EVENT_REGISTER_CLASS("EventBufferEvent", event_bevent_object_create, php_event_bevent_ce,
 			php_event_bevent_ce_functions);
@@ -968,15 +994,6 @@ static zend_always_inline void register_classes(TSRMLS_D)
 
 /* Private functions }}} */
 
-#if 0
-/* {{{ PHP_GINIT_FUNCTION */ 
-static PHP_GINIT_FUNCTION(event)
-{
-	event_globals->ssl_dummy_stream = NULL;
-}
-/* }}} */
-#endif
-
 #define REGISTER_EVENT_CLASS_CONST_LONG(pce, const_name, value) \
     zend_declare_class_constant_long((pce), #const_name,        \
             sizeof(#const_name) - 1, (long) value TSRMLS_CC)
@@ -995,6 +1012,9 @@ PHP_MINIT_FUNCTION(event)
 	object_handlers.has_property         = object_has_property;
 #if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 3
 	object_handlers.get_debug_info       = object_get_debug_info;
+#endif
+#if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 4
+	object_handlers.get_properties       = get_properties;
 #endif
 
 	zend_hash_init(&classes, 8, NULL, NULL, 1);

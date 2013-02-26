@@ -43,8 +43,6 @@ extern zend_class_entry *php_event_ssl_context_ce;
 #endif
 
 extern const php_event_property_entry_t event_property_entries[];
-extern const php_event_property_entry_t event_base_property_entries[];
-extern const php_event_property_entry_t event_config_property_entries[];
 extern const php_event_property_entry_t event_bevent_property_entries[];
 extern const php_event_property_entry_t event_buffer_property_entries[];
 extern const php_event_property_entry_t event_buffer_pos_property_entries[];
@@ -53,8 +51,6 @@ extern const php_event_property_entry_t event_ssl_context_property_entries[];
 #endif
 
 extern const zend_property_info event_property_entry_info[];
-extern const zend_property_info event_base_property_entry_info[];
-extern const zend_property_info event_config_property_entry_info[];
 extern const zend_property_info event_bevent_property_entry_info[];
 extern const zend_property_info event_buffer_property_entry_info[];
 extern const zend_property_info event_buffer_pos_property_entry_info[];
