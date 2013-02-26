@@ -115,6 +115,10 @@ static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval *
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 
+	if (!bev->bevent) {
+		return FAILURE;
+	}
+
 	MAKE_STD_ZVAL(*retval);
 
 	/* XXX Is it safe to cache it here? */
@@ -143,6 +147,10 @@ static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval *
 static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
+
+	if (!bev->bevent) {
+		return FAILURE;
+	}
 
 	MAKE_STD_ZVAL(*retval);
 
