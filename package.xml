@@ -36,6 +36,7 @@
   Add: implemented get_properties property handler(is called when one casts an object to array)
   Refact: removed memory alloc for empty property hashtables
   Fix: heap corruption caused by EventBufferEvent callbacks
+  Fix: possible heap corruption in EventListener's callback
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -132,6 +133,7 @@
       Add: implemented get_properties property handler(is called when one casts an object to array)
       Refact: removed memory alloc for empty property hashtables
       Fix: heap corruption caused by EventBufferEvent callbacks
+      Fix: possible heap corruption in EventListener's callback
       ]]></notes>
     </release>
     <!--}}}-->

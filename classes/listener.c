@@ -109,6 +109,7 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		args[0] = &l->self;
+		Z_ADDREF_P(l->self);
 
 		/* Convert the socket created by libevent to PHP stream
 	 	 * and save it's resource ID in l->stream_id */
