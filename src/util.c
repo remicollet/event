@@ -18,6 +18,7 @@
 
 #include "src/common.h"
 #include "src/util.h"
+#include <fcntl.h>
 
 /* {{{ php_event_zval_to_fd
  * Get numeric file descriptor from PHP stream or Socket resource */
@@ -93,6 +94,11 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 		/* Invalid fd */
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid file descriptor passed");
 		return -1;
+	}
+
+	/* Validate file descriptor */
+	if (file_desc >= 0 && fcntl(file_desc, F_GETFD) == -1) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fcntl: invalid file descriptor passed");
 	}
 
 	return file_desc;
