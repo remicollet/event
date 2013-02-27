@@ -234,6 +234,9 @@ PHP_METHOD(EventBufferEvent, __construct)
 		PHP_EVENT_FREE_FCALL_INFO(bev->fci_read, bev->fcc_read);
 		PHP_EVENT_COPY_FCALL_INFO(bev->fci_read, bev->fcc_read, &fci_read, &fcc_read);
 	} else {
+		if (bev->fci_read) {
+			PHP_EVENT_FREE_FCALL_INFO(bev->fci_read, bev->fcc_read);
+		}
 		read_cb = NULL;
 	}
 
@@ -242,6 +245,9 @@ PHP_METHOD(EventBufferEvent, __construct)
 		PHP_EVENT_FREE_FCALL_INFO(bev->fci_write, bev->fcc_write);
 		PHP_EVENT_COPY_FCALL_INFO(bev->fci_write, bev->fcc_write, &fci_write, &fcc_write);
 	} else {
+		if (bev->fci_write) {
+			PHP_EVENT_FREE_FCALL_INFO(bev->fci_write, bev->fcc_write);
+		}
 		write_cb = NULL;
 	}
 
@@ -250,6 +256,9 @@ PHP_METHOD(EventBufferEvent, __construct)
 		PHP_EVENT_FREE_FCALL_INFO(bev->fci_event, bev->fcc_event);
 		PHP_EVENT_COPY_FCALL_INFO(bev->fci_event, bev->fcc_event, &fci_event, &fcc_event);
 	} else {
+		if (bev->fci_event) {
+			PHP_EVENT_FREE_FCALL_INFO(bev->fci_event, bev->fcc_event);
+		}
 		event_cb = NULL;
 	}
 
@@ -543,6 +552,9 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 		PHP_EVENT_FREE_FCALL_INFO(bev->fci_read, bev->fcc_read);
 		PHP_EVENT_COPY_FCALL_INFO(bev->fci_read, bev->fcc_read, &fci_read, &fcc_read);
 	} else {
+		if (bev->fci_read) {
+			PHP_EVENT_FREE_FCALL_INFO(bev->fci_read, bev->fcc_read);
+		}
 		read_cb = NULL;
 	}
 
@@ -551,6 +563,9 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 		PHP_EVENT_FREE_FCALL_INFO(bev->fci_write, bev->fcc_write);
 		PHP_EVENT_COPY_FCALL_INFO(bev->fci_write, bev->fcc_write, &fci_write, &fcc_write);
 	} else {
+		if (bev->fci_write) {
+			PHP_EVENT_FREE_FCALL_INFO(bev->fci_write, bev->fcc_write);
+		}
 		write_cb = NULL;
 	}
 
@@ -559,6 +574,9 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 		PHP_EVENT_FREE_FCALL_INFO(bev->fci_event, bev->fcc_event);
 		PHP_EVENT_COPY_FCALL_INFO(bev->fci_event, bev->fcc_event, &fci_event, &fcc_event);
 	} else {
+		if (bev->fci_event) {
+			PHP_EVENT_FREE_FCALL_INFO(bev->fci_event, bev->fcc_event);
+		}
 		event_cb = NULL;
 	}
 
