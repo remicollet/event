@@ -50,6 +50,9 @@ PHP_METHOD(EventBase, getTimeOfDayCached);
 PHP_METHOD(EventBase, updateCacheTime);
 #endif
 PHP_METHOD(EventBase, reInit);
+#if LIBEVENT_VERSION_NUMBER >= 0x02010200
+PHP_METHOD(EventBase, resume);
+#endif
 
 PHP_METHOD(EventConfig, __construct);
 PHP_METHOD(EventConfig, avoidMethod);

@@ -340,6 +340,29 @@ PHP_METHOD(EventBase, reInit)
 }
 /* }}} */
 
+#if LIBEVENT_VERSION_NUMBER >= 0x02010200
+/* {{{ proto bool EventBase::resume(void);
+ * Tells event_base to resume previously stopped event.
+ * Available since libevent version 2.1.2-alpha. */
+PHP_METHOD(EventBase, resume)
+{
+	zval             *zbase = getThis();
+	php_event_base_t *b;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BASE(b, zbase);
+
+	if (event_base_loopcontinue(b->base)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+#endif
+
 /*
  * Local variables:
  * tab-width: 4

@@ -414,6 +414,9 @@ const zend_function_entry php_event_base_ce_functions[] = {/* {{{ */
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	PHP_ME(EventBase, updateCacheTime, arginfo_event__void, ZEND_ACC_PUBLIC)
 #endif
+#if LIBEVENT_VERSION_NUMBER >= 0x02010200
+	PHP_ME(EventBase, resume,             arginfo_event__void,              ZEND_ACC_PUBLIC)
+#endif
 														   
 	PHP_FE_END
 };
