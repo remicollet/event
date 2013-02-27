@@ -289,8 +289,8 @@ PHP_METHOD(EventBufferEvent, free)
 		bev->bevent = 0;
 
 		/* Do it once */
-		Z_DELREF_P(zbevent);
-		/*zval_ptr_dtor(&zbevent);*/
+		/*Z_DELREF_P(zbevent);*/
+		zval_ptr_dtor(&zbevent);
 	}
 }
 /* }}} */
