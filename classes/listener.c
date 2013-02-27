@@ -109,7 +109,6 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		args[0] = &l->self;
-		Z_ADDREF_P(l->self);
 
 		/* Convert the socket created by libevent to PHP stream
 	 	 * and save it's resource ID in l->stream_id */
@@ -311,6 +310,7 @@ PHP_METHOD(EventListener, __construct)
 	PHP_EVENT_COPY_FCALL_INFO(l->fci, l->fcc, &fci, &fcc);
 
 	l->self = zself;
+	Z_ADDREF_P(l->self);
 
 	TSRMLS_SET_CTX(l->thread_ctx);
 }
