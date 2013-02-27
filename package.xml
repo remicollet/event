@@ -24,11 +24,11 @@
   <!--{{{ Current version -->
   <version>
     <release>1.2.6</release>
-    <api>1.2.1</api>
+    <api>1.3.0</api>
   </version>
   <stability>
-    <release>alpha</release>
-    <api>alpha</api>
+    <release>beta</release>
+    <api>beta</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
@@ -119,15 +119,15 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ 1.2.6-alpha -->
+    <!--{{{ 1.2.6-beta -->
     <release>
       <version>
         <release>1.2.6</release>
-        <api>1.2.1</api>
+        <api>1.3.0</api>
       </version>
       <stability>
-        <release>alpha</release>
-        <api>alpha</api>
+        <release>beta</release>
+        <api>beta</api>
       </stability>
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
