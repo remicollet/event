@@ -99,6 +99,7 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 	/* Validate file descriptor */
 	if (file_desc >= 0 && fcntl(file_desc, F_GETFD) == -1) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fcntl: invalid file descriptor passed");
+		return -1;
 	}
 
 	return file_desc;
