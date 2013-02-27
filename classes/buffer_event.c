@@ -224,16 +224,6 @@ PHP_METHOD(EventBufferEvent, __construct)
 
 	bev->bevent = bevent;
 
-	if (ppzfd) {
-		/* lval of ppzfd is the resource ID */
-		bev->stream_id = Z_LVAL_PP(ppzfd);
-		zend_list_addref(Z_LVAL_PP(ppzfd));
-	} else {
-		/* Should be assigned in bufferevent_socket_connect() later
-		 * (by means of bufferevent_getfd()) */
-		bev->stream_id = -1;
-	}
-
 	bev->self = zself;
 	Z_ADDREF_P(zself);
 
@@ -332,7 +322,6 @@ PHP_METHOD(EventBufferEvent, createPair)
 		PHP_EVENT_FETCH_BEVENT(b[i], zbev[i]);
 
 		b[i]->bevent    = bevent_pair[i];
-		b[i]->stream_id = -1;
 
 		add_next_index_zval(return_value, zbev[i]);
 	}
@@ -401,10 +390,6 @@ PHP_METHOD(EventBufferEvent, connect)
 	if (bufferevent_socket_connect(bev->bevent, &sa, sa_len)) {
 		RETURN_FALSE;
 	}
-
-	bev->stream_id = bufferevent_getfd(bev->bevent);
-
-	PHP_EVENT_ASSERT(bev->stream_id >= 0);
 
 	RETVAL_TRUE;
 }
@@ -492,16 +477,6 @@ PHP_METHOD(EventBufferEvent, connectHost)
 		RETURN_FALSE;
 	}
 #endif
-
-	bev->stream_id = bufferevent_getfd(bev->bevent);
-
-	/*
-	It may not work with evdns
-	if (bev->stream_id < 0) {
-		RETURN_FALSE;
-	}
-	 PHP_EVENT_ASSERT(bev->stream_id >= 0);
-	*/
 
 	RETVAL_TRUE;
 #endif
@@ -960,8 +935,6 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 	}
 	bev->bevent = bevent;
 
-	bev->stream_id = -1;
-
 	bev->self = return_value;
 	Z_ADDREF_P(return_value);
 }
@@ -1027,10 +1000,6 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 		RETURN_FALSE;
 	}
 	bev->bevent = bevent;
-
-	/* lval of ppzfd is the resource ID */
-	bev->stream_id = Z_LVAL_PP(ppzfd);
-	zend_list_addref(Z_LVAL_PP(ppzfd));
 
 	bev->self = return_value;
 	Z_ADDREF_P(return_value);

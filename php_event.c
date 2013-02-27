@@ -185,10 +185,6 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 		PHP_EVENT_FREE_FCALL_INFO(b->fci_write, b->fcc_write);
 		PHP_EVENT_FREE_FCALL_INFO(b->fci_event, b->fcc_event);
 
-		if (b->stream_id >= 0) { /* stdin fd == 0 */
-			zend_list_delete(b->stream_id);
-		}
-
 #if 0
 		if (b->self) {
 			zval_ptr_dtor(&b->self);

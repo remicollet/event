@@ -71,7 +71,6 @@ typedef struct _php_event_bevent_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct bufferevent    *bevent;
-	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
 	zval                  *self;        /* Object itself. For callbacks                   */
 	zval                  *data;        /* User custom data                               */
 	zval                  *input;       /* Input buffer */
