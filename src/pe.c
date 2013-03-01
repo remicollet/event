@@ -119,26 +119,22 @@ static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval *
 		return FAILURE;
 	}
 
-	MAKE_STD_ZVAL(*retval);
+	if (!bev->input) {
+		php_event_buffer_t *b;
 
-	/* XXX Is it safe to cache it here? */
-	if (bev->input) {
-		ZVAL_ZVAL(*retval, bev->input, 1, 0);
-		return SUCCESS;
+		MAKE_STD_ZVAL(bev->input);
+		PHP_EVENT_INIT_CLASS_OBJECT(bev->input, php_event_buffer_ce);
+		PHP_EVENT_FETCH_BUFFER(b, bev->input);
+
+		b->buf      = bufferevent_get_input(bev->bevent);
+		b->internal = 1;
 	}
 
-	php_event_buffer_t *b;
+	MAKE_STD_ZVAL(*retval);
 
-	PHP_EVENT_INIT_CLASS_OBJECT(*retval, php_event_buffer_ce);
-	PHP_EVENT_FETCH_BUFFER(b, *retval);
-
-	b->buf      = bufferevent_get_input(bev->bevent);
-	b->internal = 1;
-
-	MAKE_STD_ZVAL(bev->input);
-	ZVAL_ZVAL(bev->input, *retval, 1, 0);
-	Z_ADDREF_P(bev->input);
-
+	ZVAL_ZVAL(*retval, bev->input, 1, 0);
+	Z_SET_ISREF_P(*retval);
+	Z_ADDREF_P(*retval);
 	return SUCCESS;
 }
 /* }}} */
@@ -152,27 +148,22 @@ static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval 
 		return FAILURE;
 	}
 
-	MAKE_STD_ZVAL(*retval);
+	if (!bev->output) {
+		php_event_buffer_t *b;
 
-	/* XXX Is it safe to cache it here? */
-	if (bev->output) {
-		ZVAL_ZVAL(*retval, bev->output, 1, 0);
-		Z_ADDREF_P(bev->output);
-		return SUCCESS;
+		MAKE_STD_ZVAL(bev->output);
+		PHP_EVENT_INIT_CLASS_OBJECT(bev->output, php_event_buffer_ce);
+		PHP_EVENT_FETCH_BUFFER(b, bev->output);
+
+		b->buf      = bufferevent_get_output(bev->bevent);
+		b->internal = 1;
 	}
 
-	php_event_buffer_t *b;
+	MAKE_STD_ZVAL(*retval);
 
-	PHP_EVENT_INIT_CLASS_OBJECT(*retval, php_event_buffer_ce);
-	PHP_EVENT_FETCH_BUFFER(b, *retval);
-
-	b->buf      = bufferevent_get_output(bev->bevent);
-	b->internal = 1;
-
-	MAKE_STD_ZVAL(bev->output);
-	ZVAL_ZVAL(bev->output, *retval, 1, 0);
-	Z_ADDREF_P(bev->output);
-
+	ZVAL_ZVAL(*retval, bev->output, 1, 0);
+	Z_SET_ISREF_P(*retval);
+	Z_ADDREF_P(*retval);
 	return SUCCESS;
 }
 /* }}} */
