@@ -16,26 +16,22 @@ At the first terminal window you should catch the following:
 Caught signal 15
 */
 class MyEventSignal {
-	private $base;
+	private $base, $ev;
 
-	function __construct($base) {
+	public function __construct($base) {
 		$this->base = $base;
+		$this->ev = Event::signal($base, SIGTERM, array($this, 'eventSighandler'));
+		$this->ev->add();
 	}
 
-	function eventSighandler($no, $c) {
+	public function eventSighandler($no, $c) {
 		echo "Caught signal $no\n"; 
-        event_base_loopexit($c->base);
+        $this->base->exit();
 	}
 }
 
-$base = event_base_new();
+$base = new EventBase();
 $c    = new MyEventSignal($base);
-$no   = SIGTERM;
-$ev   = evsignal_new($base, $no, array($c,'eventSighandler'), $c);
 
-evsignal_add($ev);
-
-event_base_loop($base);
+$base->loop();
 ?>
-
-
