@@ -19,7 +19,7 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "1.2.6-beta"
+#define PHP_EVENT_VERSION "1.2.7-beta"
 
 
 extern zend_module_entry event_module_entry;
