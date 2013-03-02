@@ -10,11 +10,11 @@ $e1->add(0.1);
 $e2 = Event::timer($base, function () { echo "ok 3\n"; });
 $e2->add(0.2);
 
-$e1->timer_pending and print("ok 1\n");
-$e2->timer_pending and print("ok 2\n");
+$e1->pending and print("ok 1\n");
+$e2->pending and print("ok 2\n");
 
 $e1->del();
-$e1->timer_pending and print("not ok 4\n");
+$e1->pending and print("not ok 4\n");
 
 $base->loop(EventBase::LOOP_ONCE);
 

@@ -33,15 +33,15 @@ static zval **get_ssl_option(const HashTable *ht, ulong idx)
 /* }}} */
 
 
-/* {{{ event_timer_pending_prop_read */
-static int event_timer_pending_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+/* {{{ event_pending_prop_read */
+static int event_pending_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
 {
 	php_event_t *e = (php_event_t *) obj;
 
 	PHP_EVENT_ASSERT(e->event);
 
 	MAKE_STD_ZVAL(*retval);
-	ZVAL_BOOL(*retval, (evtimer_pending(e->event, NULL) ? 1 : 0));
+	ZVAL_BOOL(*retval, (php_event_is_pending(e->event) ? 1 : 0));
 
 	return SUCCESS;
 }
@@ -280,7 +280,7 @@ static int event_ssl_context_local_pk_prop_read(php_event_abstract_object_t *obj
 
 
 const php_event_property_entry_t event_property_entries[] = {
-	{"timer_pending",           sizeof("timer_pending") - 1, event_timer_pending_prop_read, NULL, NULL},
+	{"pending",           sizeof("pending") - 1, event_pending_prop_read, NULL, NULL},
     {NULL, 0, NULL, NULL, NULL}
 };
 const php_event_property_entry_t event_bevent_property_entries[] = {
@@ -313,7 +313,7 @@ const php_event_property_entry_t event_ssl_context_property_entries[] = {
 #endif
 
 const zend_property_info event_property_entry_info[] = {
-	{ZEND_ACC_PUBLIC, "timer_pending", sizeof("timer_pending") - 1, -1, 0, NULL, 0, NULL},
+	{ZEND_ACC_PUBLIC, "pending", sizeof("pending") - 1, -1, 0, NULL, 0, NULL},
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
 const zend_property_info event_bevent_property_entry_info[] = {

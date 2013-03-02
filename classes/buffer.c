@@ -451,16 +451,16 @@ PHP_METHOD(EventBuffer, readLine)
 }
 /* }}} */
 
-/* {{{ proto resource EventBuffer::search(string what[, EventBufferPosition start = NULL[, EventBufferPosition end = NULL]]);
+/* {{{ proto EventBufferPosition EventBuffer::search(string what[, EventBufferPosition start = NULL[, EventBufferPosition end = NULL]]);
  *
  * Scans the buffer for an occurrence of the len-character string what. It
- * returns resource representing the position of the string, or NULL if the
+ * returns object representing the position of the string, or NULL if the
  * string was not found. If the start argument is provided, it's the position
  * at which the search should begin; otherwise, the search is from the start
  * of the string. If end argument provided, the search is performed between
  * start and end buffer positions.
  *
- * Returns resource representing position of the first occurance of the string
+ * Returns EventBufferPosition representing position of the first occurance of the string
  * in the buffer, or NULL if string is not found
  */
 PHP_METHOD(EventBuffer, search)
