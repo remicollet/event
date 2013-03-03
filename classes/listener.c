@@ -275,8 +275,10 @@ PHP_METHOD(EventListener, __construct)
 			return;
 		}
 
-		/* Make sure that the socket is in non-blocking mode(libevent's tip) */
-		evutil_make_socket_nonblocking(fd);
+		if (flags & ~LEV_OPT_LEAVE_SOCKETS_BLOCKING) {
+			/* Make sure that the socket is in non-blocking mode(libevent's tip) */
+			evutil_make_socket_nonblocking(fd);
+		}
 
 		PHP_EVENT_FETCH_LISTENER(l, zself);
 

@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-03-02</date>
+  <date>2013-03-03</date>
   <!--{{{ Current version -->
   <version>
     <release>1.2.7</release>
@@ -34,6 +34,7 @@
   <notes><![CDATA[
   Fix: possible memory access violations in EventBufferEvent input/output property handlers
   Change: Event::$timer_pending property removed; generic Event::$pending property added
+  Fix: With OPT_LEAVE_SOCKETS_BLOCKING flag EventListener::__construct turned fd to non-blocking mode
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -114,7 +115,7 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ Current version -->
+    <!--{{{ 1.2.7-beta-->
     <release>
       <version>
         <release>1.2.7</release>
@@ -128,6 +129,7 @@
       <notes><![CDATA[
   Fix: possible memory access violations in EventBufferEvent input/output property handlers
   Change: Event::$timer_pending property removed; generic Event::$pending property added
+  Fix: With OPT_LEAVE_SOCKETS_BLOCKING flag EventListener::__construct turned fd to non-blocking mode
   ]]></notes>
     </release>
     <!--}}}-->
