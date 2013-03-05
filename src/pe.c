@@ -19,6 +19,31 @@
 #include "src/priv.h"
 #include "src/util.h"
 
+static inline void _prop_write_zval(zval **ppz, const zval *value)
+{
+	if (!*ppz) {
+		MAKE_STD_ZVAL(*ppz);
+	}
+
+    /* Make a copy of the zval, avoid direct binding to the address
+     * of value, since it breaks refcount in read_property()
+     * causing further leaks and memory access violations */
+	REPLACE_ZVAL_VALUE(ppz, value, 1);
+}
+
+static inline void _prop_read_zval(const zval *pz, zval **retval)
+{
+	if (!pz) {
+		ALLOC_INIT_ZVAL(*retval);
+		return;
+	}
+
+    MAKE_STD_ZVAL(*retval);
+    REPLACE_ZVAL_VALUE(retval, pz, 1);
+}
+
+
+
 /* {{{ get_ssl_option */
 static zval **get_ssl_option(const HashTable *ht, ulong idx)
 {
@@ -42,6 +67,43 @@ static int event_pending_prop_read(php_event_abstract_object_t *obj, zval **retv
 
 	MAKE_STD_ZVAL(*retval);
 	ZVAL_BOOL(*retval, (php_event_is_pending(e->event) ? 1 : 0));
+
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ event_data_prop_get_ptr_ptr */
+static zval **event_data_prop_get_ptr_ptr(php_event_abstract_object_t *obj TSRMLS_DC)
+{
+	php_event_t *e = (php_event_t *) obj;
+
+	PHP_EVENT_ASSERT(e->event);
+
+	return (e->data ? &e->data : NULL);
+}
+/* }}} */
+
+/* {{{ event_data_prop_read  */
+static int event_data_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_t *e = (php_event_t *) obj;
+
+	PHP_EVENT_ASSERT(e->event);
+
+	_prop_read_zval(e->data, retval);
+
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ event_data_prop_write */
+static int event_data_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+{
+	php_event_t *e = (php_event_t *) obj;
+
+	PHP_EVENT_ASSERT(e->event);
+
+	_prop_write_zval(&e->data, value);
 
 	return SUCCESS;
 }
@@ -280,7 +342,8 @@ static int event_ssl_context_local_pk_prop_read(php_event_abstract_object_t *obj
 
 
 const php_event_property_entry_t event_property_entries[] = {
-	{"pending",           sizeof("pending") - 1, event_pending_prop_read, NULL, NULL},
+	{"pending", sizeof("pending") - 1, event_pending_prop_read, NULL,                  NULL},
+	{"data",    sizeof("data")    - 1, event_data_prop_read,    event_data_prop_write, event_data_prop_get_ptr_ptr},
     {NULL, 0, NULL, NULL, NULL}
 };
 const php_event_property_entry_t event_bevent_property_entries[] = {
@@ -314,6 +377,7 @@ const php_event_property_entry_t event_ssl_context_property_entries[] = {
 
 const zend_property_info event_property_entry_info[] = {
 	{ZEND_ACC_PUBLIC, "pending", sizeof("pending") - 1, -1, 0, NULL, 0, NULL},
+	{ZEND_ACC_PUBLIC, "data",    sizeof("data")    - 1, -1, 0, NULL, 0, NULL},
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
 const zend_property_info event_bevent_property_entry_info[] = {

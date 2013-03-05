@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-03-03</date>
+  <date>2013-03-05</date>
   <!--{{{ Current version -->
   <version>
     <release>1.2.7</release>
@@ -35,6 +35,9 @@
   Fix: possible memory access violations in EventBufferEvent input/output property handlers
   Change: Event::$timer_pending property removed; generic Event::$pending property added
   Fix: With OPT_LEAVE_SOCKETS_BLOCKING flag EventListener::__construct turned fd to non-blocking mode
+  Fix: property and class HashTable's were not free'd in MSHUTDOWN
+  Add: Event::$data property
+  Fix: Event::__construct failed with Event::TIMEOUT flag
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -74,6 +77,7 @@
         <file role="doc" name="listener.php"/>
         <file role="doc" name="misc.php"/>
         <file role="doc" name="signal.php"/>
+        <file role="doc" name="timer.php"/>
         <file role="doc" name="uppercase_proxy.php"/>
       </dir>
       <dir name="src">
@@ -130,6 +134,9 @@
   Fix: possible memory access violations in EventBufferEvent input/output property handlers
   Change: Event::$timer_pending property removed; generic Event::$pending property added
   Fix: With OPT_LEAVE_SOCKETS_BLOCKING flag EventListener::__construct turned fd to non-blocking mode
+  Fix: property and class HashTable's were not free'd in MSHUTDOWN
+  Add: Event::$data property
+  Fix: Event::__construct failed with Event::TIMEOUT flag
   ]]></notes>
     </release>
     <!--}}}-->

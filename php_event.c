@@ -120,20 +120,24 @@ static void event_object_free_storage(void *ptr TSRMLS_DC)
 
 	PHP_EVENT_ASSERT(e);
 
-	if (e->data) {
-		zval_ptr_dtor(&e->data);
+	if (e->event) {
+		/* No need in
+		 * event_del(e->event);
+		 * since event_free makes event non-pending internally */
+		event_free(e->event);
+		e->event = NULL;
 	}
-
-	PHP_EVENT_FREE_FCALL_INFO(e->fci, e->fcc);
 
 	if (e->stream_id >= 0) { /* stdin fd == 0 */
 		zend_list_delete(e->stream_id);
 	}
 
-	if (e->event) {
-		event_del(e->event);
-		event_free(e->event);
+	if (e->data) {
+		zval_ptr_dtor(&e->data);
+		e->data = NULL;
 	}
+
+	PHP_EVENT_FREE_FCALL_INFO(e->fci, e->fcc);
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }
@@ -149,6 +153,7 @@ static void event_base_object_free_storage(void *ptr TSRMLS_DC)
 	if (!b->internal && b->base) {
 		/* TODO: what if events bound to the event_base are not destroyed? */
 		event_base_free(b->base);
+		b->base = NULL;
 	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
@@ -1152,6 +1157,14 @@ PHP_MINIT_FUNCTION(event)
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(event)
 {
+	zend_hash_destroy(&event_properties);
+	zend_hash_destroy(&event_bevent_properties);
+	zend_hash_destroy(&event_buffer_properties);
+	zend_hash_destroy(&event_buffer_pos_properties);
+	zend_hash_destroy(&event_ssl_context_properties);
+
+	zend_hash_destroy(&classes);
+
 #ifdef HAVE_EVENT_OPENSSL_LIB
 	/* Removes memory allocated when loading digest and cipher names
 	 * in the OpenSSL_add_all_ family of functions */

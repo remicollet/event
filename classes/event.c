@@ -229,6 +229,8 @@ PHP_METHOD(Event, __construct)
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid signal passed");
 			RETURN_FALSE;
 		}
+	} else if (what & EV_TIMEOUT) {
+		fd = -1;
 	} else {
 		fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);
 		if (fd < 0) {
@@ -278,12 +280,15 @@ PHP_METHOD(Event, free)
 	PHP_EVENT_FETCH_EVENT(e, zself);
 
 	if (e->event) {
-		event_del(e->event);
+		/* No need in
+		 * event_del(e->event);
+		 * since event_free makes event non-pending internally */
 		event_free(e->event);
 		e->event = NULL;
+
+		zval_ptr_dtor(&zself);
 	}
 
-	/*zval_ptr_dtor(&zself);*/
 }
 /* }}} */
 
@@ -452,7 +457,7 @@ PHP_METHOD(Event, del)
 
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
-	if (event_del(e->event)) {
+	if (e->event == NULL || event_del(e->event)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed deletting event");
 		RETURN_FALSE;
 	}
