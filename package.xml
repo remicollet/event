@@ -38,6 +38,7 @@
   Fix: property and class HashTable's were not free'd in MSHUTDOWN
   Add: Event::$data property
   Fix: Event::__construct failed with Event::TIMEOUT flag
+  Fix: memory leak in EventBuffer::readLine
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -137,6 +138,7 @@
   Fix: property and class HashTable's were not free'd in MSHUTDOWN
   Add: Event::$data property
   Fix: Event::__construct failed with Event::TIMEOUT flag
+  Fix: memory leak in EventBuffer::readLine
   ]]></notes>
     </release>
     <!--}}}-->
