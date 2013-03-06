@@ -430,9 +430,9 @@ PHP_METHOD(EventBuffer, readLine)
 {
 	zval               *zbuf      = getThis();
 	php_event_buffer_t *b;
-	long                len;
 	long                eol_style;
 	char               *res;
+	size_t              len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
 				&eol_style) == FAILURE) {
@@ -441,7 +441,7 @@ PHP_METHOD(EventBuffer, readLine)
 
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
-	res = evbuffer_readln(b->buf, (size_t *) &len, eol_style);
+	res = evbuffer_readln(b->buf, &len, eol_style);
 
 	if (!res) {
 		RETURN_NULL();

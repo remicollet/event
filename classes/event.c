@@ -286,9 +286,8 @@ PHP_METHOD(Event, free)
 		event_free(e->event);
 		e->event = NULL;
 
-		zval_ptr_dtor(&zself);
+		/*zval_ptr_dtor(&zself);*/
 	}
-
 }
 /* }}} */
 
