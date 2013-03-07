@@ -288,7 +288,7 @@ PHP_METHOD(EventBufferEvent, free)
 		bev->bevent = 0;
 
 		/* Do it once */
-		zval_ptr_dtor(&zbevent);
+		zval_ptr_dtor(&bev->self);
 	}
 }
 /* }}} */
