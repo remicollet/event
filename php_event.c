@@ -130,6 +130,7 @@ static void event_object_free_storage(void *ptr TSRMLS_DC)
 
 	if (e->stream_id >= 0) { /* stdin fd == 0 */
 		zend_list_delete(e->stream_id);
+		e->stream_id = -1;
 	}
 
 	if (e->data) {
