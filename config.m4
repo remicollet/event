@@ -126,7 +126,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   if test "$PHP_EVENT_PTHREADS" != "no"; then
 	  AC_CHECK_LIB(event_pthreads, evthread_use_pthreads, [
 	    PHP_ADD_LIBRARY_WITH_PATH(event_pthreads, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
-      LDFLAGS="-levent_pthreads $LDFLAGS"
+      LDFLAGS="-lpthread -levent_pthreads $LDFLAGS"
       AC_DEFINE(HAVE_EVENT_PTHREADS_LIB, 1, [ ])
 	  ], [
       AC_MSG_ERROR([evthread_use_pthreads not found in event_pthreads library, or the library is not installed])
