@@ -17,6 +17,9 @@ dnl +----------------------------------------------------------------------+
 PHP_ARG_WITH(event-core, for event core support,
 [  --with-event-core        Include core libevent support])
 
+PHP_ARG_WITH(event-pthreads, for event thread safety support,
+[  --with-event-pthreads    Include libevent's pthreads library and enable thread safety support in event], yes, no)
+
 PHP_ARG_WITH(event-extra, for event extra functionality support,
 [  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, no)
 
@@ -97,7 +100,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
     EVENT_LIBS="-L$EVENT_DIR/$PHP_LIBDIR"
     EVENT_LIBDIR=$EVENT_DIR/$PHP_LIBDIR
   fi
-  LDFLAGS="$EVENT_LIBS -levent_core $LDFLAGS"
+  LDFLAGS="$EVENT_LIBS -levent_core -levent_pthreads $LDFLAGS"
 
   dnl {{{ event_core
 	AC_CHECK_LIB(event_core, event_free, [
@@ -117,6 +120,18 @@ if test "$PHP_EVENT_CORE" != "no"; then
     classes/buffer.c \
     classes/buffer_pos.c \
     classes/event_util.c"
+  dnl }}}
+
+  dnl {{{ --with-event-pthreads
+  if test "$PHP_EVENT_PTHREADS" != "no"; then
+	  AC_CHECK_LIB(event_pthreads, evthread_use_pthreads, [
+	    PHP_ADD_LIBRARY_WITH_PATH(event_pthreads, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
+      LDFLAGS="-lpthread -levent_pthreads $LDFLAGS"
+      AC_DEFINE(HAVE_EVENT_PTHREADS_LIB, 1, [ ])
+	  ], [
+      AC_MSG_ERROR([evthread_use_pthreads not found in event_pthreads library, or the library is not installed])
+	  ])
+  fi
   dnl }}}
 
   dnl {{{ --with-event-extra

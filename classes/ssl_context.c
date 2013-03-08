@@ -31,7 +31,6 @@
 static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 {
 	SSL                      *ssl;
-	X509                     *err_cert;
 	int                       ret      = preverify_ok;
 	int                       err;
 	int                       depth;
@@ -45,7 +44,7 @@ static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 	PHP_EVENT_ASSERT(ectx && ectx->ht);
 	ht = ectx->ht;
 
-	err_cert = X509_STORE_CTX_get_current_cert(ctx);
+	X509_STORE_CTX_get_current_cert(ctx);
 	err      = X509_STORE_CTX_get_error(ctx);
 	depth    = X509_STORE_CTX_get_error_depth(ctx);
 

@@ -20,10 +20,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-03-05</date>
+  <date>2013-03-08</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.2.7</release>
+    <release>1.3.0</release>
     <api>1.3.1</api>
   </version>
   <stability>
@@ -39,6 +39,8 @@
   Add: Event::$data property
   Fix: Event::__construct failed with Event::TIMEOUT flag
   Fix: memory leak in EventBuffer::readLine
+  Add: --with-event-pthreads configure option
+  Fix: EventBase::reInit method's arginfo
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -114,16 +116,17 @@
   <extsrcrelease>
     <configureoption default="no" name="enable-event-debug" prompt="Enable internal debugging in event"/>
     <configureoption default="/usr" name="with-event-libevent-dir" prompt="libevent installation prefix"/>
+    <configureoption default="yes" name="with-event-pthreads" prompt="Include libevent's pthreads library and enable thread safety support in event"/>
     <configureoption default="yes" name="with-event-extra" prompt="Include libevent protocol-specific functionality support including HTTP, DNS, and RPC"/>
     <configureoption default="yes" name="with-event-openssl" prompt="Include libevent OpenSSL support"/>
     <configureoption default="no" name="with-openssl-dir" prompt="openssl installation prefix"/>
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ 1.2.7-beta-->
+    <!--{{{ 1.3.0-beta-->
     <release>
       <version>
-        <release>1.2.7</release>
+        <release>1.3.0</release>
         <api>1.3.1</api>
       </version>
       <stability>
@@ -139,6 +142,8 @@
   Add: Event::$data property
   Fix: Event::__construct failed with Event::TIMEOUT flag
   Fix: memory leak in EventBuffer::readLine
+  Add: --with-event-pthreads configure option
+  Fix: EventBase::reInit method's arginfo
   ]]></notes>
     </release>
     <!--}}}-->

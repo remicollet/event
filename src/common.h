@@ -44,6 +44,10 @@
 #include <event2/buffer.h>
 #include <event2/util.h>
 
+#ifdef HAVE_EVENT_PTHREADS_LIB
+# include <event2/thread.h>
+#endif
+
 #ifdef HAVE_EVENT_EXTRA_LIB
 # include <event2/listener.h>
 # include <event2/dns.h>

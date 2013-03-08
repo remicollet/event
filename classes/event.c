@@ -489,7 +489,7 @@ PHP_METHOD(Event, removeTimer)
 #endif
 
 /* {{{ proto bool Event::setPriority(int priority);
- * Make event pending. */
+ * Set event priority. */
 PHP_METHOD(Event, setPriority)
 {
 	zval        *zevent = getThis();

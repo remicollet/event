@@ -31,7 +31,7 @@ static inline void _prop_write_zval(zval **ppz, const zval *value)
 	REPLACE_ZVAL_VALUE(ppz, value, 1);
 }
 
-static inline void _prop_read_zval(const zval *pz, zval **retval)
+static inline void _prop_read_zval(zval *pz, zval **retval)
 {
 	if (!pz) {
 		ALLOC_INIT_ZVAL(*retval);
@@ -39,7 +39,8 @@ static inline void _prop_read_zval(const zval *pz, zval **retval)
 	}
 
     MAKE_STD_ZVAL(*retval);
-    REPLACE_ZVAL_VALUE(retval, pz, 1);
+    /*REPLACE_ZVAL_VALUE(retval, pz, 1);*/
+    ZVAL_ZVAL(*retval, pz, 1, 0);
 }
 
 
@@ -71,6 +72,7 @@ static int event_pending_prop_read(php_event_abstract_object_t *obj, zval **retv
 	return SUCCESS;
 }
 /* }}} */
+
 
 /* {{{ event_data_prop_get_ptr_ptr */
 static zval **event_data_prop_get_ptr_ptr(php_event_abstract_object_t *obj TSRMLS_DC)
@@ -108,7 +110,6 @@ static int event_data_prop_write(php_event_abstract_object_t *obj, zval *value T
 	return SUCCESS;
 }
 /* }}} */
-
 
 
 /* {{{ event_buffer_length_prop_read */

@@ -278,9 +278,9 @@ PHP_METHOD(EventBase, gotExit)
  * returns NULL. */
 PHP_METHOD(EventBase, getTimeOfDayCached)
 {
-	zval                  *zbase = getThis();
-	php_event_base_t      *b;
-	struct timeval         tv;
+	zval             *zbase = getThis();
+	php_event_base_t *b;
+	struct timeval    tv;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -291,7 +291,7 @@ PHP_METHOD(EventBase, getTimeOfDayCached)
 	if (event_base_gettimeofday_cached(b->base, &tv)) {
 		RETURN_NULL();
 	}
-	
+
 	RETVAL_DOUBLE(PHP_EVENT_TIMEVAL_TO_DOUBLE(tv));
 }
 /* }}} */
