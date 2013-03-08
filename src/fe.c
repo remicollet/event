@@ -83,10 +83,6 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_pending, 0, 0, 1)
 	ZEND_ARG_INFO(0, flags)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_reinit, 0, 0, 1)
-	ZEND_ARG_INFO(0, base)
-ZEND_END_ARG_INFO();
-
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evtimer_new, 0, 0, 2)
 	ZEND_ARG_INFO(0, base)
 	ZEND_ARG_INFO(0, cb)
@@ -410,7 +406,7 @@ const zend_function_entry php_event_base_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBase, gotStop,            arginfo_event__void,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, gotExit,            arginfo_event__void,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, getTimeOfDayCached, arginfo_event__void,              ZEND_ACC_PUBLIC)
-	PHP_ME(EventBase, reInit,             arginfo_event_reinit,             ZEND_ACC_PUBLIC)
+	PHP_ME(EventBase, reInit,             arginfo_event__void,              ZEND_ACC_PUBLIC)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	PHP_ME(EventBase, updateCacheTime, arginfo_event__void, ZEND_ACC_PUBLIC)
 #endif
