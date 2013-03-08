@@ -26,22 +26,34 @@
 static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_event_bevent_t *bev, zend_fcall_info *pfci, zend_fcall_info_cache *pfcc)
 {
 	PHP_EVENT_ASSERT(bev);
+	PHP_EVENT_ASSERT(bevent);
 	PHP_EVENT_ASSERT(bevent == bev->bevent);
 	PHP_EVENT_ASSERT(pfci && pfcc);
 	PHP_EVENT_ASSERT(bev->self);
 
 	zval  *arg_data = bev->data;
+	zval  *arg_self;
 	zval **args[2];
 	zval  *retval_ptr;
 
 	TSRMLS_FETCH_FROM_CTX(bev->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
+#ifdef HAVE_EVENT_PTHREADS_LIB
+		if (bevent) {
+			bufferevent_lock(bevent);
+		}
+#endif
 		/* Setup callback args */
 
-		if (bev->self) {
-			args[0] = &bev->self;
+		arg_self = bev->self;
+		if (arg_self) {
+			Z_ADDREF_P(arg_self);
+		} else {
+			ALLOC_INIT_ZVAL(arg_self);
 		}
+		args[0] = &bev->self;
+
 		if (arg_data) {
 			Z_ADDREF_P(arg_data);
 		} else {
@@ -64,6 +76,13 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
         }
 
         zval_ptr_dtor(&arg_data);
+
+#ifdef HAVE_EVENT_PTHREADS_LIB
+		if (bevent) {
+			bufferevent_unlock(bevent);
+		}
+#endif
+        zval_ptr_dtor(&arg_self);
 	}
 }
 /* }}} */
@@ -94,18 +113,34 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	zend_fcall_info_cache *pfcc = bev->fcc_event;
 
 	PHP_EVENT_ASSERT(pfci && pfcc);
+	PHP_EVENT_ASSERT(bevent);
 	PHP_EVENT_ASSERT(bev->bevent == bevent);
 	PHP_EVENT_ASSERT(bev->self);
 
+
 	zval  *arg_data   = bev->data;
 	zval  *arg_events;
+	zval  *arg_self;
 	zval **args[3];
 	zval  *retval_ptr;
 
 	TSRMLS_FETCH_FROM_CTX(bev->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
+#ifdef HAVE_EVENT_PTHREADS_LIB
+		if (bevent) {
+			bufferevent_lock(bevent);
+		}
+#endif
+
 		/* Setup callback args */
+
+		arg_self = bev->self;
+		if (arg_self) {
+			Z_ADDREF_P(arg_self);
+		} else {
+			ALLOC_INIT_ZVAL(arg_self);
+		}
 		args[0] = &bev->self;
 
 		MAKE_STD_ZVAL(arg_events);
@@ -135,6 +170,14 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 
         zval_ptr_dtor(&arg_events);
         zval_ptr_dtor(&arg_data);
+
+		PHP_EVENT_ASSERT(bevent);
+#ifdef HAVE_EVENT_PTHREADS_LIB
+		if (bevent) {
+			bufferevent_unlock(bevent);
+		}
+#endif
+		zval_ptr_dtor(&arg_self);
 	}
 }
 /* }}} */
@@ -215,6 +258,9 @@ PHP_METHOD(EventBufferEvent, __construct)
 
 	PHP_EVENT_FETCH_BEVENT(bev, zself);
 
+#ifdef HAVE_EVENT_PTHREADS_LIB
+	options |= BEV_OPT_THREADSAFE;
+#endif
 	bevent = bufferevent_socket_new(base->base, fd, options);
 	if (bevent == NULL) {
 		php_error_docref(NULL TSRMLS_CC, E_ERROR,
@@ -288,7 +334,10 @@ PHP_METHOD(EventBufferEvent, free)
 		bev->bevent = 0;
 
 		/* Do it once */
-		zval_ptr_dtor(&bev->self);
+		if (bev->self) {
+			zval_ptr_dtor(&bev->self);
+			bev->self = NULL;
+		}
 	}
 }
 /* }}} */
@@ -942,6 +991,9 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 		RETURN_FALSE;
 	}
 
+#ifdef HAVE_EVENT_PTHREADS_LIB
+	options |= BEV_OPT_THREADSAFE;
+#endif
 	bevent = bufferevent_openssl_filter_new(base->base,
     		bev_underlying->bevent,
     		ssl, state, options);
@@ -1010,6 +1062,9 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	/* Attach ectx to ssl for callbacks */
 	SSL_set_ex_data(ssl, php_event_ssl_data_index, ectx);
 
+#ifdef HAVE_EVENT_PTHREADS_LIB
+	options |= BEV_OPT_THREADSAFE;
+#endif
 	bevent = bufferevent_openssl_socket_new(base->base, fd, ssl, state, options);
 	if (bevent == NULL) {
 		php_error_docref(NULL TSRMLS_CC, E_ERROR,

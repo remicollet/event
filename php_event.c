@@ -191,12 +191,17 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 		PHP_EVENT_FREE_FCALL_INFO(b->fci_write, b->fcc_write);
 		PHP_EVENT_FREE_FCALL_INFO(b->fci_event, b->fcc_event);
 
-#if 0
+		/* XXX */
 		if (b->self) {
 			zval_ptr_dtor(&b->self);
 			b->self = NULL;
 		}
-#endif
+
+		if (b->bevent) {
+			bufferevent_free(b->bevent);
+			b->bevent = NULL;
+		}
+
 		if (b->input) {
 			zval_ptr_dtor(&b->input);
 			b->input = NULL;
@@ -205,11 +210,6 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 		if (b->output) {
 			zval_ptr_dtor(&b->output);
 			b->output= NULL;
-		}
-
-		if (b->bevent) {
-			bufferevent_free(b->bevent);
-			b->bevent = NULL;
 		}
 	}
 
@@ -1147,8 +1147,18 @@ PHP_MINIT_FUNCTION(event)
 	 * logging to stderr, or calling abort()/exit() */
 	event_set_fatal_callback(fatal_error_cb);
 	event_set_log_callback(log_cb);
+#ifdef HAVE_EVENT_PTHREADS_LIB
+# ifdef WIN32
+	evthread_use_windows_threads();
+# else
+	evthread_use_pthreads();
+# endif
+#endif
 #ifdef PHP_EVENT_DEBUG
 	event_enable_debug_mode();
+# ifdef HAVE_EVENT_PTHREADS_LIB
+	evthread_enable_lock_debuging();
+# endif
 #endif
 
 	return SUCCESS;

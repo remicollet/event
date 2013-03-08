@@ -72,6 +72,7 @@ static int event_pending_prop_read(php_event_abstract_object_t *obj, zval **retv
 }
 /* }}} */
 
+
 /* {{{ event_data_prop_get_ptr_ptr */
 static zval **event_data_prop_get_ptr_ptr(php_event_abstract_object_t *obj TSRMLS_DC)
 {
@@ -108,7 +109,6 @@ static int event_data_prop_write(php_event_abstract_object_t *obj, zval *value T
 	return SUCCESS;
 }
 /* }}} */
-
 
 
 /* {{{ event_buffer_length_prop_read */
