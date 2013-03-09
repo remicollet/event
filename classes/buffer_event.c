@@ -252,6 +252,10 @@ PHP_METHOD(EventBufferEvent, __construct)
  		 * e.g. by means of bufferevent_socket_connect()
  		 * which allocates new socket stream in this case. */
 		fd = -1;
+		/* User has no access to the file descriptor created
+		 * internally(bufferevent_getfd is not exposed to userspace at the
+		 * moment). Therefore, we have to make it close-on-free. */
+		options |= BEV_OPT_CLOSE_ON_FREE;
 	}
 
 	PHP_EVENT_FETCH_BASE(base, zbase);
@@ -452,7 +456,7 @@ PHP_METHOD(EventBufferEvent, connect)
 }
 /* }}} */
 
-/* {{{ proto bool EventBufferEvent::connectHost(resource dns_base, string hostname, int port[, int family = EVENT_AF_UNSPEC]);
+/* {{{ proto bool EventBufferEvent::connectHost(EventDnsBase dns_base, string hostname, int port[, int family = EVENT_AF_UNSPEC]);
  *
  * Resolves the DNS name hostname, looking for addresses of type
  * family(EVENT_AF_* constants). If the name resolution fails, it invokes the
@@ -776,7 +780,7 @@ PHP_METHOD(EventBufferEvent, setWatermark)
 /* }}} */
 
 /* {{{ proto bool EventBufferEvent::write(string data);
- * Adds `data' to a buffe revent's output buffer. */
+ * Adds `data' to a buffer event's output buffer. */
 PHP_METHOD(EventBufferEvent, write)
 {
 	zval               *zbevent = getThis();
@@ -868,7 +872,7 @@ PHP_METHOD(EventBufferEvent, read)
 /* }}} */
 
 /* {{{ proto bool EventBufferEvent::readBuffer(EventBuffer buf);
- * Drains the entire contents of the input buffer and places them into buf; it returns 0 on success and -1 on failure. */
+ * Drains the entire contents of the input buffer and places them into buf */
 PHP_METHOD(EventBufferEvent, readBuffer)
 {
 	zval               *zbevent = getThis();
@@ -1009,7 +1013,7 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 }
 /* }}} */
 
-/* {{{ proto EventBufferEvent EventBufferEvent::sslSocket(EventBase base, resource socket, EventSslContext ctx, int state[, int options = 0]);
+/* {{{ proto EventBufferEvent EventBufferEvent::sslSocket(EventBase base, mixed socket, EventSslContext ctx, int state[, int options = 0]);
  * */
 PHP_METHOD(EventBufferEvent, sslSocket)
 {

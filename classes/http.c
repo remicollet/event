@@ -21,7 +21,7 @@
 
 /* {{{ proto EventHttp EventHttp::__construct(EventBase base);
  *
- * Creates new http server resource.
+ * Creates new http server object.
  */
 PHP_METHOD(EventHttp, __construct)
 {

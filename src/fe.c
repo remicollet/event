@@ -119,11 +119,14 @@ ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent__construct, 0, 0, 1)
 	ZEND_ARG_INFO(0, base)
-	ZEND_ARG_INFO(0, fd)
+	ZEND_ARG_INFO(0, socket)
 	ZEND_ARG_INFO(0, options)
+	ZEND_ARG_INFO(0, readcb)
+	ZEND_ARG_INFO(0, writecb)
+	ZEND_ARG_INFO(0, eventcb)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_connect, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_connect, 0, 0, 1)
 	ZEND_ARG_INFO(0, addr)
 	ZEND_ARG_INFO(0, sync_resolve)
 ZEND_END_ARG_INFO();
@@ -161,9 +164,9 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_read, 0, 0, 2)
 	ZEND_ARG_INFO(0, size)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_pair_new, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_pair_new, 0, 0, 1)
 	ZEND_ARG_INFO(0, base)
-	ZEND_ARG_INFO(0, events)
+	ZEND_ARG_INFO(0, options)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_priority_set, 0, 0, 1)

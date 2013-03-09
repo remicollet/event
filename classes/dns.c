@@ -21,7 +21,7 @@
 
 /* {{{ proto EventDnsBase EventDnsBase::__construct(EventBase base, bool initialize);
  *
- * Returns resource representing event dns base.
+ * Returns object representing event dns base.
  *
  * If the initialize argument is true, it tries to configure the DNS base
  * sensibly given your operating system’s default. Otherwise, it leaves the

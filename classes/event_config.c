@@ -20,7 +20,7 @@
 #include "src/priv.h"
 
 /* {{{ proto EventConfig::__construct(void);
- * On success returns a valid resource representing an event configuration
+ * On success returns an object representing an event configuration
  * which can be passed to EventBase::__construct. */
 PHP_METHOD(EventConfig, __construct)
 {
@@ -86,7 +86,7 @@ PHP_METHOD(EventConfig, requireFeatures)
 /* }}} */
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
-/* {{{ proto void EventConfig:setMaxDispatchInterval(int max_interval, int max_callbacks, int min_priority);
+/* {{{ proto void EventConfig::setMaxDispatchInterval(int max_interval, int max_callbacks, int min_priority);
  * Prevents priority inversion by limiting how many low-priority event
  * callbacks can be invoked before checking for more high-priority events.
  * Available since libevent 2.1.0-alpha. */
