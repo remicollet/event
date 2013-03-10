@@ -1198,12 +1198,17 @@ PHP_MINIT_FUNCTION(event)
     php_event_ssl_data_index = SSL_get_ex_new_index(0, "PHP EventSslContext index", NULL, NULL, NULL);
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
+
+#ifdef PHP_EVENT_DEBUG
+	event_enable_debug_mode();
+#endif
+
 #ifdef HAVE_EVENT_PTHREADS_LIB
 # ifdef WIN32
 # error "Windows is not supported right now"
 	evthread_use_windows_threads();
 # else
-	evthread_use_pthreads();
+	PHP_EVENT_ASSERT(evthread_use_pthreads() == 0);
 # endif
 #endif
 
@@ -1212,13 +1217,6 @@ PHP_MINIT_FUNCTION(event)
 	event_set_fatal_callback(fatal_error_cb);
 	event_set_log_callback(log_cb);
 
-#ifdef PHP_EVENT_DEBUG
-	event_enable_debug_mode();
-# ifdef HAVE_EVENT_PTHREADS_LIB
-	evthread_enable_lock_debuging();
-# endif
-#endif
-
 	return SUCCESS;
 }
 /* }}} */
@@ -1226,14 +1224,6 @@ PHP_MINIT_FUNCTION(event)
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(event)
 {
-	zend_hash_destroy(&event_properties);
-	zend_hash_destroy(&event_bevent_properties);
-	zend_hash_destroy(&event_buffer_properties);
-	zend_hash_destroy(&event_buffer_pos_properties);
-	zend_hash_destroy(&event_ssl_context_properties);
-
-	zend_hash_destroy(&classes);
-
 #ifdef HAVE_EVENT_OPENSSL_LIB
 	/* Removes memory allocated when loading digest and cipher names
 	 * in the OpenSSL_add_all_ family of functions */
@@ -1247,6 +1237,14 @@ PHP_MSHUTDOWN_FUNCTION(event)
 	 * structures. Don't call any of libevent functions below! */
 	libevent_global_shutdown();
 #endif
+
+	zend_hash_destroy(&event_properties);
+	zend_hash_destroy(&event_bevent_properties);
+	zend_hash_destroy(&event_buffer_properties);
+	zend_hash_destroy(&event_buffer_pos_properties);
+	zend_hash_destroy(&event_ssl_context_properties);
+
+	zend_hash_destroy(&classes);
 
 	return SUCCESS;
 }
