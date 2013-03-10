@@ -295,6 +295,63 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_bind, 0, 0, 2)
 	ZEND_ARG_INFO(0, port)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_set_callback, 0, 0, 2)
+	ZEND_ARG_INFO(0, path)
+	ZEND_ARG_INFO(0, cb)
+	ZEND_ARG_INFO(0, arg)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_set_allowed_methods, 0, 0, 1)
+	ZEND_ARG_INFO(0, methods)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_set_value, 0, 0, 1)
+	ZEND_ARG_INFO(0, value)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_add_alias, 0, 0, 1)
+	ZEND_ARG_INFO(0, alias)
+ZEND_END_ARG_INFO();
+
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req_send_error, 0, 0, 2)
+	ZEND_ARG_INFO(0, error)
+	ZEND_ARG_INFO(0, reason)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req_send_reply, 0, 0, 2)
+	ZEND_ARG_INFO(0, code)
+	ZEND_ARG_INFO(0, reason)
+	ZEND_ARG_INFO(0, buf)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req_send_reply_chunk, 0, 0, 1)
+	ZEND_ARG_INFO(0, buf)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req_send_reply_start, 0, 0, 2)
+	ZEND_ARG_INFO(0, code)
+	ZEND_ARG_INFO(0, reason)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_con_make_request, 0, 0, 3)
+	ZEND_ARG_INFO(0, req)
+	ZEND_ARG_INFO(0, type)
+	ZEND_ARG_INFO(0, uri)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req_add_header, 0, 0, 3)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, value)
+	ZEND_ARG_INFO(0, type)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req_remove_header, 0, 0, 2)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, type)
+ZEND_END_ARG_INFO();
+
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_ssl_context__construct, 0, 0, 2)
 	ZEND_ARG_INFO(0, method)
 	ZEND_ARG_INFO(0, options)
@@ -434,25 +491,25 @@ const zend_function_entry php_event_config_ce_functions[] = {/* {{{ */
 /* }}} */
 
 const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
-	PHP_ME(EventBufferEvent, __construct,       arginfo_bufferevent__construct,              ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-	PHP_ME(EventBufferEvent, free,              arginfo_event__void,                         ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, connect,           arginfo_bufferevent_connect,                 ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, connectHost,       arginfo_bufferevent_socket_connect_hostname, ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, getDnsErrorString, arginfo_event__void,                         ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, setCallbacks,      arginfo_bufferevent_set_callbacks,           ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, enable,            arginfo_bufferevent__events,                 ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, disable,           arginfo_bufferevent__events,                 ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, getEnabled,        arginfo_event__void,                         ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, getInput,          arginfo_event__void,                         ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, getOutput,         arginfo_event__void,                         ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, setWatermark,      arginfo_bufferevent_setwatermark,            ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, write,             arginfo_bufferevent_write,                   ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, writeBuffer,       arginfo_bufferevent_write_buffer,            ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, read,              arginfo_bufferevent_read,                    ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, readBuffer,        arginfo_bufferevent_write_buffer,            ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, createPair,        arginfo_bufferevent_pair_new,                ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, setPriority,       arginfo_bufferevent_priority_set,            ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, setTimeouts,       arginfo_bufferevent_set_timeouts,            ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, __construct,        arginfo_bufferevent__construct,              ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(EventBufferEvent, free,               arginfo_event__void,                         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, connect,            arginfo_bufferevent_connect,                 ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, connectHost,        arginfo_bufferevent_socket_connect_hostname, ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, getDnsErrorString,  arginfo_event__void,                         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, setCallbacks,       arginfo_bufferevent_set_callbacks,           ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, enable,             arginfo_bufferevent__events,                 ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, disable,            arginfo_bufferevent__events,                 ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, getEnabled,         arginfo_event__void,                         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, getInput,           arginfo_event__void,                         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, getOutput,          arginfo_event__void,                         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, setWatermark,       arginfo_bufferevent_setwatermark,            ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, write,              arginfo_bufferevent_write,                   ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, writeBuffer,        arginfo_bufferevent_write_buffer,            ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, read,               arginfo_bufferevent_read,                    ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, readBuffer,         arginfo_bufferevent_write_buffer,            ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, createPair,         arginfo_bufferevent_pair_new,                ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, setPriority,        arginfo_bufferevent_priority_set,            ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, setTimeouts,        arginfo_bufferevent_set_timeouts,            ZEND_ACC_PUBLIC)
 #ifdef HAVE_EVENT_OPENSSL_LIB
 	PHP_ME(EventBufferEvent, sslFilter,         arginfo_bufferevent_ssl_filter,              ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventBufferEvent, sslSocket,         arginfo_bufferevent_ssl_socket,              ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -537,14 +594,49 @@ const zend_function_entry php_event_http_conn_ce_functions[] = {
 	PHP_ME(EventHttpConnection, setMaxHeadersSize, arginfo_event_evhttp_connection_set_max_size,      ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpConnection, setMaxBodySize,    arginfo_event_evhttp_connection_set_max_size,      ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpConnection, setRetries,        arginfo_event_evhttp_connection_set_retries,       ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpConnection, makeRequest,       arginfo_event_http_con_make_request,               ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };
 
 const zend_function_entry php_event_http_ce_functions[] = {
-	PHP_ME(EventHttp, __construct, arginfo_event_http__construct, ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
-	PHP_ME(EventHttp, accept,      arginfo_event_http_accept,     ZEND_ACC_PUBLIC)
-	PHP_ME(EventHttp, bind,        arginfo_event_http_bind,       ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, __construct,        arginfo_event_http__construct,          ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(EventHttp, accept,             arginfo_event_http_accept,              ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, bind,               arginfo_event_http_bind,                ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, setCallback,        arginfo_event_http_set_callback,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, setDefaultCallback, arginfo_event_http_set_callback,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, setAllowedMethods,  arginfo_event_http_set_allowed_methods, ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, setMaxBodySize,     arginfo_event_http_set_value,           ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, setMaxHeadersSize,  arginfo_event_http_set_value,           ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, setTimeout,         arginfo_event_http_set_value,           ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, addServerAlias,     arginfo_event_http_add_alias,           ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, removeServerAlias,  arginfo_event_http_add_alias,           ZEND_ACC_PUBLIC)
+
+	PHP_FE_END
+};
+
+const zend_function_entry php_event_http_req_ce_functions[] = {
+	PHP_ME(EventHttpRequest, __construct, arginfo_event__void, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+
+	PHP_ME(EventHttpRequest, free,             arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, getCommand,       arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, getHost,          arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, getUri,           arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, getResponseCode,  arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, getInputHeaders,  arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, getOutputHeaders, arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, getInputBuffer,   arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, getOutputBuffer,  arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, sendError,        arginfo_event_http_req_send_error,       ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, sendReply,        arginfo_event_http_req_send_reply,       ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, sendReplyChunk,   arginfo_event_http_req_send_reply_chunk, ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, sendReplyEnd,     arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, sendReplyStart,   arginfo_event_http_req_send_reply_start, ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, cancel,           arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, addHeader,        arginfo_event_http_req_add_header,       ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, clearHeaders,     arginfo_event__void,                     ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, removeHeader,     arginfo_event_http_req_remove_header,    ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttpRequest, findHeader,       arginfo_event_http_req_remove_header,    ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };

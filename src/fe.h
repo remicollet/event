@@ -150,11 +150,40 @@ PHP_METHOD(EventHttpConnection, setTimeout);
 PHP_METHOD(EventHttpConnection, setMaxHeadersSize);
 PHP_METHOD(EventHttpConnection, setMaxBodySize);
 PHP_METHOD(EventHttpConnection, setRetries);
+PHP_METHOD(EventHttpConnection, makeRequest);
 
 PHP_METHOD(EventHttp, __construct);
 PHP_METHOD(EventHttp, accept);
 PHP_METHOD(EventHttp, bind);
+PHP_METHOD(EventHttp, setCallback);
+PHP_METHOD(EventHttp, setDefaultCallback);
+PHP_METHOD(EventHttp, setAllowedMethods);
+PHP_METHOD(EventHttp, setMaxBodySize);
+PHP_METHOD(EventHttp, setMaxHeadersSize);
+PHP_METHOD(EventHttp, setTimeout);
+PHP_METHOD(EventHttp, addServerAlias);
+PHP_METHOD(EventHttp, removeServerAlias);
 
+PHP_METHOD(EventHttpRequest, __construct);
+PHP_METHOD(EventHttpRequest, free);
+PHP_METHOD(EventHttpRequest, getCommand);
+PHP_METHOD(EventHttpRequest, getHost);
+PHP_METHOD(EventHttpRequest, getUri);
+PHP_METHOD(EventHttpRequest, getResponseCode);
+PHP_METHOD(EventHttpRequest, getInputHeaders);
+PHP_METHOD(EventHttpRequest, getOutputHeaders);
+PHP_METHOD(EventHttpRequest, getInputBuffer);
+PHP_METHOD(EventHttpRequest, getOutputBuffer);
+PHP_METHOD(EventHttpRequest, sendError);
+PHP_METHOD(EventHttpRequest, sendReply);
+PHP_METHOD(EventHttpRequest, sendReplyChunk);
+PHP_METHOD(EventHttpRequest, sendReplyEnd);
+PHP_METHOD(EventHttpRequest, sendReplyStart);
+PHP_METHOD(EventHttpRequest, cancel);
+PHP_METHOD(EventHttpRequest, addHeader);
+PHP_METHOD(EventHttpRequest, clearHeaders);
+PHP_METHOD(EventHttpRequest, removeHeader);
+PHP_METHOD(EventHttpRequest, findHeader);
 /* Extra API END }}} */
 #endif
 

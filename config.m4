@@ -18,7 +18,7 @@ PHP_ARG_WITH(event-core, for event core support,
 [  --with-event-core        Include core libevent support])
 
 PHP_ARG_WITH(event-pthreads, for event thread safety support,
-[  --with-event-pthreads    Include libevent's pthreads library and enable thread safety support in event], yes, no)
+[  --with-event-pthreads    Include libevent's pthreads library and enable thread safety support in event], no, no)
 
 PHP_ARG_WITH(event-extra, for event extra functionality support,
 [  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, no)
@@ -148,6 +148,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
       classes/dns.c \
       classes/listener.c \
       classes/http.c \
+      classes/http_request.c \
       classes/http_connection.c"
   fi
   dnl }}}

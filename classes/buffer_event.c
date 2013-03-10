@@ -52,7 +52,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 		} else {
 			ALLOC_INIT_ZVAL(arg_self);
 		}
-		args[0] = &bev->self;
+		args[0] = &arg_self;
 
 		if (arg_data) {
 			Z_ADDREF_P(arg_data);

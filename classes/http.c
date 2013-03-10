@@ -18,9 +18,156 @@
 #include "src/common.h"
 #include "src/util.h"
 #include "src/priv.h"
+#include "classes/http.h"
+
+/* {{{ Private */
+
+/* {{{ _new_http_cb
+ * Allocate memory for new callback structure for the next HTTP server's URI */
+static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zarg, const zend_fcall_info *fci, const zend_fcall_info_cache *fcc TSRMLS_CC)
+{
+	php_event_http_cb_t *cb = emalloc(sizeof(php_event_http_cb_t));
+
+	if (zarg) {
+		Z_ADDREF_P(zarg);
+	}
+	cb->data = zarg;
+
+	PHP_EVENT_COPY_FCALL_INFO(cb->fci, cb->fcc, fci, fcc);
+
+	TSRMLS_SET_CTX(cb->thread_ctx);
+
+	cb->next = NULL;
+
+	return cb;
+}
+/* }}} */
+
+/* {{{ _http_callback */
+static void _http_callback(struct evhttp_request *req, void *arg)
+{
+	php_event_http_cb_t *cb = (php_event_http_cb_t *) arg;
+	PHP_EVENT_ASSERT(cb);
+
+	php_event_http_req_t *http_req;
+
+	zend_fcall_info       *pfci = cb->fci;
+	zend_fcall_info_cache *pfcc = cb->fcc;
+	PHP_EVENT_ASSERT(pfci && pfcc);
+
+	TSRMLS_FETCH_FROM_CTX(cb->thread_ctx);
+
+	/* Call userspace function according to
+	 * proto void callback(EventHttpRequest req, mixed data);*/
+
+	zval  *arg_data = cb->data;
+	zval  *arg_req;
+	zval **args[2];
+	zval  *retval_ptr;
+
+	MAKE_STD_ZVAL(arg_req);
+	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
+	http_req->ptr      = req;
+	http_req->internal = 1; /* Don't evhttp_request_free(req) */
+	Z_ADDREF_P(arg_req);
+	args[0] = &arg_req;
+
+	if (arg_data) {
+		Z_ADDREF_P(arg_data);
+	} else {
+		ALLOC_INIT_ZVAL(arg_data);
+	}
+	args[1] = &arg_data;
+
+	pfci->params		 = args;
+	pfci->retval_ptr_ptr = &retval_ptr;
+	pfci->param_count	 = 2;
+	pfci->no_separation  = 1;
+
+    if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+        zval_ptr_dtor(&retval_ptr);
+    } else {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING,
+                "An error occurred while invoking the http request callback");
+    }
+
+    zval_ptr_dtor(&arg_req);
+    zval_ptr_dtor(&arg_data);
+}
+/* }}} */
+
+/* {{{ _http_default_callback */
+static void _http_default_callback(struct evhttp_request *req, void *arg)
+{
+	php_event_http_t *http = (php_event_http_t *) arg;
+	PHP_EVENT_ASSERT(http);
+
+	php_event_http_req_t *http_req;
+
+	zend_fcall_info       *pfci = http->fci;
+	zend_fcall_info_cache *pfcc = http->fcc;
+	PHP_EVENT_ASSERT(pfci && pfcc);
+
+	TSRMLS_FETCH_FROM_CTX(http->thread_ctx);
+
+	/* Call userspace function according to
+	 * proto void callback(EventHttpRequest req, mixed data);*/
+
+	zval  *arg_data = http->data;
+	zval  *arg_req;
+	zval **args[2];
+	zval  *retval_ptr;
+
+	MAKE_STD_ZVAL(arg_req);
+	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
+	http_req->ptr      = req;
+	http_req->internal = 1; /* Don't evhttp_request_free(req) */
+	Z_ADDREF_P(arg_req);
+	args[0] = &arg_req;
+
+	if (arg_data) {
+		Z_ADDREF_P(arg_data);
+	} else {
+		ALLOC_INIT_ZVAL(arg_data);
+	}
+	args[1] = &arg_data;
+
+	pfci->params		 = args;
+	pfci->retval_ptr_ptr = &retval_ptr;
+	pfci->param_count	 = 2;
+	pfci->no_separation  = 1;
+
+    if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+        zval_ptr_dtor(&retval_ptr);
+    } else {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING,
+                "An error occurred while invoking the http request callback");
+    }
+
+    zval_ptr_dtor(&arg_req);
+    zval_ptr_dtor(&arg_data);
+}
+/* }}} */
+
+/* }}} */
+
+/* {{{  _php_event_free_http_cb */
+void _php_event_free_http_cb(php_event_http_cb_t *cb)
+{
+	if (cb->data) {
+		zval_ptr_dtor(&cb->data);
+		cb->data = NULL;
+	}
+
+	PHP_EVENT_FREE_FCALL_INFO(cb->fci, cb->fcc);
+
+	efree(cb);
+}
+/* }}} */
 
 /* {{{ proto EventHttp EventHttp::__construct(EventBase base);
- *
  * Creates new http server object.
  */
 PHP_METHOD(EventHttp, __construct)
@@ -41,6 +188,8 @@ PHP_METHOD(EventHttp, __construct)
 
 	http_ptr = evhttp_new(b->base);
 	if (!http_ptr) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Failed to allocate space for new HTTP server(evhttp_new)");
 		return;
 	}
 	http->ptr = http_ptr;
@@ -48,7 +197,10 @@ PHP_METHOD(EventHttp, __construct)
 	http->base = zbase;
 	Z_ADDREF_P(zbase);
 
-	http->stream_id = -1;
+	http->fci     = NULL;
+	http->fcc     = NULL;
+	http->data    = NULL;
+	http->cb_head = NULL;
 }
 /* }}} */
 
@@ -80,11 +232,6 @@ PHP_METHOD(EventHttp, accept)
 		RETURN_FALSE;
 	}
 
-#if 0
-	http->stream_id = Z_LVAL_P(ppzfd);
-	zend_list_addref(Z_LVAL_P(ppzfd));
-#endif
-
 	RETVAL_TRUE;
 }
 /* }}} */
@@ -95,11 +242,11 @@ PHP_METHOD(EventHttp, accept)
  * Can be called multiple times to bind the same http server to multiple different ports. */
 PHP_METHOD(EventHttp, bind)
 {
-	zval              *zhttp = getThis();
-	php_event_http_t  *http;
-	char *address;
-	int address_len;
-	long port;
+	zval             *zhttp       = getThis();
+	php_event_http_t *http;
+	char             *address;
+	int               address_len;
+	long              port;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl",
 				&address, &address_len, &port) == FAILURE) {
@@ -108,6 +255,8 @@ PHP_METHOD(EventHttp, bind)
 
 	PHP_EVENT_FETCH_HTTP(http, zhttp);
 
+	/* XXX Call evhttp_bind_socket_with_handle instead, and store the bound
+	 * socket in the internal struct for further useful API? */
 	if (evhttp_bind_socket(http->ptr, address, port)) {
 		RETURN_FALSE;
 	}
@@ -115,6 +264,214 @@ PHP_METHOD(EventHttp, bind)
 	RETVAL_TRUE;
 }
 /* }}} */
+
+/* {{{ proto bool EventHttp::setCallback(string path, callable cb[, mixed arg = NULL]);
+ * Sets a callback for specified URI.
+ */
+PHP_METHOD(EventHttp, setCallback)
+{
+	zval                  *zhttp    = getThis();
+	php_event_http_t      *http;
+	char                  *path;
+	int                    path_len;
+	zend_fcall_info        fci      = empty_fcall_info;
+	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
+	zval                  *zarg     = NULL;
+	int                    res;
+	php_event_http_cb_t   *cb;
+	php_event_http_cb_t   *cb_head;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sf|z!",
+				&path, &path_len, &fci, &fcc, &zarg) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	cb = _new_http_cb(zarg, &fci, &fcc TSRMLS_CC);
+	PHP_EVENT_ASSERT(cb);
+
+	res = evhttp_set_cb(http->ptr, path, _http_callback, (void *) cb);
+	if (res == -2) {
+		_php_event_free_http_cb(cb);
+
+		RETURN_FALSE;
+	}
+	if (res == -1) { // the callback existed already
+		_php_event_free_http_cb(cb);
+
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"The callback already exists");
+		RETURN_FALSE;
+	}
+
+	cb_head       = http->cb_head;
+	http->cb_head = cb;
+	cb->next      = cb_head;
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::setDefaultCallback(callable cb[, mixed arg = NULL]);
+ * Sets default callback to handle requests that are not caught by specific callbacks
+ */
+PHP_METHOD(EventHttp, setDefaultCallback)
+{
+	zval                  *zhttp    = getThis();
+	php_event_http_t      *http;
+	zend_fcall_info        fci      = empty_fcall_info;
+	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
+	zval                  *zarg     = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "f|z!",
+				&fci, &fcc, &zarg) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	if (http->fci) {
+		PHP_EVENT_FREE_FCALL_INFO(http->fci, http->fcc);
+	}
+	PHP_EVENT_COPY_FCALL_INFO(http->fci, http->fcc, &fci, &fcc);
+
+	if (zarg) {
+		Z_ADDREF_P(zarg);
+	}
+	http->data = zarg;
+
+	evhttp_set_gencb(http->ptr, _http_default_callback, (void *) http);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::setAllowedMethods(int methods);
+ * Sets the what HTTP methods are supported in requests accepted by this
+ * server, and passed to user callbacks.
+ *
+ * If not supported they will generate a <literal>"405 Method not
+ * allowed"</literal> response.
+ *
+ * By default this includes the following methods: GET, POST, HEAD, PUT, DELETE.
+ * See <literal>EventHttpRequest::CMD_*</literal> constants.
+ */
+PHP_METHOD(EventHttp, setAllowedMethods)
+{
+	zval             *zhttp   = getThis();
+	php_event_http_t *http;
+	long              methods;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&methods) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_set_allowed_methods(http->ptr, methods);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::setMaxBodySize(int value);
+ */
+PHP_METHOD(EventHttp, setMaxBodySize)
+{
+	zval             *zhttp   = getThis();
+	php_event_http_t *http;
+	long              value;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&value) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_set_max_body_size(http->ptr, value);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::setMaxHeadersSize(int value);
+ */
+PHP_METHOD(EventHttp, setMaxHeadersSize)
+{
+	zval             *zhttp   = getThis();
+	php_event_http_t *http;
+	long              value;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&value) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_set_max_headers_size(http->ptr, value);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::setTimeout(int value);
+ * Sets timeout for an HTTP request
+ */
+PHP_METHOD(EventHttp, setTimeout)
+{
+	zval             *zhttp   = getThis();
+	php_event_http_t *http;
+	long              value;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&value) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_set_timeout(http->ptr, value);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::addServerAlias(string alias);
+ * Adds a server alias to the object.
+ */
+PHP_METHOD(EventHttp, addServerAlias)
+{
+	zval             *zhttp     = getThis();
+	php_event_http_t *http;
+	char             *alias;
+	int               alias_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+				&alias, &alias_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_add_server_alias(http->ptr, alias);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::removeServerAlias(string alias);
+ * Removes a server alias from the object.
+ */
+PHP_METHOD(EventHttp, removeServerAlias)
+{
+	zval             *zhttp     = getThis();
+	php_event_http_t *http;
+	char             *alias;
+	int               alias_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+				&alias, &alias_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_remove_server_alias(http->ptr, alias);
+}
+/* }}} */
+
 
 /*
  * Local variables:

@@ -64,6 +64,9 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC);
 #define PHP_EVENT_FETCH_HTTP(b, zb) \
 	b = (php_event_http_t *) zend_object_store_get_object(zb TSRMLS_CC)
 
+#define PHP_EVENT_FETCH_HTTP_REQ(b, zb) \
+	b = (php_event_http_req_t *) zend_object_store_get_object(zb TSRMLS_CC)
+
 #define PHP_EVENT_FETCH_BUFFER_POS(p, zp) \
 	p = (php_event_buffer_pos_t *) zend_object_store_get_object(zp TSRMLS_CC)
 

@@ -20,12 +20,13 @@
 #include "src/priv.h"
 
 /* {{{ proto EventHttpConnection EventHttpConnection::__construct(EventBase base, EventDnsBase dns_base, string address, int port);
- * */
+ * If <parameter>dns_base</parameter> is &null;, hostname resolution will block.
+ */
 PHP_METHOD(EventHttpConnection, __construct)
 {
 	zval                     *zbase;
 	php_event_base_t         *b;
-	zval                     *zdns_base;
+	zval                     *zdns_base = NULL;
 	php_event_dns_base_t     *dnsb;
 	char                     *address;
 	int                       address_len;
@@ -33,18 +34,23 @@ PHP_METHOD(EventHttpConnection, __construct)
 	php_event_http_conn_t    *evcon;
 	struct evhttp_connection *conn;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OOsl",
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OO!sl",
 				&zbase, php_event_base_ce, &zdns_base, php_event_dns_base_ce,
 				&address, &address_len, &port) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_BASE(b, zbase);
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+
+	if (zdns_base) {
+		PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+	}
 
 	PHP_EVENT_FETCH_HTTP_CONN(evcon, getThis());
 
-	conn = evhttp_connection_base_new(b->base, dnsb->dns_base, address, (unsigned short) port);
+	conn = evhttp_connection_base_new(b->base,
+			(zdns_base ? dnsb->dns_base : NULL),
+			address, (unsigned short) port);
 	if (!conn) {
 		return;
 	}
@@ -54,7 +60,9 @@ PHP_METHOD(EventHttpConnection, __construct)
 	Z_ADDREF_P(zbase);
 
 	evcon->dns_base = zdns_base;
-	Z_ADDREF_P(zdns_base);
+	if (zdns_base) {
+		Z_ADDREF_P(zdns_base);
+	}
 }
 /* }}} */
 
@@ -231,6 +239,42 @@ PHP_METHOD(EventHttpConnection, setRetries)
 	evhttp_connection_set_retries(evcon->conn, retries);
 }
 /* }}} */
+
+/* {{{ proto bool EventHttpConnection::makeRequest(EventHttpRequest req, int type, string uri);
+ * Makes an HTTP request over the specified connection.
+ * <parameter>type</parameter> is one of <literal>EventHttpRequest::CMD_*</literal> constants.
+ */
+PHP_METHOD(EventHttpConnection, makeRequest)
+{
+	zval                  *zevcon   = getThis();
+	php_event_http_conn_t *evcon;
+	zval                  *zreq;
+	php_event_http_req_t  *http_req;
+	long                   type;
+	char                  *uri;
+	int                    uri_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ols",
+				&zreq, php_event_http_req_ce, &type, &uri, &uri_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, zreq);
+	if (!http_req->ptr) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Unconfigured HTTP request object passed");
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+
+	if (evhttp_make_request(evcon->conn, http_req->ptr, type, uri)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
 
 /*
  * Local variables:

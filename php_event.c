@@ -19,6 +19,7 @@
 #include "src/common.h"
 #include "src/util.h"
 #include "src/priv.h"
+#include "classes/http.h"
 
 #if 0
 ZEND_DECLARE_MODULE_GLOBALS(event)
@@ -41,6 +42,7 @@ zend_class_entry *php_event_dns_base_ce;
 zend_class_entry *php_event_listener_ce;
 zend_class_entry *php_event_http_conn_ce;
 zend_class_entry *php_event_http_ce;
+zend_class_entry *php_event_http_req_ce;
 #endif
 
 static HashTable classes;
@@ -296,14 +298,17 @@ static void event_http_conn_object_free_storage(void *ptr TSRMLS_DC)
 
 	if (evcon->base) {
 		zval_ptr_dtor(&evcon->base);
+		evcon->base = NULL;
 	}
 
 	if (evcon->dns_base) {
 		zval_ptr_dtor(&evcon->dns_base);
+		evcon->dns_base = NULL;
 	}
 
 	if (evcon->conn) {
 		evhttp_connection_free(evcon->conn);
+		evcon->conn = NULL;
 	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
@@ -314,15 +319,61 @@ static void event_http_conn_object_free_storage(void *ptr TSRMLS_DC)
 static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_http_t *http = (php_event_http_t *) ptr;
+	php_event_http_cb_t *cb, *cb_next;
 
 	PHP_EVENT_ASSERT(http);
 
+	PHP_EVENT_FREE_FCALL_INFO(http->fci, http->fcc);
+
+	/* Free attached callbacks */
+	PHP_EVENT_ASSERT(http->cb_head);
+	cb = http->cb_head;
+	while (cb) {
+		cb_next = cb->next;
+		_php_event_free_http_cb(cb);
+		cb = cb_next;
+	}
+
+	if (http->data) {
+		zval_ptr_dtor(&http->data);
+		http->data = NULL;
+	}
+
 	if (http->base) {
 		zval_ptr_dtor(&http->base);
+		http->base = NULL;
 	}
 
 	if (http->ptr) {
 		evhttp_free(http->ptr);
+		http->ptr = NULL;
+	}
+
+	event_generic_object_free_storage(ptr TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_http_req_object_free_storage */
+static void event_http_req_object_free_storage(void *ptr TSRMLS_DC)
+{
+	php_event_http_req_t *http_req = (php_event_http_req_t *) ptr;
+
+	PHP_EVENT_ASSERT(http_req);
+
+	PHP_EVENT_FREE_FCALL_INFO(http_req->fci, http_req->fcc);
+
+	if (http_req->self) {
+		zval_ptr_dtor(&http_req->self);
+		http_req->self = NULL;
+	}
+	if (http_req->data) {
+		zval_ptr_dtor(&http_req->data);
+		http_req->data = NULL;
+	}
+
+	if (!http_req->internal && http_req->ptr) {
+		evhttp_request_free(http_req->ptr);
+		http_req->ptr = NULL;
 	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
@@ -537,6 +588,17 @@ static zend_object_value event_http_object_create(zend_class_entry *ce TSRMLS_DC
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
 			event_http_object_free_storage TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ event_http_req_object_create
+ * EventHttpRequest object ctor */
+static zend_object_value event_http_req_object_create(zend_class_entry *ce TSRMLS_DC)
+{
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_req_t) TSRMLS_CC);
+
+	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
+			event_http_req_object_free_storage TSRMLS_CC);
 }
 /* }}} */
 
@@ -971,6 +1033,12 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			php_event_http_ce_functions);
 	ce = php_event_http_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
+	PHP_EVENT_REGISTER_CLASS("EventHttpRequest", event_http_req_object_create, php_event_http_req_ce,
+			php_event_http_req_ce_functions);
+	ce = php_event_http_req_ce;
+	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+
 #endif /* HAVE_EVENT_EXTRA_LIB */
 
 	PHP_EVENT_REGISTER_CLASS("EventUtil", event_util_object_create, php_event_util_ce,
@@ -1098,7 +1166,23 @@ PHP_MINIT_FUNCTION(event)
 # if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_DEFERRED_ACCEPT,        LEV_OPT_DEFERRED_ACCEPT);
 # endif
-#endif
+
+	/* EventHttpRequest command types */
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_GET,     EVHTTP_REQ_GET);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_POST,    EVHTTP_REQ_POST);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_HEAD,    EVHTTP_REQ_HEAD);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_PUT,     EVHTTP_REQ_PUT);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_DELETE,  EVHTTP_REQ_DELETE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_OPTIONS, EVHTTP_REQ_OPTIONS);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_TRACE,   EVHTTP_REQ_TRACE);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_CONNECT, EVHTTP_REQ_CONNECT);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_PATCH,   EVHTTP_REQ_PATCH);
+
+	/* EventHttpRequest header types */
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, INPUT_HEADER,  PHP_EVENT_REQ_HEADER_INPUT);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, OUTPUT_HEADER, PHP_EVENT_REQ_HEADER_OUTPUT);
+
+#endif /* HAVE_EVENT_EXTRA_LIB */
 
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, LIBEVENT_VERSION_NUMBER, LIBEVENT_VERSION_NUMBER);
 
