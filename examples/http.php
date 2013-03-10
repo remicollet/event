@@ -1,4 +1,49 @@
 <?php
+/*
+ * Simple HTTP server.
+ *
+ * To test it:
+ * 1) Run it on a port of your choice, e.g.:
+ * $ php examples/http.php 8010
+ * 2) In another terminal connect to some address on this port
+ * and make GET or POST request(others are turned off here), e.g.:
+ * $ nc -t 127.0.0.1 8010
+ * POST /about HTTP/1.0
+ * Content-Type: text/plain
+ * Content-Length: 4
+ * Connection: close
+ * (press Enter)
+ *
+ * It will output
+ * a=12
+ * HTTP/1.0 200 OK
+ * Content-Type: text/html; charset=ISO-8859-1
+ * Connection: close
+ *
+ * $ nc -t 127.0.0.1 8010
+ * GET /dump HTTP/1.0
+ * Content-Type: text/plain
+ * Content-Encoding: UTF-8
+ * Connection: close
+ * (press Enter)
+ *
+ * It will output:
+ * HTTP/1.0 200 OK
+ * Content-Type: text/html; charset=ISO-8859-1
+ * Connection: close
+ * (press Enter)
+ *
+ * $ nc -t 127.0.0.1 8010
+ * GET /unknown HTTP/1.0
+ * Connection: close
+ *
+ * It will output:
+ * HTTP/1.0 200 OK
+ * Content-Type: text/html; charset=ISO-8859-1
+ * Connection: close
+ *
+ * 3) See what the server outputs on the previous terminal window.
+ */
 
 function _http_dump($req, $data) {
 	static $counter      = 0;

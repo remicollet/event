@@ -70,6 +70,7 @@
         </dir>
         <file role="doc" name="eio.php"/>
         <file role="doc" name="fibonacci_buffer.php"/>
+        <file role="doc" name="http.php"/>
         <file role="doc" name="httpv0client.php"/>
         <file role="doc" name="httpv0client2.php"/>
         <file role="doc" name="listener.php"/>

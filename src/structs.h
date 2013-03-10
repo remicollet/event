@@ -37,20 +37,6 @@ typedef struct _php_event_abstract_object_t {
 	PHP_EVENT_OBJECT_HEAD;
 } php_event_abstract_object_t;
 
-/* Represents Event object */
-typedef struct _php_event_t {
-	PHP_EVENT_OBJECT_HEAD;
-
-	struct event          *event;       /* Pointer returned by event_new                        */
-	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
-	zval                  *data;        /* User custom data                                     */
-	/* fci and fcc represent userspace callback */
-	zend_fcall_info       *fci;
-	zend_fcall_info_cache *fcc;
-
-	PHP_EVENT_COMMON_THREAD_CTX;
-} php_event_t;
-
 /* Represents EventBase object */
 typedef struct _php_event_base_t {
 	PHP_EVENT_OBJECT_HEAD;
@@ -58,6 +44,20 @@ typedef struct _php_event_base_t {
 	struct event_base *base;
 	zend_bool          internal;   /* Whether is an internal pointer, e.g. obtained with evconnlistener_get_base() */
 } php_event_base_t;
+
+/* Represents Event object */
+typedef struct _php_event_t {
+	PHP_EVENT_OBJECT_HEAD;
+
+	struct event          *event;       /* Pointer returned by event_new                  */
+	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
+	zval                  *data;        /* User custom data                               */
+	/* fci and fcc represent userspace callback */
+	zend_fcall_info       *fci;
+	zend_fcall_info_cache *fcc;
+
+	PHP_EVENT_COMMON_THREAD_CTX;
+} php_event_t;
 
 /* Represents EventConfig object */
 typedef struct _php_event_config_t {
@@ -96,6 +96,11 @@ typedef struct _php_event_buffer_t {
 } php_event_buffer_t;
 
 #ifdef HAVE_EVENT_EXTRA_LIB/* {{{ */
+
+enum {
+	PHP_EVENT_REQ_HEADER_INPUT  = 1,
+	PHP_EVENT_REQ_HEADER_OUTPUT = 2,
+};
 
 /* Represents EventDnsBase object */
 typedef struct _php_event_dns_base_t {
@@ -166,8 +171,16 @@ typedef struct {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct evhttp_request *ptr;
-   	/* Whether is artificially created object that must not free 'ptr' */
+	/* Whether is artificially created object that must not free 'ptr' */
 	zend_bool              internal;
+	zval                  *self;
+	/* User custom data passed to the gen(default) callback */
+	zval                  *data;
+	/* General(default) callback for evhttp_gencb() */
+	zend_fcall_info       *fci;
+	zend_fcall_info_cache *fcc;
+
+	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_http_req_t;
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */

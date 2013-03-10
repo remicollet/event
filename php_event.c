@@ -298,14 +298,17 @@ static void event_http_conn_object_free_storage(void *ptr TSRMLS_DC)
 
 	if (evcon->base) {
 		zval_ptr_dtor(&evcon->base);
+		evcon->base = NULL;
 	}
 
 	if (evcon->dns_base) {
 		zval_ptr_dtor(&evcon->dns_base);
+		evcon->dns_base = NULL;
 	}
 
 	if (evcon->conn) {
 		evhttp_connection_free(evcon->conn);
+		evcon->conn = NULL;
 	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
@@ -356,6 +359,17 @@ static void event_http_req_object_free_storage(void *ptr TSRMLS_DC)
 	php_event_http_req_t *http_req = (php_event_http_req_t *) ptr;
 
 	PHP_EVENT_ASSERT(http_req);
+
+	PHP_EVENT_FREE_FCALL_INFO(http_req->fci, http_req->fcc);
+
+	if (http_req->self) {
+		zval_ptr_dtor(&http_req->self);
+		http_req->self = NULL;
+	}
+	if (http_req->data) {
+		zval_ptr_dtor(&http_req->data);
+		http_req->data = NULL;
+	}
 
 	if (!http_req->internal && http_req->ptr) {
 		evhttp_request_free(http_req->ptr);
@@ -1163,6 +1177,10 @@ PHP_MINIT_FUNCTION(event)
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_TRACE,   EVHTTP_REQ_TRACE);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_CONNECT, EVHTTP_REQ_CONNECT);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_PATCH,   EVHTTP_REQ_PATCH);
+
+	/* EventHttpRequest header types */
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, INPUT_HEADER,  PHP_EVENT_REQ_HEADER_INPUT);
+	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, OUTPUT_HEADER, PHP_EVENT_REQ_HEADER_OUTPUT);
 
 #endif /* HAVE_EVENT_EXTRA_LIB */
 

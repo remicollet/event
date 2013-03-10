@@ -372,6 +372,107 @@ PHP_METHOD(EventHttp, setAllowedMethods)
 }
 /* }}} */
 
+/* {{{ proto void EventHttp::setMaxBodySize(int value);
+ */
+PHP_METHOD(EventHttp, setMaxBodySize)
+{
+	zval             *zhttp   = getThis();
+	php_event_http_t *http;
+	long              value;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&value) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_set_max_body_size(http->ptr, value);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::setMaxHeadersSize(int value);
+ */
+PHP_METHOD(EventHttp, setMaxHeadersSize)
+{
+	zval             *zhttp   = getThis();
+	php_event_http_t *http;
+	long              value;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&value) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_set_max_headers_size(http->ptr, value);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::setTimeout(int value);
+ * Sets timeout for an HTTP request
+ */
+PHP_METHOD(EventHttp, setTimeout)
+{
+	zval             *zhttp   = getThis();
+	php_event_http_t *http;
+	long              value;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&value) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_set_timeout(http->ptr, value);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::addServerAlias(string alias);
+ * Adds a server alias to the object.
+ */
+PHP_METHOD(EventHttp, addServerAlias)
+{
+	zval             *zhttp     = getThis();
+	php_event_http_t *http;
+	char             *alias;
+	int               alias_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+				&alias, &alias_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_add_server_alias(http->ptr, alias);
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::removeServerAlias(string alias);
+ * Removes a server alias from the object.
+ */
+PHP_METHOD(EventHttp, removeServerAlias)
+{
+	zval             *zhttp     = getThis();
+	php_event_http_t *http;
+	char             *alias;
+	int               alias_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+				&alias, &alias_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_remove_server_alias(http->ptr, alias);
+}
+/* }}} */
+
+
 /*
  * Local variables:
  * tab-width: 4
