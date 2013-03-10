@@ -62,12 +62,14 @@ extern const zend_property_info event_ssl_context_property_entry_info[];
 extern const zend_function_entry php_event_dns_base_ce_functions[];
 extern const zend_function_entry php_event_http_conn_ce_functions[];
 extern const zend_function_entry php_event_http_ce_functions[];
+extern const zend_function_entry php_event_http_req_ce_functions[];
 extern const zend_function_entry php_event_listener_ce_functions[];
 
 extern zend_class_entry *php_event_dns_base_ce;
 extern zend_class_entry *php_event_listener_ce;
 extern zend_class_entry *php_event_http_conn_ce;
 extern zend_class_entry *php_event_http_ce;
+extern zend_class_entry *php_event_http_req_ce;
 #endif /* HAVE_EVENT_EXTRA_LIB */
 
 #endif /* PHP_EVENT_PRIV_H */

@@ -19,6 +19,63 @@
 #include "src/util.h"
 #include "src/priv.h"
 
+/* {{{ Private */
+
+/* {{{ _http_callback */
+static void _http_callback(struct evhttp_request *req, void *arg)
+{
+	php_event_http_t *http = (php_event_http_t *) arg;
+	PHP_EVENT_ASSERT(http);
+
+	php_event_http_req_t *http_req;
+
+	zend_fcall_info       *pfci = http->fci;
+	zend_fcall_info_cache *pfcc = http->fcc;
+	PHP_EVENT_ASSERT(pfci && pfcc);
+
+	TSRMLS_FETCH_FROM_CTX(http->thread_ctx);
+
+	/* Call userspace function according to
+	 * proto void callback(EventHttpRequest req, mixed data);*/
+
+	zval  *arg_data = http->data;
+	zval  *arg_req;
+	zval **args[2];
+	zval  *retval_ptr;
+
+	MAKE_STD_ZVAL(arg_req);
+	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
+	http_req->ptr = req;
+	Z_ADDREF_P(arg_req);
+	args[0] = &arg_req;
+
+	if (arg_data) {
+		Z_ADDREF_P(arg_data);
+	} else {
+		ALLOC_INIT_ZVAL(arg_data);
+	}
+	args[1] = &arg_data;
+
+	pfci->params		 = args;
+	pfci->retval_ptr_ptr = &retval_ptr;
+	pfci->param_count	 = 2;
+	pfci->no_separation  = 1;
+
+    if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+        zval_ptr_dtor(&retval_ptr);
+    } else {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING,
+                "An error occurred while invoking the http request callback");
+    }
+
+    zval_ptr_dtor(&arg_req);
+    zval_ptr_dtor(&arg_data);
+}
+/* }}} */
+
+/* }}} */
+
 /* {{{ proto EventHttp EventHttp::__construct(EventBase base);
  *
  * Creates new http server object.
@@ -49,6 +106,8 @@ PHP_METHOD(EventHttp, __construct)
 	Z_ADDREF_P(zbase);
 
 	http->stream_id = -1;
+	http->fci       = http->fcc      = NULL;
+	http->data      = http->gen_data = NULL;
 }
 /* }}} */
 
@@ -113,6 +172,84 @@ PHP_METHOD(EventHttp, bind)
 	}
 
 	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool EventHttp::setCallback(string path, callable cb[, mixed arg = NULL]);
+ * Set a callback for a specified URI.
+ */
+PHP_METHOD(EventHttp, setCallback)
+{
+	zval                  *zhttp    = getThis();
+	php_event_http_t      *http;
+	char                  *path;
+	int                    path_len;
+	zend_fcall_info        fci      = empty_fcall_info;
+	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
+	zval                  *zarg     = NULL;
+	int                    res;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sf|z!",
+				&path, &path_len, &fci, &fcc, &zarg) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	res = evhttp_set_cb(http->ptr, path, _http_callback, (void *) http);
+	if (res == -2) {
+		RETURN_FALSE;
+	}
+	if (res == -1) { // the callback existed already
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"The callback already exists");
+		RETURN_FALSE;
+	}
+
+	if (http->data) {
+		zval_ptr_dtor(&http->data);
+	}
+	if (zarg) {
+		Z_ADDREF_P(zarg);
+	}
+	http->data = zarg;
+
+	/* 
+	 * XXX We should set up individual user functions for every path!!!
+	 */
+
+	PHP_EVENT_COPY_FCALL_INFO(http->fci, http->fcc, &fci, &fcc);
+
+	TSRMLS_SET_CTX(http->thread_ctx);
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::setAllowedMethods(int methods);
+ * Sets the what HTTP methods are supported in requests accepted by this
+ * server, and passed to user callbacks.
+ *
+ * If not supported they will generate a <literal>"405 Method not
+ * allowed"</literal> response.
+ *
+ * By default this includes the following methods: GET, POST, HEAD, PUT, DELETE
+ */
+PHP_METHOD(EventHttp, setAllowedMethods)
+{
+	zval             *zhttp   = getThis();
+	php_event_http_t *http;
+	long              methods;
+
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&methods) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	evhttp_set_allowed_methods(http->ptr, methods);
 }
 /* }}} */
 

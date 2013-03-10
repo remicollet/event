@@ -116,7 +116,7 @@
   <extsrcrelease>
     <configureoption default="no" name="enable-event-debug" prompt="Enable internal debugging in event"/>
     <configureoption default="/usr" name="with-event-libevent-dir" prompt="libevent installation prefix"/>
-    <configureoption default="yes" name="with-event-pthreads" prompt="Include libevent's pthreads library and enable thread safety support in event"/>
+    <configureoption default="no" name="with-event-pthreads" prompt="Include libevent's pthreads library and enable thread safety support in event"/>
     <configureoption default="yes" name="with-event-extra" prompt="Include libevent protocol-specific functionality support including HTTP, DNS, and RPC"/>
     <configureoption default="yes" name="with-event-openssl" prompt="Include libevent OpenSSL support"/>
     <configureoption default="no" name="with-openssl-dir" prompt="openssl installation prefix"/>

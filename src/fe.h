@@ -154,7 +154,19 @@ PHP_METHOD(EventHttpConnection, setRetries);
 PHP_METHOD(EventHttp, __construct);
 PHP_METHOD(EventHttp, accept);
 PHP_METHOD(EventHttp, bind);
+PHP_METHOD(EventHttp, setCallback);
+PHP_METHOD(EventHttp, setAllowedMethods);
 
+PHP_METHOD(EventHttpRequest, getCommand);
+PHP_METHOD(EventHttpRequest, getUri);
+PHP_METHOD(EventHttpRequest, getInputHeaders);
+PHP_METHOD(EventHttpRequest, getOutputHeaders);
+PHP_METHOD(EventHttpRequest, getInputBuffer);
+PHP_METHOD(EventHttpRequest, getOutputBuffer);
+PHP_METHOD(EventHttpRequest, sendReply);
+PHP_METHOD(EventHttpRequest, sendReplyChunk);
+PHP_METHOD(EventHttpRequest, sendReplyEnd);
+PHP_METHOD(EventHttpRequest, sendReplyStart);
 /* Extra API END }}} */
 #endif
 

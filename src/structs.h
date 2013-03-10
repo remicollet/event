@@ -136,10 +136,23 @@ typedef struct _php_event_http_conn_t {
 typedef struct {
 	PHP_EVENT_OBJECT_HEAD;
 
-	struct evhttp *ptr;
-	zval          *base;        /* Event base associated with the listener       */
-	int            stream_id;   /* Resource ID of socket probably being listened */
+	struct evhttp         *ptr;
+	zval                  *base;        /* Event base associated with the listener              */
+	zval                  *data;        /* User custom data passed to callback                  */
+	zval                  *gen_data;    /* User custom data passed to the gen(default) callback */
+	int                    stream_id;   /* Resource ID of socket probably being listened        */
+
+	zend_fcall_info       *fci;
+	zend_fcall_info_cache *fcc;
+
+	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_http_t;
+
+typedef struct {
+	PHP_EVENT_OBJECT_HEAD;
+
+	struct evhttp_request *ptr;
+} php_event_http_req_t;
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
