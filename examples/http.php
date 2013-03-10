@@ -31,6 +31,22 @@ function _http_dump($req, $data) {
 	echo "No more data in the buffer\n";
 }
 
+function _http_about($req) {
+	echo __METHOD__, PHP_EOL;
+	echo "URI: ", $req->getUri(), PHP_EOL;
+	echo "\n >> Sending reply ...";
+	$req->sendReply(200, "OK");
+	echo "OK\n";
+}
+
+function _http_default($req, $data) {
+	echo __METHOD__, PHP_EOL;
+	echo "URI: ", $req->getUri(), PHP_EOL;
+	echo "\n >> Sending reply ...";
+	$req->sendReply(200, "OK");
+	echo "OK\n";
+}
+
 $port = 8010;
 if ($argc > 1) {
 	$port = (int) $argv[1];
@@ -44,6 +60,9 @@ $http = new EventHttp($base);
 $http->setAllowedMethods(EventHttpRequest::CMD_GET | EventHttpRequest::CMD_POST);
 
 $http->setCallback("/dump", "_http_dump", array(4, 8));
+$http->setCallback("/about", "_http_about");
+$http->setDefaultCallback("_http_default", "custom data value");
+
 $http->bind("0.0.0.0", 8010);
 $base->loop();
 ?>

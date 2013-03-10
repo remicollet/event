@@ -31,7 +31,6 @@ static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zarg, const ze
 	if (zarg) {
 		Z_ADDREF_P(zarg);
 	}
-
 	cb->data = zarg;
 
 	PHP_EVENT_COPY_FCALL_INFO(cb->fci, cb->fcc, fci, fcc);
@@ -62,6 +61,60 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
 	zval  *arg_data = cb->data;
+	zval  *arg_req;
+	zval **args[2];
+	zval  *retval_ptr;
+
+	MAKE_STD_ZVAL(arg_req);
+	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
+	http_req->ptr      = req;
+	http_req->internal = 1; /* Don't evhttp_request_free(req) */
+	Z_ADDREF_P(arg_req);
+	args[0] = &arg_req;
+
+	if (arg_data) {
+		Z_ADDREF_P(arg_data);
+	} else {
+		ALLOC_INIT_ZVAL(arg_data);
+	}
+	args[1] = &arg_data;
+
+	pfci->params		 = args;
+	pfci->retval_ptr_ptr = &retval_ptr;
+	pfci->param_count	 = 2;
+	pfci->no_separation  = 1;
+
+    if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+        zval_ptr_dtor(&retval_ptr);
+    } else {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING,
+                "An error occurred while invoking the http request callback");
+    }
+
+    zval_ptr_dtor(&arg_req);
+    zval_ptr_dtor(&arg_data);
+}
+/* }}} */
+
+/* {{{ _http_default_callback */
+static void _http_default_callback(struct evhttp_request *req, void *arg)
+{
+	php_event_http_t *http = (php_event_http_t *) arg;
+	PHP_EVENT_ASSERT(http);
+
+	php_event_http_req_t *http_req;
+
+	zend_fcall_info       *pfci = http->fci;
+	zend_fcall_info_cache *pfcc = http->fcc;
+	PHP_EVENT_ASSERT(pfci && pfcc);
+
+	TSRMLS_FETCH_FROM_CTX(http->thread_ctx);
+
+	/* Call userspace function according to
+	 * proto void callback(EventHttpRequest req, mixed data);*/
+
+	zval  *arg_data = http->data;
 	zval  *arg_req;
 	zval **args[2];
 	zval  *retval_ptr;
@@ -257,6 +310,38 @@ PHP_METHOD(EventHttp, setCallback)
 	cb->next      = cb_head;
 
 	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto void EventHttp::setDefaultCallback(callable cb[, mixed arg = NULL]);
+ * Sets default callback to handle requests that are not caught by specific callbacks
+ */
+PHP_METHOD(EventHttp, setDefaultCallback)
+{
+	zval                  *zhttp    = getThis();
+	php_event_http_t      *http;
+	zend_fcall_info        fci      = empty_fcall_info;
+	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
+	zval                  *zarg     = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "f|z!",
+				&fci, &fcc, &zarg) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP(http, zhttp);
+
+	if (http->fci) {
+		PHP_EVENT_FREE_FCALL_INFO(http->fci, http->fcc);
+	}
+	PHP_EVENT_COPY_FCALL_INFO(http->fci, http->fcc, &fci, &fcc);
+
+	if (zarg) {
+		Z_ADDREF_P(zarg);
+	}
+	http->data = zarg;
+
+	evhttp_set_gencb(http->ptr, _http_default_callback, (void *) http);
 }
 /* }}} */
 
