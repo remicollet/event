@@ -18,27 +18,50 @@
 #include "src/common.h"
 #include "src/util.h"
 #include "src/priv.h"
+#include "classes/http.h"
 
 /* {{{ Private */
+
+/* {{{ _new_http_cb
+ * Allocate memory for new callback structure for the next HTTP server's URI */
+static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zarg, const zend_fcall_info *fci, const zend_fcall_info_cache *fcc TSRMLS_CC)
+{
+	php_event_http_cb_t *cb = emalloc(sizeof(php_event_http_cb_t));
+
+	if (zarg) {
+		Z_ADDREF_P(zarg);
+	}
+
+	cb->data = zarg;
+
+	PHP_EVENT_COPY_FCALL_INFO(cb->fci, cb->fcc, fci, fcc);
+
+	TSRMLS_SET_CTX(cb->thread_ctx);
+
+	cb->next = NULL;
+
+	return cb;
+}
+/* }}} */
 
 /* {{{ _http_callback */
 static void _http_callback(struct evhttp_request *req, void *arg)
 {
-	php_event_http_t *http = (php_event_http_t *) arg;
-	PHP_EVENT_ASSERT(http);
+	php_event_http_cb_t *cb = (php_event_http_cb_t *) arg;
+	PHP_EVENT_ASSERT(cb);
 
 	php_event_http_req_t *http_req;
 
-	zend_fcall_info       *pfci = http->fci;
-	zend_fcall_info_cache *pfcc = http->fcc;
+	zend_fcall_info       *pfci = cb->fci;
+	zend_fcall_info_cache *pfcc = cb->fcc;
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
-	TSRMLS_FETCH_FROM_CTX(http->thread_ctx);
+	TSRMLS_FETCH_FROM_CTX(cb->thread_ctx);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
-	zval  *arg_data = http->data;
+	zval  *arg_data = cb->data;
 	zval  *arg_req;
 	zval **args[2];
 	zval  *retval_ptr;
@@ -46,7 +69,8 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	MAKE_STD_ZVAL(arg_req);
 	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
 	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
-	http_req->ptr = req;
+	http_req->ptr      = req;
+	http_req->internal = 1; /* Don't evhttp_request_free(req) */
 	Z_ADDREF_P(arg_req);
 	args[0] = &arg_req;
 
@@ -76,8 +100,21 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 
 /* }}} */
 
+/* {{{  _php_event_free_http_cb */
+void _php_event_free_http_cb(php_event_http_cb_t *cb)
+{
+	if (cb->data) {
+		zval_ptr_dtor(&cb->data);
+		cb->data = NULL;
+	}
+
+	PHP_EVENT_FREE_FCALL_INFO(cb->fci, cb->fcc);
+
+	efree(cb);
+}
+/* }}} */
+
 /* {{{ proto EventHttp EventHttp::__construct(EventBase base);
- *
  * Creates new http server object.
  */
 PHP_METHOD(EventHttp, __construct)
@@ -98,6 +135,8 @@ PHP_METHOD(EventHttp, __construct)
 
 	http_ptr = evhttp_new(b->base);
 	if (!http_ptr) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Failed to allocate space for new HTTP server(evhttp_new)");
 		return;
 	}
 	http->ptr = http_ptr;
@@ -105,9 +144,10 @@ PHP_METHOD(EventHttp, __construct)
 	http->base = zbase;
 	Z_ADDREF_P(zbase);
 
-	http->stream_id = -1;
-	http->fci       = http->fcc      = NULL;
-	http->data      = http->gen_data = NULL;
+	http->fci     = NULL;
+	http->fcc     = NULL;
+	http->data    = NULL;
+	http->cb_head = NULL;
 }
 /* }}} */
 
@@ -139,11 +179,6 @@ PHP_METHOD(EventHttp, accept)
 		RETURN_FALSE;
 	}
 
-#if 0
-	http->stream_id = Z_LVAL_P(ppzfd);
-	zend_list_addref(Z_LVAL_P(ppzfd));
-#endif
-
 	RETVAL_TRUE;
 }
 /* }}} */
@@ -154,11 +189,11 @@ PHP_METHOD(EventHttp, accept)
  * Can be called multiple times to bind the same http server to multiple different ports. */
 PHP_METHOD(EventHttp, bind)
 {
-	zval              *zhttp = getThis();
-	php_event_http_t  *http;
-	char *address;
-	int address_len;
-	long port;
+	zval             *zhttp       = getThis();
+	php_event_http_t *http;
+	char             *address;
+	int               address_len;
+	long              port;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl",
 				&address, &address_len, &port) == FAILURE) {
@@ -167,6 +202,8 @@ PHP_METHOD(EventHttp, bind)
 
 	PHP_EVENT_FETCH_HTTP(http, zhttp);
 
+	/* XXX Call evhttp_bind_socket_with_handle instead, and store the bound
+	 * socket in the internal struct for further useful API? */
 	if (evhttp_bind_socket(http->ptr, address, port)) {
 		RETURN_FALSE;
 	}
@@ -176,7 +213,7 @@ PHP_METHOD(EventHttp, bind)
 /* }}} */
 
 /* {{{ proto bool EventHttp::setCallback(string path, callable cb[, mixed arg = NULL]);
- * Set a callback for a specified URI.
+ * Sets a callback for specified URI.
  */
 PHP_METHOD(EventHttp, setCallback)
 {
@@ -188,6 +225,8 @@ PHP_METHOD(EventHttp, setCallback)
 	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
 	zval                  *zarg     = NULL;
 	int                    res;
+	php_event_http_cb_t   *cb;
+	php_event_http_cb_t   *cb_head;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sf|z!",
 				&path, &path_len, &fci, &fcc, &zarg) == FAILURE) {
@@ -196,31 +235,26 @@ PHP_METHOD(EventHttp, setCallback)
 
 	PHP_EVENT_FETCH_HTTP(http, zhttp);
 
-	res = evhttp_set_cb(http->ptr, path, _http_callback, (void *) http);
+	cb = _new_http_cb(zarg, &fci, &fcc TSRMLS_CC);
+	PHP_EVENT_ASSERT(cb);
+
+	res = evhttp_set_cb(http->ptr, path, _http_callback, (void *) cb);
 	if (res == -2) {
+		_php_event_free_http_cb(cb);
+
 		RETURN_FALSE;
 	}
 	if (res == -1) { // the callback existed already
+		_php_event_free_http_cb(cb);
+
 		php_error_docref(NULL TSRMLS_CC, E_WARNING,
 				"The callback already exists");
 		RETURN_FALSE;
 	}
 
-	if (http->data) {
-		zval_ptr_dtor(&http->data);
-	}
-	if (zarg) {
-		Z_ADDREF_P(zarg);
-	}
-	http->data = zarg;
-
-	/* 
-	 * XXX We should set up individual user functions for every path!!!
-	 */
-
-	PHP_EVENT_COPY_FCALL_INFO(http->fci, http->fcc, &fci, &fcc);
-
-	TSRMLS_SET_CTX(http->thread_ctx);
+	cb_head       = http->cb_head;
+	http->cb_head = cb;
+	cb->next      = cb_head;
 
 	RETVAL_TRUE;
 }
@@ -233,14 +267,14 @@ PHP_METHOD(EventHttp, setCallback)
  * If not supported they will generate a <literal>"405 Method not
  * allowed"</literal> response.
  *
- * By default this includes the following methods: GET, POST, HEAD, PUT, DELETE
+ * By default this includes the following methods: GET, POST, HEAD, PUT, DELETE.
+ * See <literal>EventHttpRequest::CMD_*</literal> constants.
  */
 PHP_METHOD(EventHttp, setAllowedMethods)
 {
 	zval             *zhttp   = getThis();
 	php_event_http_t *http;
 	long              methods;
-
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
 				&methods) == FAILURE) {

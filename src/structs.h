@@ -123,6 +123,36 @@ typedef struct _php_event_listener_t {
 	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_listener_t;
 
+typedef struct _php_event_http_cb_t php_event_http_cb_t;
+
+/* Type for an HTTP server callback */
+struct _php_event_http_cb_t {
+	php_event_http_cb_t   *next;   /* Linked list                         */
+	zval                  *data;   /* User custom data passed to callback */
+	zend_fcall_info       *fci;
+	zend_fcall_info_cache *fcc;
+
+	PHP_EVENT_COMMON_THREAD_CTX;
+};
+
+/* Represents EventHttp object */
+typedef struct _php_event_http_t {
+	PHP_EVENT_OBJECT_HEAD;
+
+	struct evhttp         *ptr;
+	zval                  *base;        /* Event base associated with the listener              */
+	zval                  *data;        /* User custom data passed to the gen(default) callback */
+
+	/* General(default) callback for evhttp_gencb() */
+	zend_fcall_info       *fci;
+	zend_fcall_info_cache *fcc;
+
+	/* Linked list of attached callbacks */
+	php_event_http_cb_t   *cb_head;
+
+	PHP_EVENT_COMMON_THREAD_CTX;
+} php_event_http_t;
+
 /* Represents EventHttpConnection object */
 typedef struct _php_event_http_conn_t {
 	PHP_EVENT_OBJECT_HEAD;
@@ -132,26 +162,12 @@ typedef struct _php_event_http_conn_t {
 	zval                     *dns_base;   /* Associated EventDnsBase                 */
 } php_event_http_conn_t;
 
-/* Represents EventHttp object */
-typedef struct {
-	PHP_EVENT_OBJECT_HEAD;
-
-	struct evhttp         *ptr;
-	zval                  *base;        /* Event base associated with the listener              */
-	zval                  *data;        /* User custom data passed to callback                  */
-	zval                  *gen_data;    /* User custom data passed to the gen(default) callback */
-	int                    stream_id;   /* Resource ID of socket probably being listened        */
-
-	zend_fcall_info       *fci;
-	zend_fcall_info_cache *fcc;
-
-	PHP_EVENT_COMMON_THREAD_CTX;
-} php_event_http_t;
-
 typedef struct {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct evhttp_request *ptr;
+   	/* Whether is artificially created object that must not free 'ptr' */
+	zend_bool              internal;
 } php_event_http_req_t;
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */

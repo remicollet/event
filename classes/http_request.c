@@ -20,6 +20,20 @@
 #include "src/priv.h"
 #include "classes/http.h"
 
+/* {{{ EventHttpRequest::__construct */
+PHP_METHOD(EventHttpRequest, __construct)
+{
+	php_event_http_req_t *http_req;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req->ptr = NULL;
+}
+/* }}} */
+
 /* {{{ proto int EventHttpRequest::getCommand(void);
  * Returns the request command, one of EventHttpRequest::CMD_* constants. XXX Make property? */
 PHP_METHOD(EventHttpRequest, getCommand)
@@ -47,7 +61,6 @@ PHP_METHOD(EventHttpRequest, getCommand)
 PHP_METHOD(EventHttpRequest, getUri)
 {
 	php_event_http_req_t *http_req;
-	char *uri;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -61,9 +74,7 @@ PHP_METHOD(EventHttpRequest, getUri)
 		RETURN_FALSE;
 	}
 
-	uri = evhttp_request_get_uri(http_req->ptr);
-	RETVAL_STRING(uri, 1);
-	free(uri);
+	RETVAL_STRING(evhttp_request_get_uri(http_req->ptr), 1);
 }
 /* }}} */
 
@@ -94,6 +105,8 @@ PHP_METHOD(EventHttpRequest, getInputHeaders)
 			header = header->next.tqe_next) {
 		add_assoc_string(return_value, header->key, header->value, 1);
 	}
+
+
 }
 /* }}} */
 
@@ -244,7 +257,7 @@ PHP_METHOD(EventHttpRequest, sendReplyChunk)
 		PHP_EVENT_ASSERT(b->buf);
 	}
 
-	evhttp_send_reply_chunk(http_req->ptr, code, reason, b->buf);
+	evhttp_send_reply_chunk(http_req->ptr, b->buf);
 }
 /* }}} */
 
@@ -283,7 +296,7 @@ PHP_METHOD(EventHttpRequest, sendReplyEnd)
  * <method>EventHttpRequest::sendReplyChunk</method> and complete the reply by
  * calling <method>EventHttpRequest::sendReplyEnd</method>.
  */
-PHP_METHOD(EventHttpRequest, sendReplyEnd)
+PHP_METHOD(EventHttpRequest, sendReplyStart)
 {
 	php_event_http_req_t *http_req;
 	long                  code;

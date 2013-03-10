@@ -157,6 +157,7 @@ PHP_METHOD(EventHttp, bind);
 PHP_METHOD(EventHttp, setCallback);
 PHP_METHOD(EventHttp, setAllowedMethods);
 
+PHP_METHOD(EventHttpRequest, __construct);
 PHP_METHOD(EventHttpRequest, getCommand);
 PHP_METHOD(EventHttpRequest, getUri);
 PHP_METHOD(EventHttpRequest, getInputHeaders);

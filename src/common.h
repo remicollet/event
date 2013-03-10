@@ -39,6 +39,8 @@
 # define PHP_EVENT_SOCKETS_SUPPORT
 #endif
 
+
+#include <event2/keyvalq_struct.h>
 #include <event2/event.h>
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>

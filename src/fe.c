@@ -579,7 +579,7 @@ const zend_function_entry php_event_http_ce_functions[] = {
 };
 
 const zend_function_entry php_event_http_req_ce_functions[] = {
-	PHP_ABSTRACT_ME(EventHttpRequest, __construct, NULL)
+	PHP_ME(EventHttpRequest, __construct, arginfo_event__void, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 
 	PHP_ME(EventHttpRequest, getCommand,       arginfo_event__void,                     ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpRequest, getUri,           arginfo_event__void,                     ZEND_ACC_PUBLIC)

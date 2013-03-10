@@ -19,6 +19,7 @@
 #include "src/common.h"
 #include "src/util.h"
 #include "src/priv.h"
+#include "classes/http.h"
 
 #if 0
 ZEND_DECLARE_MODULE_GLOBALS(event)
@@ -315,10 +316,20 @@ static void event_http_conn_object_free_storage(void *ptr TSRMLS_DC)
 static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_http_t *http = (php_event_http_t *) ptr;
+	php_event_http_cb_t *cb, *cb_next;
 
 	PHP_EVENT_ASSERT(http);
 
 	PHP_EVENT_FREE_FCALL_INFO(http->fci, http->fcc);
+
+	/* Free attached callbacks */
+	PHP_EVENT_ASSERT(http->cb_head);
+	cb = http->cb_head;
+	while (cb) {
+		cb_next = cb->next;
+		_php_event_free_http_cb(cb);
+		cb = cb_next;
+	}
 
 	if (http->data) {
 		zval_ptr_dtor(&http->data);
@@ -340,14 +351,14 @@ static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 /* }}} */
 
 /* {{{ event_http_req_object_free_storage */
-static void event_http_req_object_create(void *ptr TSRMLS_DC)
+static void event_http_req_object_free_storage(void *ptr TSRMLS_DC)
 {
 	php_event_http_req_t *http_req = (php_event_http_req_t *) ptr;
 
 	PHP_EVENT_ASSERT(http_req);
 
-	if (http_req->ptr) {
-		evhttp_request_free(http->ptr);
+	if (!http_req->internal && http_req->ptr) {
+		evhttp_request_free(http_req->ptr);
 		http_req->ptr = NULL;
 	}
 
