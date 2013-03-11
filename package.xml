@@ -32,8 +32,18 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Add: HTTP server support, EventHttpRequest class
-  Fix: turn off buggy libevent thread lock debugging
+  Add: HTTP server support:
+    * EventHttp methods: setMaxBodySize, setMaxHeadersSize, setTimeout,
+      addServerAlias, removeServerAlias setCallback, setDefaultCallback,
+      setAllowedMethods, setMaxBodySize, setMaxHeadersSize, setTimeout,
+      addServerAlias, removeServerAlias;
+    * EventHttpRequest class, callback and custom data can be bound to the
+      request for future use with EventHttpConnection
+    * New EventHttpConnection::makeRequest method allows to make custom HTTP
+      requests by means of EventHttpRequest class
+  Change: make EventDnsBase parameter optional in EventHttpConnection::__construct
+  Fix: classes/buffer_event.c: possible memory access violation in bufferevent callback
+  Fix: turn off buggy libevent thread lock debugging when built with --enable-event-debug
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -133,9 +143,19 @@
       </stability>
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
-  Add: HTTP server support, EventHttpRequest class
-  Fix: turn off buggy libevent thread lock debugging
-  ]]></notes>
+Add: HTTP server support:
+  * EventHttp methods: setMaxBodySize, setMaxHeadersSize, setTimeout,
+    addServerAlias, removeServerAlias setCallback, setDefaultCallback,
+    setAllowedMethods, setMaxBodySize, setMaxHeadersSize, setTimeout,
+    addServerAlias, removeServerAlias;
+  * EventHttpRequest class, callback and custom data can be bound to the
+    request for future use with EventHttpConnection
+  * New EventHttpConnection::makeRequest method allows to make custom HTTP
+    requests by means of EventHttpRequest class
+Change: make EventDnsBase parameter optional in EventHttpConnection::__construct
+Fix: classes/buffer_event.c: possible memory access violation in bufferevent callback
+Fix: turn off buggy libevent thread lock debugging when built with --enable-event-debug
+]]></notes>
     </release>
     <!--}}}-->
     <!--{{{ 1.3.0-beta-->
@@ -150,15 +170,15 @@
       </stability>
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
-  Fix: possible memory access violations in EventBufferEvent input/output property handlers
-  Change: Event::$timer_pending property removed; generic Event::$pending property added
-  Fix: With OPT_LEAVE_SOCKETS_BLOCKING flag EventListener::__construct turned fd to non-blocking mode
-  Fix: property and class HashTable's were not free'd in MSHUTDOWN
-  Add: Event::$data property
-  Fix: Event::__construct failed with Event::TIMEOUT flag
-  Fix: memory leak in EventBuffer::readLine
-  Add: --with-event-pthreads configure option
-  Fix: EventBase::reInit method's arginfo
+Fix: possible memory access violations in EventBufferEvent input/output property handlers
+Change: Event::$timer_pending property removed; generic Event::$pending property added
+Fix: With OPT_LEAVE_SOCKETS_BLOCKING flag EventListener::__construct turned fd to non-blocking mode
+Fix: property and class HashTable's were not free'd in MSHUTDOWN
+Add: Event::$data property
+Fix: Event::__construct failed with Event::TIMEOUT flag
+Fix: memory leak in EventBuffer::readLine
+Add: --with-event-pthreads configure option
+Fix: EventBase::reInit method's arginfo
   ]]></notes>
     </release>
     <!--}}}-->
