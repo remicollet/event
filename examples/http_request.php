@@ -39,5 +39,4 @@ $req->addHeader("Content-Length", "0", EventHttpRequest::OUTPUT_HEADER);
 $conn->makeRequest($req, EventHttpRequest::CMD_GET, "/index.cphp");
 
 $base->loop();
-$base;
 ?>

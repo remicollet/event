@@ -326,7 +326,7 @@ static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 	PHP_EVENT_FREE_FCALL_INFO(http->fci, http->fcc);
 
 	/* Free attached callbacks */
-	PHP_EVENT_ASSERT(http->cb_head);
+	/*PHP_EVENT_ASSERT(http->cb_head);*/
 	cb = http->cb_head;
 	while (cb) {
 		cb_next = cb->next;
