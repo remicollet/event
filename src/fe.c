@@ -301,6 +301,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_set_callback, 0, 0, 2)
 	ZEND_ARG_INFO(0, arg)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_set_gen_callback, 0, 0, 1)
+	ZEND_ARG_INFO(0, cb)
+	ZEND_ARG_INFO(0, arg)
+ZEND_END_ARG_INFO();
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_set_allowed_methods, 0, 0, 1)
 	ZEND_ARG_INFO(0, methods)
 ZEND_END_ARG_INFO();
@@ -604,7 +609,7 @@ const zend_function_entry php_event_http_ce_functions[] = {
 	PHP_ME(EventHttp, accept,             arginfo_event_http_accept,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttp, bind,               arginfo_event_http_bind,                ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttp, setCallback,        arginfo_event_http_set_callback,        ZEND_ACC_PUBLIC)
-	PHP_ME(EventHttp, setDefaultCallback, arginfo_event_http_set_callback,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventHttp, setDefaultCallback, arginfo_event_http_set_gen_callback,    ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttp, setAllowedMethods,  arginfo_event_http_set_allowed_methods, ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttp, setMaxBodySize,     arginfo_event_http_set_value,           ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttp, setMaxHeadersSize,  arginfo_event_http_set_value,           ZEND_ACC_PUBLIC)

@@ -430,7 +430,7 @@ PHP_METHOD(EventHttp, setTimeout)
 }
 /* }}} */
 
-/* {{{ proto void EventHttp::addServerAlias(string alias);
+/* {{{ proto bool EventHttp::addServerAlias(string alias);
  * Adds a server alias to the object.
  */
 PHP_METHOD(EventHttp, addServerAlias)
@@ -447,11 +447,14 @@ PHP_METHOD(EventHttp, addServerAlias)
 
 	PHP_EVENT_FETCH_HTTP(http, zhttp);
 
-	evhttp_add_server_alias(http->ptr, alias);
+	if (evhttp_add_server_alias(http->ptr, alias)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
 }
 /* }}} */
 
-/* {{{ proto void EventHttp::removeServerAlias(string alias);
+/* {{{ proto bool EventHttp::removeServerAlias(string alias);
  * Removes a server alias from the object.
  */
 PHP_METHOD(EventHttp, removeServerAlias)
@@ -468,7 +471,10 @@ PHP_METHOD(EventHttp, removeServerAlias)
 
 	PHP_EVENT_FETCH_HTTP(http, zhttp);
 
-	evhttp_remove_server_alias(http->ptr, alias);
+	if (evhttp_remove_server_alias(http->ptr, alias)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
 }
 /* }}} */
 
