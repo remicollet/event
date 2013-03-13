@@ -184,7 +184,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
 
 	/* Call user function having proto:
-	 * void cb (resource $listener, mixed $data); */
+	 * void cb (EventListener $listener, mixed $data); */
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		args[0] = &l->self;
@@ -224,7 +224,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
  * target parameter may be string, socket resource, or a stream associated with a socket.
  * In case if target is a string, the string will be parsed as network address.
  *
- * Returns resource representing the event connection listener.
+ * Returns object representing the event connection listener.
  */
 PHP_METHOD(EventListener, __construct)
 {

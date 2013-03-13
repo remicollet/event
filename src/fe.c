@@ -323,7 +323,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req__construct, 0, 0, 1)
 	ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req_send_error, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req_send_error, 0, 0, 1)
 	ZEND_ARG_INFO(0, error)
 	ZEND_ARG_INFO(0, reason)
 ZEND_END_ARG_INFO();
@@ -410,7 +410,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener__construct, 0, 0, 5)
 	ZEND_ARG_INFO(0, data)
 	ZEND_ARG_INFO(0, flags)
 	ZEND_ARG_INFO(0, backlog)
-	ZEND_ARG_INFO(0, stream)
+	ZEND_ARG_INFO(0, target)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_new_bind, 0, 0, 5)

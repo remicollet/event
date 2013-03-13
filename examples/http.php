@@ -92,6 +92,10 @@ function _http_default($req, $data) {
 	echo "OK\n";
 }
 
+function _http_400($req) {
+	$req->sendError(400);
+}
+
 $port = 8010;
 if ($argc > 1) {
 	$port = (int) $argv[1];
@@ -106,6 +110,7 @@ $http->setAllowedMethods(EventHttpRequest::CMD_GET | EventHttpRequest::CMD_POST)
 
 $http->setCallback("/dump", "_http_dump", array(4, 8));
 $http->setCallback("/about", "_http_about");
+$http->setCallback("/err400", "_http_400");
 $http->setDefaultCallback("_http_default", "custom data value");
 
 $http->bind("0.0.0.0", 8010);

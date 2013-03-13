@@ -355,17 +355,17 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
 }
 /* }}} */
 
-/* {{{ proto void EventHttpRequest::sendError(int error, string reason);
+/* {{{ proto void EventHttpRequest::sendError(int error[, string reason = NULL]);
  * Send an HTML error message to the client.
  */
 PHP_METHOD(EventHttpRequest, sendError)
 {
 	php_event_http_req_t *http_req;
 	long                  error;
-	char                 *reason;
+	char                 *reason = NULL;
 	int                   reason_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls",
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|s!",
 				&error, &reason, &reason_len) == FAILURE) {
 		return;
 	}
