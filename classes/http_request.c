@@ -203,7 +203,7 @@ PHP_METHOD(EventHttpRequest, getCommand)
 }
 /* }}} */
 
-/* {{{ proto int EventHttpRequest::getHost(void);
+/* {{{ proto string EventHttpRequest::getHost(void);
  * Returns the request host. XXX make a property? */
 PHP_METHOD(EventHttpRequest, getHost)
 {

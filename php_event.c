@@ -1271,7 +1271,9 @@ PHP_MSHUTDOWN_FUNCTION(event)
 	zend_hash_destroy(&event_bevent_properties);
 	zend_hash_destroy(&event_buffer_properties);
 	zend_hash_destroy(&event_buffer_pos_properties);
+#ifdef HAVE_EVENT_OPENSSL_LIB
 	zend_hash_destroy(&event_ssl_context_properties);
+#endif
 
 	zend_hash_destroy(&classes);
 

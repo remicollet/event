@@ -318,6 +318,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_add_alias, 0, 0, 1)
 	ZEND_ARG_INFO(0, alias)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req__construct, 0, 0, 1)
+	ZEND_ARG_INFO(0, callback)
+	ZEND_ARG_INFO(0, data)
+ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_req_send_error, 0, 0, 2)
 	ZEND_ARG_INFO(0, error)
@@ -621,7 +625,7 @@ const zend_function_entry php_event_http_ce_functions[] = {
 };
 
 const zend_function_entry php_event_http_req_ce_functions[] = {
-	PHP_ME(EventHttpRequest, __construct, arginfo_event__void, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+	PHP_ME(EventHttpRequest, __construct, arginfo_event_http_req__construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 
 	PHP_ME(EventHttpRequest, free,             arginfo_event__void,                     ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpRequest, getCommand,       arginfo_event__void,                     ZEND_ACC_PUBLIC)
