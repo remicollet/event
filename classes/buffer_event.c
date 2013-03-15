@@ -21,6 +21,14 @@
 
 /* {{{ Private */
 
+#define _ret_if_invalid_bevent_ptr(bev)             \
+{                                                   \
+    if (!bev->bevent) {                             \
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, \
+                "Buffer Event is not initialized"); \
+    }                                               \
+}
+
 /* {{{ bevent_rw_cb
  * Is called from the bufferevent read and write callbacks */
 static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_event_bevent_t *bev, zend_fcall_info *pfci, zend_fcall_info_cache *pfcc)
@@ -775,6 +783,8 @@ PHP_METHOD(EventBufferEvent, setWatermark)
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 
+	_ret_if_invalid_bevent_ptr(bev);
+
 	bufferevent_setwatermark(bev->bevent, events, (size_t) lowmark, (size_t) highmark);
 }
 /* }}} */
@@ -793,6 +803,8 @@ PHP_METHOD(EventBufferEvent, write)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	_ret_if_invalid_bevent_ptr(bev);
 
 	convert_to_string(zdata);
 
@@ -819,6 +831,8 @@ PHP_METHOD(EventBufferEvent, writeBuffer)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
+
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
 	if (bufferevent_write_buffer(bev->bevent, b->buf)) {
@@ -853,6 +867,7 @@ PHP_METHOD(EventBufferEvent, read)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	data = safe_emalloc(size, sizeof(char), 1);
 
@@ -886,6 +901,8 @@ PHP_METHOD(EventBufferEvent, readBuffer)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
+
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
 	if (bufferevent_read_buffer(bev->bevent, b->buf)) {
@@ -911,6 +928,7 @@ PHP_METHOD(EventBufferEvent, setPriority)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	if (bufferevent_priority_set(bev->bevent, priority)) {
 		RETURN_FALSE;
@@ -937,6 +955,7 @@ PHP_METHOD(EventBufferEvent, setTimeouts)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	PHP_EVENT_TIMEVAL_SET(tv_read, timeout_read);
 	PHP_EVENT_TIMEVAL_SET(tv_write, timeout_write);
@@ -982,6 +1001,8 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 
 	PHP_EVENT_FETCH_BASE(base, zbase);
 	PHP_EVENT_FETCH_BEVENT(bev_underlying, zunderlying);
+	_ret_if_invalid_bevent_ptr(bev_underlying);
+
 	PHP_EVENT_FETCH_SSL_CONTEXT(ectx, zctx);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
@@ -1098,6 +1119,7 @@ PHP_METHOD(EventBufferEvent, sslError)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	e = bufferevent_get_openssl_error(bev->bevent);
 	if (e) {
@@ -1128,6 +1150,7 @@ PHP_METHOD(EventBufferEvent, sslRenegotiate)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	bufferevent_ssl_renegotiate(bev->bevent);
 }
