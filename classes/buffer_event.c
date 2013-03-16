@@ -26,6 +26,7 @@
     if (!bev->bevent) {                             \
         php_error_docref(NULL TSRMLS_CC, E_WARNING, \
                 "Buffer Event is not initialized"); \
+        RETURN_FALSE; \
     }                                               \
 }
 
@@ -665,6 +666,7 @@ PHP_METHOD(EventBufferEvent, enable)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	if (bufferevent_enable(bev->bevent, events)) {
 		RETURN_FALSE;
@@ -688,6 +690,7 @@ PHP_METHOD(EventBufferEvent,disable)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	if (bufferevent_disable(bev->bevent, events)) {
 		RETURN_FALSE;
@@ -728,6 +731,7 @@ PHP_METHOD(EventBufferEvent, getInput)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_ce);
 	PHP_EVENT_FETCH_BUFFER(b, return_value);
