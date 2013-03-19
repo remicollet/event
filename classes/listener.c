@@ -42,7 +42,7 @@ static int sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
 				ret = SUCCESS;
 			}
 			break;
-#if HAVE_IPV6 && HAVE_INET_NTOP
+#if HAVE_IPV6
 		case AF_INET6:
 			if (evutil_inet_ntop(in_addr->sa_family, &((struct sockaddr_in6 *) in_addr)->sin6_addr,
 						(void *) &buf, sizeof(buf))) {

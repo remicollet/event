@@ -135,7 +135,7 @@ PHP_METHOD(EventUtil, getSocketName)
 				}
 			}
 			break;
-#if HAVE_IPV6 && HAVE_INET_NTOP
+#if HAVE_IPV6
 		case AF_INET6:
 			{
 				struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sa;
