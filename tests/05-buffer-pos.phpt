@@ -10,7 +10,7 @@ function count_instances($buf, $str) {
 	$i = 0;
     while (1) {
         $p = $buf->search($str, $p);
-        if ($p == -1) {
+        if ($p === FALSE) {
             break;
 		}
         ++$total;

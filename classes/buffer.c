@@ -470,7 +470,7 @@ PHP_METHOD(EventBuffer, readLine)
 }
 /* }}} */
 
-/* {{{ proto int EventBuffer::search(int what[, int start = -1[, int end = -1]]);
+/* {{{ proto mixed EventBuffer::search(int what[, int start = -1[, int end = -1]]);
  *
  * Scans the buffer for an occurrence of the len-character string what. It
  * returns object representing the position of the string, or NULL if the
@@ -480,7 +480,7 @@ PHP_METHOD(EventBuffer, readLine)
  * start and end buffer positions.
  *
  * Returns position of the first occurance of the string
- * in the buffer, or -1 if string is not found.
+ * in the buffer, or &false; if string is not found.
  */
 PHP_METHOD(EventBuffer, search)
 {
@@ -520,6 +520,9 @@ PHP_METHOD(EventBuffer, search)
 				(start_pos != -1 ? &ptr_start : NULL));
 	}
 
+	if (ptr_res.pos == -1) {
+		RETURN_FALSE;
+	}
 	RETVAL_LONG(ptr_res.pos);
 }
 /* }}} */
@@ -553,6 +556,9 @@ PHP_METHOD(EventBuffer, searchEol)
 	ptr_res = evbuffer_search_eol(b->buf, (start_pos != -1 ? &ptr_start : NULL),
 			NULL, eol_style);
 
+	if (ptr_res.pos == -1) {
+		RETURN_FALSE;
+	}
 	RETVAL_LONG(ptr_res.pos);
 }
 /* }}} */

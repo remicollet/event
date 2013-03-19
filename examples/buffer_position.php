@@ -3,18 +3,16 @@
 /* Count total occurances of 'str' in 'buf' */
 function count_instances($buf, $str) {
     $total = 0;
-	$p = new EventBufferPosition();
-
-    $buf->setPosition($p, 0, EventBuffer::PTR_SET);
+	$p = 0;
 
 	$i = 0;
     while (1) {
         $p = $buf->search($str, $p);
-        if (!$p) {
+        if ($p === FALSE) {
             break;
 		}
         ++$total;
-        $buf->setPosition($p, 1, EventBuffer::PTR_ADD);
+		++$p;
     }
 
     return $total;
