@@ -436,6 +436,7 @@ PHP_METHOD(EventBufferEvent, connect)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	if (sync_resolve) {
 		/* The PHP API *syncronously* resolves hostname, if it doesn't look
@@ -515,6 +516,7 @@ PHP_METHOD(EventBufferEvent, connectHost)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	/* bufferevent_socket_connect() allocates a socket stream internally, if we
 	 * didn't provide the file descriptor to the bufferevent before, e.g. with
@@ -568,6 +570,7 @@ PHP_METHOD(EventBufferEvent, getDnsErrorString)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	err = bufferevent_socket_get_dns_error(bev->bevent);
 
@@ -607,6 +610,7 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	if (ZEND_FCI_INITIALIZED(fci_read)) {
 		read_cb = bevent_read_cb;
@@ -712,6 +716,8 @@ PHP_METHOD(EventBufferEvent, getEnabled)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
+
 
 	RETVAL_LONG(bufferevent_get_enabled(bev->bevent));
 }
@@ -758,6 +764,7 @@ PHP_METHOD(EventBufferEvent, getOutput)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_ce);
 	PHP_EVENT_FETCH_BUFFER(b, return_value);
@@ -786,7 +793,6 @@ PHP_METHOD(EventBufferEvent, setWatermark)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
-
 	_ret_if_invalid_bevent_ptr(bev);
 
 	bufferevent_setwatermark(bev->bevent, events, (size_t) lowmark, (size_t) highmark);
@@ -807,7 +813,6 @@ PHP_METHOD(EventBufferEvent, write)
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
-
 	_ret_if_invalid_bevent_ptr(bev);
 
 	convert_to_string(zdata);

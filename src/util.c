@@ -106,7 +106,6 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 }
 /* }}} */
 
-
 /*
  * Local variables:
  * tab-width: 4

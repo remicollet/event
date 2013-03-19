@@ -35,6 +35,7 @@
   Fix: uninitialized socket caused segmentation fault in EventBufferEvent methods
   Del: EventBufferPosition class removed, EventBuffer::search now accepts and returns integers
   Add: EventBuffer::searchEol method
+  Add: EventUtil::getSocketName method
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -140,6 +141,7 @@
         Fix: uninitialized socket caused segmentation fault in EventBufferEvent methods
         Del: EventBufferPosition class removed, EventBuffer::search now accepts and returns integers
         Add: EventBuffer::searchEol method
+        Add: EventUtil::getSocketName method
         ]]></notes>
     </release>
     <!--}}}-->

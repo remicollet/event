@@ -371,6 +371,13 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_ssl_context__construct, 0, 0, 2)
 	ZEND_ARG_INFO(0, options)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_get_socket_name, 0, 0, 2)
+	ZEND_ARG_INFO(0, socket)
+	ZEND_ARG_INFO(1, address)
+	ZEND_ARG_INFO(1, port)
+ZEND_END_ARG_INFO();
+
+
 /* ARGINFO END }}} */
 
 
@@ -563,12 +570,13 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 	PHP_ABSTRACT_ME(EventUtil, __construct, NULL)
 
-	PHP_ME(EventUtil, getLastSocketErrno, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-	PHP_ME(EventUtil, getLastSocketError, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, getLastSocketErrno,    arginfo_event_socket_1,             ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, getLastSocketError,    arginfo_event_socket_1,             ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
-#ifdef HAVE_EVENT_OPENSSL_LIB
-	PHP_ME(EventUtil, sslRandPoll,        arginfo_event__void,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+#ifdef            HAVE_EVENT_OPENSSL_LIB
+	PHP_ME(EventUtil, sslRandPoll,           arginfo_event__void,                ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 #endif
+	PHP_ME(EventUtil, getSocketName,         arginfo_event_util_get_socket_name, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 	PHP_FE_END
 };

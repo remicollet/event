@@ -20,7 +20,7 @@
 #include "src/priv.h"
 
 /* {{{ _get_pos */
-static zend_always_inline int _get_pos(struct evbuffer_ptr *out_ptr, const long pos, struct evbuffer *buf TSRMLS_CC)
+static int _get_pos(struct evbuffer_ptr *out_ptr, const long pos, struct evbuffer *buf TSRMLS_CC)
 {
 	if (pos < 0) {
 		return FAILURE;
