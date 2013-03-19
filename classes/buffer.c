@@ -512,7 +512,7 @@ PHP_METHOD(EventBuffer, search)
 		end_pos = -1;
 	}
 
-	if (end_pos) {
+	if (end_pos != -1) {
 		ptr_res = evbuffer_search_range(b->buf, what, (size_t) what_len,
 				(start_pos != -1 ? &ptr_start : NULL), &ptr_end);
 	} else {
