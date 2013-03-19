@@ -34,6 +34,7 @@
   <notes><![CDATA[
   Fix: uninitialized socket caused segmentation fault in EventBufferEvent methods
   Del: EventBufferPosition class removed, EventBuffer::search now accepts and returns integers
+  Add: EventBuffer::searchEol method
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -50,7 +51,6 @@
         <file role="src" name="base.c"/>
         <file role="src" name="buffer.c"/>
         <file role="src" name="buffer_event.c"/>
-        <file role="src" name="buffer_pos.c"/>
         <file role="src" name="dns.c"/>
         <file role="src" name="event.c"/>
         <file role="src" name="event_config.c"/>
@@ -125,8 +125,8 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 1.5.0-beta -->
     <release>
-      <!--{{{ 1.5.0-beta -->
       <version>
         <release>1.5.0</release>
         <api>1.5.0</api>
@@ -139,9 +139,10 @@
       <notes><![CDATA[
         Fix: uninitialized socket caused segmentation fault in EventBufferEvent methods
         Del: EventBufferPosition class removed, EventBuffer::search now accepts and returns integers
+        Add: EventBuffer::searchEol method
         ]]></notes>
-      <!--}}}-->
     </release>
+    <!--}}}-->
     <!--{{{ 1.4.0-beta  -->
     <release>
       <version>

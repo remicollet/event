@@ -233,6 +233,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_search, 0, 0, 1)
 	ZEND_ARG_INFO(0, end)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_search_eol, 0, 0, 0)
+	ZEND_ARG_INFO(0, start)
+	ZEND_ARG_INFO(0, eol_style)
+ZEND_END_ARG_INFO();
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_set_position, 0, 0, 3)
 	ZEND_ARG_INFO(1, pos)
 	ZEND_ARG_INFO(0, value)
@@ -548,6 +553,7 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, copyout,       arginfo_evbuffer_remove,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, readLine,      arginfo_evbuffer_read_line,     ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, search,        arginfo_evbuffer_search,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, searchEol,     arginfo_evbuffer_search_eol,    ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, pullup,        arginfo_evbuffer_pullup,        ZEND_ACC_PUBLIC)
 
 	PHP_FE_END

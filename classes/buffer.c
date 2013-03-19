@@ -19,22 +19,16 @@
 #include "src/util.h"
 #include "src/priv.h"
 
-/* {{{ _get_start_pos */
-static int _get_pos_from_zval(struct evbuffer_ptr *out_ptr, const zval *pz, struct evbuffer *buf TSRMLS_CC)
+/* {{{ _get_pos */
+static zend_always_inline int _get_pos(struct evbuffer_ptr *out_ptr, const long pos, struct evbuffer *buf TSRMLS_CC)
 {
-	if (!pz) {
+	if (pos < 0) {
 		return FAILURE;
 	}
 
-	if (Z_TYPE_P(pz) == IS_LONG) {
-		if (evbuffer_ptr_set(buf, out_ptr, Z_LVAL_P(pz), EVBUFFER_PTR_SET) == -1) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
-					"Failed to set position to %ld", Z_LVAL_P(pz));
-			return FAILURE;
-		}
-	} else {
+	if (evbuffer_ptr_set(buf, out_ptr, pos, EVBUFFER_PTR_SET) == -1) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"Invalid start position argument passed");
+				"Failed to set position to %ld", pos);
 		return FAILURE;
 	}
 
@@ -476,7 +470,7 @@ PHP_METHOD(EventBuffer, readLine)
 }
 /* }}} */
 
-/* {{{ proto int EventBuffer::search(int what[, int start = NULL[, int end = NULL]]);
+/* {{{ proto int EventBuffer::search(int what[, int start = -1[, int end = -1]]);
  *
  * Scans the buffer for an occurrence of the len-character string what. It
  * returns object representing the position of the string, or NULL if the
@@ -490,41 +484,74 @@ PHP_METHOD(EventBuffer, readLine)
  */
 PHP_METHOD(EventBuffer, search)
 {
-	zval                   *zbuf       = getThis();
-	zval                   *zstart_pos = NULL;
-	zval                   *zend_pos   = NULL;
-	char                   *what;
-	int                     what_len;
-	php_event_buffer_t     *b;
+	zval               *zbuf      = getThis();
+	long                start_pos = -1;
+	long                end_pos   = -1;
+	char               *what;
+	int                 what_len;
+	php_event_buffer_t *b;
 
 	struct evbuffer_ptr ptr_start, ptr_end, ptr_res;
 
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z!z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|ll",
 				&what, &what_len,
-				&zstart_pos,
-				&zend_pos) == FAILURE) {
+				&start_pos,
+				&end_pos) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
-	if (zstart_pos != NULL
-			&& _get_pos_from_zval(&ptr_start, zstart_pos, b->buf TSRMLS_CC) == FAILURE) {
-		zstart_pos = NULL;
+	if (start_pos != -1 
+			&& _get_pos(&ptr_start, start_pos, b->buf TSRMLS_CC) == FAILURE) {
+		start_pos = -1;
 	}
-	if (zend_pos != NULL
-			&& _get_pos_from_zval(&ptr_end, zend_pos, b->buf TSRMLS_CC) == FAILURE) {
-		zend_pos = NULL;
+	if (end_pos != -1
+			&& _get_pos(&ptr_end, end_pos, b->buf TSRMLS_CC) == FAILURE) {
+		end_pos = -1;
 	}
 
-	if (zend_pos) {
+	if (end_pos) {
 		ptr_res = evbuffer_search_range(b->buf, what, (size_t) what_len,
-				(zstart_pos ? &ptr_start : NULL), &ptr_end);
+				(start_pos != -1 ? &ptr_start : NULL), &ptr_end);
 	} else {
 		ptr_res = evbuffer_search(b->buf, what, (size_t) what_len,
-				(zstart_pos ? &ptr_start : NULL));
+				(start_pos != -1 ? &ptr_start : NULL));
 	}
+
+	RETVAL_LONG(ptr_res.pos);
+}
+/* }}} */
+
+/* {{{ proto int EventBuffer::searchEol([int start = -1[, int eol_style = EventBuffer::EOL_ANY]]);
+ * Searches for occurance of end of line.
+ *
+ * Returns unsigned numeric position on success. Otherwise -1.
+ */
+PHP_METHOD(EventBuffer, searchEol)
+{
+	zval               *zbuf      = getThis();
+	long                start_pos = -1;
+	long                eol_style = EVBUFFER_EOL_ANY;
+	php_event_buffer_t *b;
+
+	struct evbuffer_ptr ptr_start, ptr_res;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ll",
+				&start_pos, &eol_style) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (start_pos != -1 
+			&& _get_pos(&ptr_start, start_pos, b->buf TSRMLS_CC) == FAILURE) {
+		start_pos = -1;
+	}
+
+	ptr_res = evbuffer_search_eol(b->buf, (start_pos != -1 ? &ptr_start : NULL),
+			NULL, eol_style);
 
 	RETVAL_LONG(ptr_res.pos);
 }
