@@ -104,7 +104,6 @@ PHP_METHOD(EventBuffer, drain);
 PHP_METHOD(EventBuffer, copyout);
 PHP_METHOD(EventBuffer, readLine);
 PHP_METHOD(EventBuffer, search);
-PHP_METHOD(EventBuffer, setPosition);
 PHP_METHOD(EventBuffer, pullup);
 
 PHP_METHOD(EventUtil, getLastSocketErrno);

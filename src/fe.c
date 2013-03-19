@@ -548,7 +548,6 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, copyout,       arginfo_evbuffer_remove,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, readLine,      arginfo_evbuffer_read_line,     ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, search,        arginfo_evbuffer_search,        ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, setPosition,   arginfo_evbuffer_set_position,  ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, pullup,        arginfo_evbuffer_pullup,        ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
@@ -569,11 +568,6 @@ const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 };
 /* }}} */
 
-const zend_function_entry php_event_buffer_pos_ce_functions[] = {/* {{{ */
-	PHP_ME(EventBufferPosition, __construct, arginfo_event__void, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-
-	PHP_FE_END
-};
 /* }}} */
 
 #if HAVE_EVENT_EXTRA_LIB

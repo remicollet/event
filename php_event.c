@@ -32,7 +32,6 @@ zend_class_entry *php_event_config_ce;
 zend_class_entry *php_event_bevent_ce;
 zend_class_entry *php_event_buffer_ce;
 zend_class_entry *php_event_util_ce;
-zend_class_entry *php_event_buffer_pos_ce;
 #ifdef HAVE_EVENT_OPENSSL_LIB
 zend_class_entry *php_event_ssl_context_ce;
 #endif
@@ -50,7 +49,6 @@ static HashTable classes;
 static HashTable event_properties;
 static HashTable event_bevent_properties;
 static HashTable event_buffer_properties;
-static HashTable event_buffer_pos_properties;
 #ifdef HAVE_EVENT_OPENSSL_LIB
 static HashTable event_ssl_context_properties;
 int php_event_ssl_data_index;
@@ -382,13 +380,6 @@ static void event_http_req_object_free_storage(void *ptr TSRMLS_DC)
 
 #endif /* HAVE_EVENT_EXTRA_LIB */
 
-/* {{{ event_buffer_pos_object_free_storage */
-static void event_buffer_pos_object_free_storage(void *ptr TSRMLS_DC)
-{
-	event_generic_object_free_storage(ptr TSRMLS_CC);
-}
-/* }}} */
-
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
 /* {{{ event_ssl_context_object_free_storage */
@@ -519,20 +510,9 @@ static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC
 }
 /* }}} */
 
-/* {{{ event_buffer_pos_object_create
- * EventBufferPosition object ctor */
-static zend_object_value event_buffer_pos_object_create(zend_class_entry *ce TSRMLS_DC)
-{
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_buffer_pos_t) TSRMLS_CC);
-
-	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_buffer_pos_object_free_storage TSRMLS_CC);
-}
-/* }}} */
-
 #ifdef HAVE_EVENT_OPENSSL_LIB
 /* {{{ event_ssl_context_object_create
- * EventBufferPosition object ctor */
+ * EventSslContext object ctor */
 static zend_object_value event_ssl_context_object_create(zend_class_entry *ce TSRMLS_DC)
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *)
@@ -1001,17 +981,6 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_buffer_properties,
 			sizeof(event_buffer_properties), NULL);
 
-	PHP_EVENT_REGISTER_CLASS("EventBufferPosition", event_buffer_pos_object_create,
-			php_event_buffer_pos_ce,
-			php_event_buffer_pos_ce_functions);
-	ce = php_event_buffer_pos_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-	zend_hash_init(&event_buffer_pos_properties, 0, NULL, NULL, 1);
-	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_buffer_pos_properties, event_buffer_pos_property_entries);
-	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_buffer_pos_property_entry_info);
-	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_buffer_pos_properties,
-			sizeof(event_buffer_pos_properties), NULL);
-
 #if HAVE_EVENT_EXTRA_LIB
 	PHP_EVENT_REGISTER_CLASS("EventDnsBase", event_dns_base_object_create, php_event_dns_base_ce,
 			php_event_dns_base_ce_functions);
@@ -1270,7 +1239,6 @@ PHP_MSHUTDOWN_FUNCTION(event)
 	zend_hash_destroy(&event_properties);
 	zend_hash_destroy(&event_bevent_properties);
 	zend_hash_destroy(&event_buffer_properties);
-	zend_hash_destroy(&event_buffer_pos_properties);
 #ifdef HAVE_EVENT_OPENSSL_LIB
 	zend_hash_destroy(&event_ssl_context_properties);
 #endif

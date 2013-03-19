@@ -140,18 +140,6 @@ static int event_buffer_contiguous_space_prop_read(php_event_abstract_object_t *
 }
 /* }}} */
 
-/* {{{ event_buffer_pos_position_prop_read */
-static int event_buffer_pos_position_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
-{
-	php_event_buffer_pos_t *pos = (php_event_buffer_pos_t *) obj;
-
-	MAKE_STD_ZVAL(*retval);
-	ZVAL_LONG(*retval, pos->p.pos);
-
-	return SUCCESS;
-}
-/* }}} */
-
 /* {{{ event_bevent_priority_prop_write*/
 static int event_bevent_priority_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
 {
@@ -364,10 +352,6 @@ const php_event_property_entry_t event_buffer_property_entries[] = {
 	{"contiguous_space", sizeof("contiguous_space") - 1, event_buffer_contiguous_space_prop_read, NULL, NULL},
     {NULL, 0, NULL, NULL, NULL}
 };
-const php_event_property_entry_t event_buffer_pos_property_entries[] = {
-	{"position", sizeof("position") - 1, event_buffer_pos_position_prop_read, NULL, NULL},
-    {NULL, 0, NULL, NULL, NULL}
-};
 #ifdef HAVE_EVENT_OPENSSL_LIB
 const php_event_property_entry_t event_ssl_context_property_entries[] = {
 	{"local_cert", sizeof("local_cert") - 1, event_ssl_context_local_cert_prop_read, event_ssl_context_local_cert_prop_write, NULL},
@@ -393,10 +377,6 @@ const zend_property_info event_bevent_property_entry_info[] = {
 const zend_property_info event_buffer_property_entry_info[] = {
 	{ZEND_ACC_PUBLIC, "length",           sizeof("length")           - 1, -1, 0, NULL, 0, NULL},
 	{ZEND_ACC_PUBLIC, "contiguous_space", sizeof("contiguous_space") - 1, -1, 0, NULL, 0, NULL},
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-const zend_property_info event_buffer_pos_property_entry_info[] = {
-	{ZEND_ACC_PUBLIC, "position", sizeof("position") - 1, -1, 0, NULL, 0, NULL},
 	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
 #ifdef HAVE_EVENT_OPENSSL_LIB

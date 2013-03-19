@@ -185,12 +185,6 @@ typedef struct {
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
-typedef struct _php_event_buffer_pos_t {
-	PHP_EVENT_OBJECT_HEAD;
-
-	struct evbuffer_ptr p;
-} php_event_buffer_pos_t;
-
 #ifdef HAVE_EVENT_OPENSSL_LIB
 
 enum {
