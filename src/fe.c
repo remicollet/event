@@ -444,6 +444,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_set_error_cb, 0, 0, 1)
 	ZEND_ARG_INFO(0, cb)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_get_fd, 0, 0, 1)
+	ZEND_ARG_INFO(1, address)
+	ZEND_ARG_INFO(1, port)
+ZEND_END_ARG_INFO();
+
 
 /* ARGINFO for extra API END }}} */
 #endif
@@ -664,6 +669,7 @@ const zend_function_entry php_event_listener_ce_functions[] = {
 	PHP_ME(EventListener, disable,          arginfo_event__void,                 ZEND_ACC_PUBLIC)
 	PHP_ME(EventListener, setCallback,      arginfo_evconnlistener_set_cb,       ZEND_ACC_PUBLIC)
 	PHP_ME(EventListener, setErrorCallback, arginfo_evconnlistener_set_error_cb, ZEND_ACC_PUBLIC)
+	PHP_ME(EventListener, getSocketName,    arginfo_evconnlistener_get_fd,       ZEND_ACC_PUBLIC)
 #if LIBEVENT_VERSION_NUMBER >= 0x02000300
 	PHP_ME(EventListener, getBase, arginfo_event__void, ZEND_ACC_PUBLIC)
 #endif

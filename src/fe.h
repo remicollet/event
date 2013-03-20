@@ -138,6 +138,7 @@ PHP_METHOD(EventListener, enable);
 PHP_METHOD(EventListener, disable);
 PHP_METHOD(EventListener, setCallback);
 PHP_METHOD(EventListener, setErrorCallback);
+PHP_METHOD(EventListener, getSocketName);
 #if LIBEVENT_VERSION_NUMBER >= 0x02000300
 PHP_METHOD(EventListener, getBase);
 #endif

@@ -463,6 +463,36 @@ PHP_METHOD(EventListener, getBase)
 /* }}} */
 #endif
 
+/* {{{ proto bool EventListener::getSocketName(string &address[, int &port]);
+ * Retreives the current address to which the listener's socket is bound.
+ * Returns &true; on success. Otherwise &false;.*/
+PHP_METHOD(EventListener, getSocketName)
+{
+	php_event_listener_t  *l;
+	zval                  *zlistener = getThis();
+	zval                  *zaddress;
+	zval                  *zport     = NULL;
+	evutil_socket_t        fd;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z",
+				&zaddress, &zport) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+
+	fd = evconnlistener_get_fd(l->listener);
+	if (fd <= 0) {
+		RETURN_FALSE;
+	}
+
+	if (_php_event_getsockname(fd, &zaddress, &zport TSRMLS_CC) == FAILURE) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
+}
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4

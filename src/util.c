@@ -106,6 +106,88 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 }
 /* }}} */
 
+/* {{{ _php_event_getsockname */
+int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport TSRMLS_CC)
+{
+	php_sockaddr_storage  sa_storage;
+	struct sockaddr      *sa         = (struct sockaddr *) &sa_storage;
+	socklen_t             sa_len     = sizeof(php_sockaddr_storage);
+	long                  port       = -1;
+
+	if (getsockname(fd, sa, &sa_len)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Unable to retreive socket name, errno: %d", errno);
+		return FAILURE;
+	}
+
+	switch (sa->sa_family) {
+		case AF_INET:
+			{
+				struct sockaddr_in *sin = (struct sockaddr_in *) sa;
+				char addr[INET_ADDRSTRLEN + 1];
+
+				if (evutil_inet_ntop(sa->sa_family, &sin->sin_addr,
+							(void *) &addr, sizeof(addr))) {
+					if (*ppzaddress) {
+						zval_dtor(*ppzaddress);
+					}
+					ZVAL_STRING(*ppzaddress, addr, 1);
+
+					if (*ppzport != NULL) {
+						port = ntohs(sin->sin_port);
+					}
+				}
+			}
+			break;
+#if HAVE_IPV6
+		case AF_INET6:
+			{
+				struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sa;
+				char addr6[INET6_ADDRSTRLEN + 1];
+
+				if (evutil_inet_ntop(sa->sa_family, &sin6->sin6_addr,
+							(void *) &addr6, sizeof(addr6))) {
+					if (*ppzaddress) {
+						zval_dtor(*ppzaddress);
+					}
+					ZVAL_STRING(*ppzaddress, addr6, 1);
+
+					if (*ppzport != NULL) {
+						port = ntohs(sin6->sin6_port);
+					}
+				}
+			}
+			break;
+#endif
+#ifdef AF_UNIX
+		case AF_UNIX:
+			{
+				struct sockaddr_un *ua = (struct sockaddr_un *) sa;
+
+				if (*ppzaddress) {
+					zval_dtor(*ppzaddress);
+				}
+				ZVAL_STRING(*ppzaddress, ua->sun_path, 1);
+			}
+			break;
+#endif
+		default:
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"Unsupported address family: %d", sa->sa_family);
+			return FAILURE;
+	}
+
+	if (port != -1) {
+		if (*ppzport) {
+			zval_dtor(*ppzport);
+		}
+		ZVAL_LONG(*ppzport, port);
+	}
+
+	return SUCCESS;
+}
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4
