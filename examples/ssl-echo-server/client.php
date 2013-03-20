@@ -86,11 +86,9 @@ class MySslEchoServerClient {
     	printf("----- data ----\n");
     	printf("%ld:\t%s\n", (int) $in->length, $in->pullup(-1));
 
-		$bev->writeBuffer($in);
-
 		$this->bev->free();
 		$this->bev = NULL;
-		$this->base->exit();
+		$this->base->exit(NULL);
 	}
 
 	// This callback is invoked when some even occurs on the event listener,
