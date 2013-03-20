@@ -346,7 +346,12 @@ PHP_METHOD(EventSslContext, __construct)
 	ectx->ctx = ctx;
 
 	ALLOC_HASHTABLE(ectx->ht);
-	zend_hash_init_ex(ectx->ht, zend_hash_num_elements(ht_options), NULL, NULL, 0, 1);
+	if (zend_hash_init_ex(ectx->ht, zend_hash_num_elements(ht_options), NULL, ZVAL_PTR_DTOR, 0, 0) == FAILURE) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Failed to allocate hashtable for options");
+		FREE_HASHTABLE(ectx->ht);
+		return;
+	}
 	zend_hash_copy(ectx->ht, ht_options, (copy_ctor_func_t) zval_add_ref,
 			(void *) NULL, sizeof(zval *));
 

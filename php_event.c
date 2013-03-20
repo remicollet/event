@@ -393,7 +393,7 @@ static void event_ssl_context_object_free_storage(void *ptr TSRMLS_DC)
 	}
 
 	if (ectx->ht) {
-		/*zend_hash_destroy(ectx->ht);*/
+		zend_hash_destroy(ectx->ht);
 		FREE_HASHTABLE(ectx->ht);
 		ectx->ht = NULL;
 	}

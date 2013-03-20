@@ -466,7 +466,7 @@ PHP_METHOD(EventBufferEvent, connect)
 }
 /* }}} */
 
-/* {{{ proto bool EventBufferEvent::connectHost(EventDnsBase dns_base, string hostname, int port[, int family = EVENT_AF_UNSPEC]);
+/* {{{ proto bool EventBufferEvent::connectHost(EventDnsBase dns_base, string hostname, int port[, int family = EventUtil::AF_UNSPEC]);
  *
  * Resolves the DNS name hostname, looking for addresses of type
  * family(EVENT_AF_* constants). If the name resolution fails, it invokes the
@@ -1079,12 +1079,17 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
 	PHP_EVENT_FETCH_BEVENT(bev, return_value);
 
-	fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
-	if (fd < 0) {
-		RETURN_FALSE;
+	if (Z_TYPE_PP(ppzfd) == IS_NULL) {
+		/* User decided to set fd later via connect or connectHost etc.*/
+		fd = -1;
+	} else {
+		fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
+		if (fd < 0) {
+			RETURN_FALSE;
+		}
+		/* Make sure that the socket is in non-blocking mode(libevent's tip) */
+		/*evutil_make_socket_nonblocking(fd);*/
 	}
-	/* Make sure that the socket is in non-blocking mode(libevent's tip) */
-	/*evutil_make_socket_nonblocking(fd);*/
 
 	PHP_EVENT_ASSERT(ectx->ctx);
 	ssl = SSL_new(ectx->ctx);

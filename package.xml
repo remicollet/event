@@ -37,6 +37,7 @@
   Add: EventBuffer::searchEol method
   Add: EventUtil::getSocketName method
   Add: EventListener::getSocketName method
+  Fix: memory leak due to lack of zend_hash_destroy on the ssl context options
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -69,6 +70,7 @@
         <file role="doc" name="buffer_proxy.php"/>
         <dir name="ssl-echo-server">
           <file role="doc" name="server.php"/>
+          <file role="doc" name="client.php"/>
         </dir>
         <file role="doc" name="eio.php"/>
         <file role="doc" name="fibonacci_buffer.php"/>
@@ -144,6 +146,7 @@
         Add: EventBuffer::searchEol method
         Add: EventUtil::getSocketName method
         Add: EventListener::getSocketName method
+  Fix: memory leak due to lack of zend_hash_destroy on the ssl context options
         ]]></notes>
     </release>
     <!--}}}-->

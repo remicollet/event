@@ -47,7 +47,7 @@ class MySslEchoServer {
 	function ssl_read_cb($bev, $ctx) {
 		$in = $bev->input; //$bev->getInput();
 
-		printf("Received %zu bytes\n", $in->length);
+		printf("Received %ld bytes\n", $in->length);
     	printf("----- data ----\n");
     	printf("%ld:\t%s\n", (int) $in->length, $in->pullup(-1));
 
@@ -122,7 +122,7 @@ class MySslEchoServer {
  			EventSslContext::OPT_LOCAL_PK    => $local_pk,
  			//EventSslContext::OPT_PASSPHRASE  => "echo server",
  			EventSslContext::OPT_VERIFY_PEER => true,
- 			EventSslContext::OPT_ALLOW_SELF_SIGNED => false,
+ 			EventSslContext::OPT_ALLOW_SELF_SIGNED => true,
 		));
 
 		return $ctx;
