@@ -129,6 +129,7 @@ ZEND_END_ARG_INFO();
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_connect, 0, 0, 1)
 	ZEND_ARG_INFO(0, addr)
 	ZEND_ARG_INFO(0, sync_resolve)
+	ZEND_ARG_INFO(0, family)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_socket_connect_hostname, 0, 0, 3)

@@ -438,7 +438,7 @@ PHP_METHOD(EventBufferEvent, connect)
 	}
 
 	if (family & ~(AF_UNSPEC | AF_INET | AF_INET6 | AF_UNIX)) {
-		php_error_docref(NULL TSRMLS_CC, E_ERROR,
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
 				"Unsupported address family: %ld", family);
 		RETURN_FALSE;
 	}
@@ -463,7 +463,7 @@ PHP_METHOD(EventBufferEvent, connect)
 	} else {
 		/* Numeric addresses only. Don't try to resolve hostname. */
 		if (evutil_parse_sockaddr_port(addr, &sa, (int *) &sa_len)) {
-			php_error_docref(NULL TSRMLS_CC, E_ERROR,
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
 					"Failed parsing address: the address is not well-formed, "
 					"or the port is out of range");
 			RETURN_FALSE;
