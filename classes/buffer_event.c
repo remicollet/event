@@ -398,7 +398,7 @@ PHP_METHOD(EventBufferEvent, createPair)
 }
 /* }}} */
 
-/* {{{ proto bool EventBufferEvent::connect(string addr[, bool sync_resolve = FALSE[, int family = EventUtil::AF_UNSPEC]]);
+/* {{{ proto bool EventBufferEvent::connect(string addr);
  *
  * Connect buffer event's socket to given address(optionally with port).  The
  * function available since libevent 2.0.2-alpha.
@@ -407,8 +407,7 @@ PHP_METHOD(EventBufferEvent, createPair)
  * the bufferevent, this function allocates a socket stream and makes it
  * non-blocking internally.
  *
- * If sync_resolve parameter is TRUE, the function tries to resolve the
- * hostname within addr *syncronously*(!).  Otherwise addr parameter expected
+ * addr parameter expected
  * to be an IP address with optional port number. Recognized formats are:
  *
  *    [IPv6Address]:port
@@ -427,53 +426,59 @@ PHP_METHOD(EventBufferEvent, connect)
 	char               *addr;
 	int                 addr_len;
 	struct sockaddr     sa;
-	struct sockaddr_un *sun;
 	socklen_t           sa_len;
-	zend_bool           sync_resolve = 0;
-	long                family       = AF_UNSPEC;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|bl",
-				&addr, &addr_len, &sync_resolve, &family) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+				&addr, &addr_len) == FAILURE) {
 		return;
-	}
-
-	if (family & ~(AF_UNSPEC | AF_INET | AF_INET6 | AF_UNIX)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"Unsupported address family: %ld", family);
-		RETURN_FALSE;
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
-	if (family == AF_UNIX) {
-		sun = (struct sockaddr_un *) &sa;
-
-		sun->sun_family = AF_UNIX;
-		strcpy(sun->sun_path, addr);
-
-		sa_len = sizeof(struct sockaddr_un);
-	} else if (sync_resolve) {
-		/* The PHP API *syncronously* resolves hostname, if it doesn't look
-		 * like IP(v4/v6) */
-		if (php_network_parse_network_address_with_port(addr, addr_len, &sa, &sa_len TSRMLS_CC) != SUCCESS) {
-			/* The function reports errors, if necessary */
-			RETURN_FALSE;
-		}
-	} else {
-		/* Numeric addresses only. Don't try to resolve hostname. */
-		if (evutil_parse_sockaddr_port(addr, &sa, (int *) &sa_len)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
-					"Failed parsing address: the address is not well-formed, "
-					"or the port is out of range");
-			RETURN_FALSE;
-		}
+	/* Numeric addresses only. Don't try to resolve hostname. */
+	if (evutil_parse_sockaddr_port(addr, &sa, (int *) &sa_len)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Failed parsing address: the address is not well-formed, "
+				"or the port is out of range");
+		RETURN_FALSE;
 	}
 
 	/* bufferevent_socket_connect() allocates a socket stream internally, if we
 	 * didn't provide the file descriptor to the bufferevent before, e.g. with
 	 * bufferevent_socket_new() */
 	if (bufferevent_socket_connect(bev->bevent, &sa, sa_len)) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool EventBufferEvent::connectUnix(string addr);
+ *
+ * Connect buffer event's file descriptor to given UNIX domain socket.
+ */
+PHP_METHOD(EventBufferEvent, connectUnix)
+{
+	php_event_bevent_t *bev;
+	zval               *zbevent      = getThis();
+	char               *addr;
+	int                 addr_len;
+	struct sockaddr_un  sun;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+				&addr, &addr_len) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
+
+	sun.sun_family = AF_UNIX;
+	strcpy(sun.sun_path, addr);
+
+	if (bufferevent_socket_connect(bev->bevent, (struct sockaddr *) &sun, sizeof(struct sockaddr_un))) {
 		RETURN_FALSE;
 	}
 

@@ -7,7 +7,7 @@ class MyUnixSocketClient {
 		$this->bev = new EventBufferEvent($base, NULL, EventBufferEvent::OPT_CLOSE_ON_FREE,
 			array ($this, "read_cb"), NULL, array ($this, "event_cb"));
 
-		if (!$this->bev->connect($sock_path, TRUE, EventUtil::AF_UNIX)) {
+		if (!$this->bev->connectUnix($sock_path)) {
 			trigger_error("Failed to connect to socket `$sock_path'", E_USER_ERROR);
 		}
 

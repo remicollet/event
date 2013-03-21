@@ -5,7 +5,7 @@ Check for event_buffer sockets
 $base = new EventBase();
 $bev = new EventBufferEvent($base, NULL, EventBufferEvent::OPT_CLOSE_ON_FREE);
 
-if (!$bev->connect("www.php.net:80", TRUE)) {
+if (!$bev->connectHost(NULL, "www.php.net", 80, EventUtil::AF_INET)) {
 	exit("Connection failed\n");
 }
 

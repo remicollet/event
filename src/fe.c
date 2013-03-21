@@ -128,8 +128,10 @@ ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_connect, 0, 0, 1)
 	ZEND_ARG_INFO(0, addr)
-	ZEND_ARG_INFO(0, sync_resolve)
-	ZEND_ARG_INFO(0, family)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_connect_unix, 0, 0, 1)
+	ZEND_ARG_INFO(0, addr)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_socket_connect_hostname, 0, 0, 3)
@@ -522,6 +524,7 @@ const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBufferEvent, __construct,        arginfo_bufferevent__construct,              ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
 	PHP_ME(EventBufferEvent, free,               arginfo_event__void,                         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, connect,            arginfo_bufferevent_connect,                 ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, connectUnix,        arginfo_bufferevent_connect_unix,            ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, connectHost,        arginfo_bufferevent_socket_connect_hostname, ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, getDnsErrorString,  arginfo_event__void,                         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, setCallbacks,       arginfo_bufferevent_set_callbacks,           ZEND_ACC_PUBLIC)
