@@ -450,9 +450,9 @@ PHP_METHOD(EventBufferEvent, connect)
 		sun = (struct sockaddr_un *) &sa;
 
 		sun->sun_family = AF_UNIX;
-		strncpy(sun->sun_path, addr, addr_len);
+		strcpy(sun->sun_path, addr);
 
-		sa_len = sizeof(sun->sun_family) + addr_len;
+		sa_len = sizeof(struct sockaddr_un);
 	} else if (sync_resolve) {
 		/* The PHP API *syncronously* resolves hostname, if it doesn't look
 		 * like IP(v4/v6) */
@@ -507,7 +507,7 @@ PHP_METHOD(EventBufferEvent, connectHost)
 	char               *hostname;
 	int                 hostname_len;
 	long                port;
-	long                family;
+	long                family       = AF_UNSPEC;
 
 #if HAVE_EVENT_EXTRA_LIB
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O!sl|l",

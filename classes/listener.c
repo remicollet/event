@@ -273,9 +273,10 @@ PHP_METHOD(EventListener, __construct)
 		if (family == AF_UNIX) {
 			sun             = (struct sockaddr_un *) &sa;
 			sun->sun_family = AF_UNIX;
-			strncpy(sun->sun_path, Z_STRVAL_PP(ppztarget), Z_STRLEN_PP(ppztarget));
+			strcpy(sun->sun_path, Z_STRVAL_PP(ppztarget));
 
-			sa_len = sizeof(sun->sun_family) + Z_STRLEN_PP(ppztarget);
+			/*sa_len = sizeof(sun->sun_family) + Z_STRLEN_PP(ppztarget);*/
+			sa_len = sizeof(struct sockaddr_un);
 		} else if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget), Z_STRLEN_PP(ppztarget),
 					&sa, &sa_len TSRMLS_CC) != SUCCESS) {
 			ZVAL_NULL(zself);
