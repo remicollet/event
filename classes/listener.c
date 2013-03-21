@@ -21,6 +21,16 @@
 
 /* {{{ Private */
 
+#define _ret_if_invalid_listener_ptr(l)              \
+{                                                    \
+    PHP_EVENT_ASSERT(l && l->listener);              \
+    if (!l->listener) {                              \
+        php_error_docref(NULL TSRMLS_CC, E_WARNING,  \
+                "EventListener is not initialized"); \
+        RETURN_FALSE;                                \
+    }                                                \
+}
+
 /* {{{ sockaddr_parse
  * Parse in_addr and fill out_arr with IP and port.
  * out_arr must be a pre-allocated empty zend array */
@@ -216,8 +226,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 
 /* Private }}} */
 
-
-/* {{{ proto EventListener EventListener::__construct(EventBase base, callable cb, mixed data, int flags, int backlog, mixed target);
+/* {{{ proto EventListener EventListener::__construct(EventBase base, callable cb, mixed data, int flags, int backlog, mixed target[, int family = EventUtil::AF_UNSPEC]);
  *
  * Creates new connection listener associated with an event base.
  *
@@ -228,21 +237,29 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
  */
 PHP_METHOD(EventListener, __construct)
 {
-	zval                  *zself    = getThis();
-	zval                  *zbase;
-	php_event_base_t      *base;
-	zend_fcall_info        fci      = empty_fcall_info;
-	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
-	php_event_listener_t  *l;
-	zval                  *zdata    = NULL;
-	zval                 **ppztarget;
-	long                   flags;
-	long                   backlog;
-	struct evconnlistener *listener;
+	zval                   *zself     = getThis();
+	zval                   *zbase;
+	php_event_base_t       *base;
+	zend_fcall_info         fci       = empty_fcall_info;
+	zend_fcall_info_cache   fcc       = empty_fcall_info_cache;
+	php_event_listener_t   *l;
+	zval                   *zdata     = NULL;
+	zval                  **ppztarget;
+	long                    flags;
+	long                    backlog;
+	long                    family    = AF_UNSPEC;
+	struct evconnlistener  *listener;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ofz!llZ",
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ofz!llZ|l",
 				&zbase, php_event_base_ce,
-				&fci, &fcc, &zdata, &flags, &backlog, &ppztarget) == FAILURE) {
+				&fci, &fcc, &zdata, &flags, &backlog, &ppztarget, &family) == FAILURE) {
+		return;
+	}
+
+	if (family & ~(AF_UNSPEC | AF_INET | AF_INET6 | AF_UNIX)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Unsupported address family: %ld", family);
+		ZVAL_NULL(zself);
 		return;
 	}
 
@@ -250,21 +267,25 @@ PHP_METHOD(EventListener, __construct)
 
 	if (Z_TYPE_PP(ppztarget) == IS_STRING) {
 		struct sockaddr sa;
-		socklen_t       sa_len = sizeof(struct sockaddr);
+		struct sockaddr_un *sun;
+		socklen_t       sa_len;
 
-		if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget), Z_STRLEN_PP(ppztarget),
+		if (family == AF_UNIX) {
+			sun             = (struct sockaddr_un *) &sa;
+			sun->sun_family = AF_UNIX;
+			strncpy(sun->sun_path, Z_STRVAL_PP(ppztarget), Z_STRLEN_PP(ppztarget));
+
+			sa_len = sizeof(sun->sun_family) + Z_STRLEN_PP(ppztarget);
+		} else if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget), Z_STRLEN_PP(ppztarget),
 					&sa, &sa_len TSRMLS_CC) != SUCCESS) {
-			RETURN_FALSE;
+			ZVAL_NULL(zself);
+			return;
 		}
 
 		PHP_EVENT_FETCH_LISTENER(l, zself);
 
 		listener = evconnlistener_new_bind(base->base, _php_event_listener_cb,
 				(void *) l, flags, backlog, &sa, sa_len);
-		if (!listener) {
-			return;
-		}
-		l->listener = listener;
 	} else { /* ppztarget is not string */
 		evutil_socket_t   fd    = -1;
 
@@ -272,6 +293,7 @@ PHP_METHOD(EventListener, __construct)
 	 	 * in case if it is not a valid socket resource */
 		fd = php_event_zval_to_fd(ppztarget TSRMLS_CC);
 		if (fd < 0) {
+			ZVAL_NULL(zself);
 			return;
 		}
 
@@ -284,25 +306,14 @@ PHP_METHOD(EventListener, __construct)
 
 		listener = evconnlistener_new(base->base, _php_event_listener_cb,
 				(void *) l, flags, backlog, fd);
-		if (!listener) {
-			return;
-		}
-		l->listener = listener;
-
-#if 0
-		/* WARNING! Don't do this, since libevent calls accept() afterwards,
-		 * thus producing new file descriptor. The new descriptor is available
-		 * in _php_event_listener_cb() callback. */
-
-		if (Z_TYPE_PP(ppztarget) == IS_RESOURCE) {
-			/* lval of ppztarget is the resource ID */
-			l->stream_id = Z_LVAL_PP(ppztarget);
-			zend_list_addref(Z_LVAL_PP(ppztarget));
-		} else {
-			l->stream_id = -1;
-		}
-#endif
 	}
+	
+	if (!listener) {
+		ZVAL_NULL(zself);
+		return;
+	}
+
+	l->listener = listener;
 
 	if (zdata) {
 		l->data = zdata;
@@ -330,6 +341,7 @@ PHP_METHOD(EventListener, enable)
 	}
 
 	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	_ret_if_invalid_listener_ptr(l);
 
 	if (evconnlistener_enable(l->listener)) {
 		RETURN_FALSE;
@@ -352,6 +364,7 @@ PHP_METHOD(EventListener, disable)
 	}
 
 	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	_ret_if_invalid_listener_ptr(l);
 
 	if (evconnlistener_disable(l->listener)) {
 		RETURN_FALSE;
@@ -380,6 +393,7 @@ PHP_METHOD(EventListener, setCallback)
 	}
 
 	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	_ret_if_invalid_listener_ptr(l);
 
 	if (ZEND_FCI_INITIALIZED(fci)) {
 		PHP_EVENT_FREE_FCALL_INFO(l->fci, l->fcc);
@@ -419,6 +433,7 @@ PHP_METHOD(EventListener, setErrorCallback)
 	}
 
 	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	_ret_if_invalid_listener_ptr(l);
 
 	if (ZEND_FCI_INITIALIZED(fci)) {
 		PHP_EVENT_FREE_FCALL_INFO(l->fci_err, l->fcc_err);
@@ -448,6 +463,7 @@ PHP_METHOD(EventListener, getBase)
 	}
 
 	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	_ret_if_invalid_listener_ptr(l);
 
 	/* base = evconnlistener_get_base(l->listener); */
 
@@ -480,6 +496,7 @@ PHP_METHOD(EventListener, getSocketName)
 	}
 
 	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	_ret_if_invalid_listener_ptr(l);
 
 	fd = evconnlistener_get_fd(l->listener);
 	if (fd <= 0) {

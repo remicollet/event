@@ -398,7 +398,7 @@ PHP_METHOD(EventBufferEvent, createPair)
 }
 /* }}} */
 
-/* {{{ proto bool EventBufferEvent::connect(string addr[, bool sync_resolve = FALSE]);
+/* {{{ proto bool EventBufferEvent::connect(string addr[, bool sync_resolve = FALSE[, int family = EventUtil::AF_UNSPEC]]);
  *
  * Connect buffer event's socket to given address(optionally with port).  The
  * function available since libevent 2.0.2-alpha.
@@ -427,18 +427,33 @@ PHP_METHOD(EventBufferEvent, connect)
 	char               *addr;
 	int                 addr_len;
 	struct sockaddr     sa;
-	socklen_t           sa_len       = sizeof(struct sockaddr);
+	struct sockaddr_un *sun;
+	socklen_t           sa_len;
 	zend_bool           sync_resolve = 0;
+	long                family       = AF_UNSPEC;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|b",
-				&addr, &addr_len, &sync_resolve) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|bl",
+				&addr, &addr_len, &sync_resolve, &family) == FAILURE) {
 		return;
+	}
+
+	if (family & ~(AF_UNSPEC | AF_INET | AF_INET6 | AF_UNIX)) {
+		php_error_docref(NULL TSRMLS_CC, E_ERROR,
+				"Unsupported address family: %ld", family);
+		RETURN_FALSE;
 	}
 
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
-	if (sync_resolve) {
+	if (family == AF_UNIX) {
+		sun = (struct sockaddr_un *) &sa;
+
+		sun->sun_family = AF_UNIX;
+		strncpy(sun->sun_path, addr, addr_len);
+
+		sa_len = sizeof(sun->sun_family) + addr_len;
+	} else if (sync_resolve) {
 		/* The PHP API *syncronously* resolves hostname, if it doesn't look
 		 * like IP(v4/v6) */
 		if (php_network_parse_network_address_with_port(addr, addr_len, &sa, &sa_len TSRMLS_CC) != SUCCESS) {

@@ -416,13 +416,14 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns_base_set_option, 0, 0, 2)
 ZEND_END_ARG_INFO();
 
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener__construct, 0, 0, 5)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener__construct, 0, 0, 6)
 	ZEND_ARG_INFO(0, base)
 	ZEND_ARG_INFO(0, cb)
 	ZEND_ARG_INFO(0, data)
 	ZEND_ARG_INFO(0, flags)
 	ZEND_ARG_INFO(0, backlog)
 	ZEND_ARG_INFO(0, target)
+	ZEND_ARG_INFO(0, family)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_new_bind, 0, 0, 5)
