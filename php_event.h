@@ -21,6 +21,7 @@
 
 #define PHP_EVENT_VERSION "1.5.0"
 
+#define PHP_EVENT_SUN_PREFIX "unix:"
 
 extern zend_module_entry event_module_entry;
 #define phpext_event_ptr &event_module_entry

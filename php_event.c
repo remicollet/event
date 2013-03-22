@@ -267,20 +267,20 @@ static void event_listener_object_free_storage(void *ptr TSRMLS_DC)
 
 	if (l->data) {
 		zval_ptr_dtor(&l->data);
+		l->data = NULL;
 	}
 
-#if 0
 	if (l->self) {
 		zval_ptr_dtor(&l->self);
 		l->self = NULL;
 	}
-#endif
 
 	PHP_EVENT_FREE_FCALL_INFO(l->fci, l->fcc);
 	PHP_EVENT_FREE_FCALL_INFO(l->fci_err, l->fcc_err);
 
 	if (l->listener) {
 		evconnlistener_free(l->listener);
+		l->listener = NULL;
 	}
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);

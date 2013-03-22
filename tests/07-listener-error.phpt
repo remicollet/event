@@ -4,12 +4,23 @@ Check for EventListener error behaviour
 <?php
 $base = new EventBase();
 
-// Create listener based on UNIX domain socket. Pass wrong address family.
-// The contructor should return NULL
-$listener = new EventListener($base, function() {}, NULL, 0, -1,
-	"/tmp/".mt_rand().".sock", EventUtil::AF_UNSPEC);
+$sock_paths = array (
+	"unix:/tmp/".mt_rand().".sock" => TRUE,
+	"UNIX:/tmp/".mt_rand().".sock" => TRUE,
+	":/tmp/".mt_rand().".sock"     => FALSE,
+	"/tmp/".mt_rand().".sock"      => FALSE,
+);
 
-var_dump($listener);
+foreach ($sock_paths as $path => $expect) {
+	$listener = @new EventListener($base, function() {}, NULL, 0, -1, $path);
+	if (file_exists($path)) unlink($path);
+
+	var_dump(is_null($listener) != $expect);
+}
+
 ?>
 --EXPECT--
-NULL
+bool(true)
+bool(true)
+bool(true)
+bool(true)

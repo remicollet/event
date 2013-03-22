@@ -226,12 +226,14 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 
 /* Private }}} */
 
-/* {{{ proto EventListener EventListener::__construct(EventBase base, callable cb, mixed data, int flags, int backlog, mixed target[, int family = EventUtil::AF_UNSPEC]);
+/* {{{ proto EventListener EventListener::__construct(EventBase base, callable cb, mixed data, int flags, int backlog, mixed target);
  *
  * Creates new connection listener associated with an event base.
  *
  * target parameter may be string, socket resource, or a stream associated with a socket.
  * In case if target is a string, the string will be parsed as network address.
+ * A path to UNIX domain socket should be prefixed with 'unix:', e.g.
+ * unix:/tmp/my.sock.
  *
  * Returns object representing the event connection listener.
  */
@@ -247,38 +249,32 @@ PHP_METHOD(EventListener, __construct)
 	zval                  **ppztarget;
 	long                    flags;
 	long                    backlog;
-	long                    family    = AF_UNSPEC;
 	struct evconnlistener  *listener;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ofz!llZ|l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ofz!llZ",
 				&zbase, php_event_base_ce,
-				&fci, &fcc, &zdata, &flags, &backlog, &ppztarget, &family) == FAILURE) {
-		return;
-	}
-
-	if (family & ~(AF_UNSPEC | AF_INET | AF_INET6 | AF_UNIX)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"Unsupported address family: %ld", family);
-		ZVAL_NULL(zself);
+				&fci, &fcc, &zdata, &flags, &backlog, &ppztarget) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_BASE(base, zbase);
 
 	if (Z_TYPE_PP(ppztarget) == IS_STRING) {
-		struct sockaddr sa;
-		struct sockaddr_un *sun;
-		socklen_t       sa_len;
+		struct sockaddr_storage *ss;
+		socklen_t ss_len = sizeof(ss);
+		memset(&ss, 0, sizeof(ss));
 
-		if (family == AF_UNIX) {
-			sun             = (struct sockaddr_un *) &sa;
+		if (strncasecmp(Z_STRVAL_PP(ppztarget), PHP_EVENT_SUN_PREFIX,
+					sizeof(PHP_EVENT_SUN_PREFIX) - 1) == 0) {
+			struct sockaddr_un *sun;
+
+			sun             = (struct sockaddr_un *) &ss;
 			sun->sun_family = AF_UNIX;
-			strcpy(sun->sun_path, Z_STRVAL_PP(ppztarget));
 
-			/*sa_len = sizeof(sun->sun_family) + Z_STRLEN_PP(ppztarget);*/
-			sa_len = sizeof(struct sockaddr_un);
-		} else if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget), Z_STRLEN_PP(ppztarget),
-					&sa, &sa_len TSRMLS_CC) != SUCCESS) {
+			strcpy(sun->sun_path, Z_STRVAL_PP(ppztarget) + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
+			ss_len = sizeof(struct sockaddr_un);
+		} else if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget),
+					Z_STRLEN_PP(ppztarget), (struct sockaddr *) &ss, &ss_len TSRMLS_CC) != SUCCESS) {
 			ZVAL_NULL(zself);
 			return;
 		}
@@ -286,9 +282,9 @@ PHP_METHOD(EventListener, __construct)
 		PHP_EVENT_FETCH_LISTENER(l, zself);
 
 		listener = evconnlistener_new_bind(base->base, _php_event_listener_cb,
-				(void *) l, flags, backlog, &sa, sa_len);
+				(void *) l, flags, backlog, (struct sockaddr *) &ss, ss_len);
 	} else { /* ppztarget is not string */
-		evutil_socket_t   fd    = -1;
+		evutil_socket_t fd = -1;
 
 		/* php_event_zval_to_fd reports error
 	 	 * in case if it is not a valid socket resource */

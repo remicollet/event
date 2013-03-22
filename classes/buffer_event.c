@@ -400,33 +400,27 @@ PHP_METHOD(EventBufferEvent, createPair)
 
 /* {{{ proto bool EventBufferEvent::connect(string addr);
  *
- * Connect buffer event's socket to given address(optionally with port).  The
- * function available since libevent 2.0.2-alpha.
+ * Connect buffer event's socket to given address(optionally with port).
  *
- * This function doesn't require sockets support. If socket is not assigned to
- * the bufferevent, this function allocates a socket stream and makes it
- * non-blocking internally.
- *
- * addr parameter expected
- * to be an IP address with optional port number. Recognized formats are:
+ * addr parameter expected to be whether an IP address with optional port number,
+ * or a path to UNIX domain socket.
+ * Recognized formats are:
  *
  *    [IPv6Address]:port
  *    [IPv6Address]
  *    IPv6Address
  *    IPv4Address:port
  *    IPv4Address
- * 
- * To resolve DNS names asyncronously, use
- * bufferevent_socket_connect_hostname() function.
+ *    unix:path-to-socket-file
  */
 PHP_METHOD(EventBufferEvent, connect)
 {
-	php_event_bevent_t *bev;
-	zval               *zbevent      = getThis();
-	char               *addr;
-	int                 addr_len;
-	struct sockaddr     sa;
-	socklen_t           sa_len;
+	php_event_bevent_t      *bev;
+	zval                    *zbevent  = getThis();
+	char                    *addr;
+	int                      addr_len;
+	struct sockaddr_storage  ss;
+	int                      ss_len   = sizeof(ss);
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
 				&addr, &addr_len) == FAILURE) {
@@ -436,8 +430,23 @@ PHP_METHOD(EventBufferEvent, connect)
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
-	/* Numeric addresses only. Don't try to resolve hostname. */
-	if (evutil_parse_sockaddr_port(addr, &sa, (int *) &sa_len)) {
+	memset(&ss, 0, sizeof(ss));
+
+	if (strncasecmp(addr, PHP_EVENT_SUN_PREFIX,
+				sizeof(PHP_EVENT_SUN_PREFIX) - 1) == 0) {
+		/* UNIX domain socket path */
+
+		struct sockaddr_un *sun;
+
+		sun             = (struct sockaddr_un *) &ss;
+		sun->sun_family = AF_UNIX;
+		ss_len          = sizeof(struct sockaddr_un);
+
+		strcpy(sun->sun_path, addr + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
+
+	} else if (evutil_parse_sockaddr_port(addr, (struct sockaddr *) &ss, &ss_len)) {
+		/* Numeric addresses only. Don't try to resolve hostname. */
+
 		php_error_docref(NULL TSRMLS_CC, E_WARNING,
 				"Failed parsing address: the address is not well-formed, "
 				"or the port is out of range");
@@ -447,38 +456,7 @@ PHP_METHOD(EventBufferEvent, connect)
 	/* bufferevent_socket_connect() allocates a socket stream internally, if we
 	 * didn't provide the file descriptor to the bufferevent before, e.g. with
 	 * bufferevent_socket_new() */
-	if (bufferevent_socket_connect(bev->bevent, &sa, sa_len)) {
-		RETURN_FALSE;
-	}
-
-	RETVAL_TRUE;
-}
-/* }}} */
-
-/* {{{ proto bool EventBufferEvent::connectUnix(string addr);
- *
- * Connect buffer event's file descriptor to given UNIX domain socket.
- */
-PHP_METHOD(EventBufferEvent, connectUnix)
-{
-	php_event_bevent_t *bev;
-	zval               *zbevent      = getThis();
-	char               *addr;
-	int                 addr_len;
-	struct sockaddr_un  sun;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
-				&addr, &addr_len) == FAILURE) {
-		return;
-	}
-
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
-	_ret_if_invalid_bevent_ptr(bev);
-
-	sun.sun_family = AF_UNIX;
-	strcpy(sun.sun_path, addr);
-
-	if (bufferevent_socket_connect(bev->bevent, (struct sockaddr *) &sun, sizeof(struct sockaddr_un))) {
+	if (bufferevent_socket_connect(bev->bevent, (struct sockaddr *) &ss, ss_len)) {
 		RETURN_FALSE;
 	}
 
@@ -497,8 +475,12 @@ PHP_METHOD(EventBufferEvent, connectUnix)
  * event_dns_base_new()(requires --with-event-extra configure option).
  * For asyncronous hostname resolving pass a valid event dns base resource.
  * Otherwise the hostname resolving will block.
+ *
  * Recognized hostname formats are:
- * www.example.com (hostname) 1.2.3.4 (ipv4address) ::1 (ipv6address) [::1] ([ipv6address])
+ * www.example.com (hostname)
+ * 1.2.3.4 (ipv4address)
+ * ::1 (ipv6address)
+ * [::1] ([ipv6address])
  */
 PHP_METHOD(EventBufferEvent, connectHost)
 {

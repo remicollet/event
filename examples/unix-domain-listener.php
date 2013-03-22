@@ -78,8 +78,8 @@ class MyListener {
 
  		$this->listener = new EventListener($this->base,
  			array($this, "acceptConnCallback"), $this->base,
- 			EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE,-1,
- 			$sock_path, EventUtil::AF_UNIX);
+ 			EventListener::OPT_CLOSE_ON_FREE | EventListener::OPT_REUSEABLE, -1,
+ 			"unix:$sock_path");
 
 		if (!$this->listener) {
 			trigger_error("Couldn't create listener", E_USER_ERROR);

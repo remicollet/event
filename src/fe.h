@@ -65,7 +65,6 @@ PHP_METHOD(EventBufferEvent, __construct);
 PHP_METHOD(EventBufferEvent, free);
 PHP_METHOD(EventBufferEvent, createPair);
 PHP_METHOD(EventBufferEvent, connect);
-PHP_METHOD(EventBufferEvent, connectUnix);
 PHP_METHOD(EventBufferEvent, connectHost);
 PHP_METHOD(EventBufferEvent, setCallbacks);
 PHP_METHOD(EventBufferEvent, enable);
