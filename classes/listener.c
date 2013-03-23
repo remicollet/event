@@ -82,6 +82,7 @@ static int sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
 				} else {
 					add_next_index_string(out_zarr, ua->sun_path, 1);
 				}
+				add_next_index_long(out_zarr, 0);
 			}
 			break;
 #endif
