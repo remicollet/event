@@ -974,7 +974,7 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	PHP_EVENT_REGISTER_CLASS("EventBuffer", event_buffer_object_create, php_event_buffer_ce,
 			php_event_buffer_ce_functions);
 	ce = php_event_buffer_ce;
-	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+	/*ce->ce_flags |= ZEND_ACC_FINAL_CLASS;*/
 	zend_hash_init(&event_buffer_properties, 2, NULL, NULL, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_buffer_properties, event_buffer_property_entries);
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_buffer_property_entry_info);

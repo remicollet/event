@@ -34,6 +34,7 @@
   <notes><![CDATA[
   Fix: EventBuffer::removeBuffer returned boolean instead of the number of bytes read
   Add: EventBuffer::fd property
+  Change: EventBuffer class is not final any more
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -141,6 +142,7 @@
       <notes><![CDATA[
       Fix: EventBuffer::removeBuffer returned boolean instead of the number of bytes read
       Add: EventBuffer::fd property
+      Change: EventBuffer class is not final any more
       ]]></notes>
     </release>
     <!--}}}-->
