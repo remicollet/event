@@ -33,6 +33,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: EventBuffer::removeBuffer returned boolean instead of the number of bytes read
+  Add: EventBuffer::fd property
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -139,6 +140,7 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
       Fix: EventBuffer::removeBuffer returned boolean instead of the number of bytes read
+      Add: EventBuffer::fd property
       ]]></notes>
     </release>
     <!--}}}-->

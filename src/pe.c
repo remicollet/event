@@ -161,6 +161,32 @@ static int event_bevent_priority_prop_read(php_event_abstract_object_t *obj, zva
 }
 /* }}} */
 
+/* {{{ event_bevent_fd_prop_read */
+static int event_bevent_fd_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+{
+	php_event_bevent_t *b = (php_event_bevent_t *) obj;
+	evutil_socket_t fd;
+
+	MAKE_STD_ZVAL(*retval);
+
+	/* Uninitialized / free'd */
+	if (!b->bevent) {
+		ZVAL_NULL(*retval);
+		return SUCCESS;
+	}
+	PHP_EVENT_ASSERT(b->bevent);
+
+	fd = bufferevent_getfd(b->bevent);
+	if (fd == -1) {
+		ZVAL_NULL(*retval);
+	} else {
+		ZVAL_LONG(*retval, fd);
+	}
+
+	return SUCCESS;
+}
+/* }}} */
+
 /* {{{ event_bevent_input_prop_read */
 static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
 {
@@ -336,7 +362,8 @@ const php_event_property_entry_t event_property_entries[] = {
     {NULL, 0, NULL, NULL, NULL}
 };
 const php_event_property_entry_t event_bevent_property_entries[] = {
-	{"priority", sizeof("priority") - 1, event_bevent_priority_prop_read, event_bevent_priority_prop_write, NULL },
+	{"priority", sizeof("priority") - 1, event_bevent_priority_prop_read, event_bevent_priority_prop_write, NULL                               },
+	{"fd",       sizeof("fd")       - 1, event_bevent_fd_prop_read,       NULL,                             NULL                               },
 	{"input",    sizeof("input")    - 1, event_bevent_input_prop_read,    NULL,                             event_bevent_input_prop_ptr_ptr},
 	{"output",   sizeof("output")   - 1, event_bevent_output_prop_read,   NULL,                             event_bevent_output_prop_ptr_ptr},
 
@@ -367,8 +394,9 @@ const zend_property_info event_property_entry_info[] = {
 };
 const zend_property_info event_bevent_property_entry_info[] = {
 	{ZEND_ACC_PUBLIC, "priority", sizeof("priority") - 1, -1, 0, NULL, 0, NULL},
-	{ZEND_ACC_PUBLIC, "input", sizeof("input") - 1, -1, 0, NULL, 0, NULL},
-	{ZEND_ACC_PUBLIC, "output", sizeof("output") - 1, -1, 0, NULL, 0, NULL},
+	{ZEND_ACC_PUBLIC, "fd",       sizeof("fd")       - 1, -1, 0, NULL, 0, NULL},
+	{ZEND_ACC_PUBLIC, "input",    sizeof("input")    - 1, -1, 0, NULL, 0, NULL},
+	{ZEND_ACC_PUBLIC, "output",   sizeof("output")   - 1, -1, 0, NULL, 0, NULL},
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	{ZEND_ACC_PUBLIC, "allow_ssl_dirty_shutdown", sizeof("allow_ssl_dirty_shutdown") - 1, -1, 0, NULL, 0, NULL},
 #endif
