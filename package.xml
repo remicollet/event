@@ -20,10 +20,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-03-22</date>
+  <date>2013-03-25</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.5.0</release>
+    <release>1.5.1</release>
     <api>1.5.0</api>
   </version>
   <stability>
@@ -32,13 +32,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: uninitialized socket caused segmentation fault in EventBufferEvent methods
-  Del: EventBufferPosition class removed, EventBuffer::search now accepts and returns integers
-  Add: EventBuffer::searchEol method
-  Add: EventUtil::getSocketName method
-  Add: EventListener::getSocketName method
-  Fix: memory leak due to lack of zend_hash_destroy on the ssl context options
-  Add: support of UNIX domain sockets in EventListener::__construct, EventBufferEvent::connect methods
+  Fix: EventBuffer::removeBuffer returned boolean instead of the number of bytes read
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -106,6 +100,7 @@
         <file role="src" name="05-buffer-pos.phpt"/>
         <file role="src" name="06-timer.phpt"/>
         <file role="src" name="07-listener-error.phpt"/>
+        <file role="src" name="08-buffer.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -131,6 +126,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 1.5.1 -->
+    <release>
+      <version>
+        <release>1.5.1</release>
+        <api>1.5.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+      Fix: EventBuffer::removeBuffer returned boolean instead of the number of bytes read
+      ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.5.0 -->
     <release>
       <version>

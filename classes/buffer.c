@@ -257,7 +257,7 @@ PHP_METHOD(EventBuffer, addBuffer)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::removeBuffer(EventBuffer buf, int len); 
+/* {{{ proto int EventBuffer::removeBuffer(EventBuffer buf, int len); 
  * Moves exactly len bytes from buf to the end of current instance of EventBuffer
  */
 PHP_METHOD(EventBuffer, removeBuffer)
@@ -276,11 +276,8 @@ PHP_METHOD(EventBuffer, removeBuffer)
 	PHP_EVENT_FETCH_BUFFER(b_dst, zbuf_dst);
 	PHP_EVENT_FETCH_BUFFER(b_src, zbuf_src);
 
-	if (evbuffer_remove_buffer(b_src->buf, b_dst->buf, (size_t) len)) {
-		RETURN_FALSE;
-	}
+	RETVAL_LONG(evbuffer_remove_buffer(b_src->buf, b_dst->buf, (size_t) len));
 
-	RETVAL_TRUE;
 }
 /* }}} */
 
