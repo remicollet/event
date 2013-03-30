@@ -62,7 +62,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   dnl {{{ Include libevent headers
   AC_MSG_CHECKING([for include/event2/event.h])
   EVENT_DIR=
-  for i in "$PHP_EVENT_CORE" "$PHP_EVENT_LIBEVENT_DIR" /usr/local /usr /opt; do
+  for i in "$PHP_EVENT_CORE" "$PHP_EVENT_LIBEVENT_DIR" /usr/local /usr /opt /opt/local; do
 	  if test -f "$i/include/event2/event.h"; then
 		  EVENT_DIR=$i
 		  break
