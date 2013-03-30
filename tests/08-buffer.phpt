@@ -16,6 +16,10 @@ for ($i = 0, $j = 1; $i < $s_len; $i += 4, ++$j) {
 		echo $j, ' ', $tmp == substr($s, $i, 4) ? "ok" : "failed", PHP_EOL;
 	}
 }
+
+$b3 = new EventBuffer();
+$b3->add("123");
+echo "$j ", $b3->search("23", 1, 10) == 1 ? "ok" : "failed", PHP_EOL;
 ?>
 --EXPECT--
 1 ok
@@ -25,4 +29,5 @@ for ($i = 0, $j = 1; $i < $s_len; $i += 4, ++$j) {
 5 ok
 6 ok
 7 ok
+8 ok
 

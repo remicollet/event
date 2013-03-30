@@ -504,8 +504,9 @@ PHP_METHOD(EventBuffer, search)
 			&& _get_pos(&ptr_start, start_pos, b->buf TSRMLS_CC) == FAILURE) {
 		start_pos = -1;
 	}
-	if (end_pos != -1
-			&& _get_pos(&ptr_end, end_pos, b->buf TSRMLS_CC) == FAILURE) {
+	if (end_pos != -1 &&
+		 	(end_pos > evbuffer_get_length(b->buf)
+			 || _get_pos(&ptr_end, end_pos, b->buf TSRMLS_CC) == FAILURE)) {
 		end_pos = -1;
 	}
 
