@@ -106,6 +106,7 @@ PHP_METHOD(EventBuffer, readLine);
 PHP_METHOD(EventBuffer, search);
 PHP_METHOD(EventBuffer, searchEol);
 PHP_METHOD(EventBuffer, pullup);
+PHP_METHOD(EventBuffer, write);
 
 PHP_METHOD(EventUtil, getLastSocketErrno);
 PHP_METHOD(EventUtil, getLastSocketError);
@@ -113,6 +114,7 @@ PHP_METHOD(EventUtil, getLastSocketError);
 PHP_METHOD(EventUtil, sslRandPoll);
 #endif
 PHP_METHOD(EventUtil, getSocketName);
+PHP_METHOD(EventUtil, setSocketOption);
 
 PHP_METHOD(EventBufferPosition, __construct);
 

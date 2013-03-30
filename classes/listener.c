@@ -146,8 +146,19 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 		args[1] = &arg_fd;
 
 		MAKE_STD_ZVAL(arg_address);
+		/* A client connected via UNIX domain can't be bound to the socket.
+		 * I.e. the socket is most likely abstract(unnamed), and has no sense here. */
+#ifdef AF_UNIX
+		if (address->sa_family == AF_UNIX) {
+			ZVAL_NULL(arg_address);
+		} else {
+			array_init(arg_address);
+			sockaddr_parse(address, arg_address);
+		}
+#else
 		array_init(arg_address);
 		sockaddr_parse(address, arg_address);
+#endif
 		args[2] = &arg_address;
 
 		if (arg_data) {

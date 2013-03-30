@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-03-25</date>
+  <date>2013-03-30</date>
   <!--{{{ Current version -->
   <version>
     <release>1.5.2</release>
@@ -33,6 +33,8 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: bug #64551 with build failed on Mac OS X
+  Fix: address argument of the listener accept callback contained garbage in case of a client connected via UNIX domain socket
+  Add: EventBuffer::write, EventUtil::setSocketOption methods and some constants
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -139,6 +141,8 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
   Fix: bug #64551 with build failed on Mac OS X
+  Fix: address argument of the listener accept callback contained garbage in case of a client connected via UNIX domain socket
+  Add: EventBuffer::write, EventUtil::setSocketOption methods and some constants
   ]]></notes>
     </release>
     <!--}}}-->

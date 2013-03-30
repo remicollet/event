@@ -595,6 +595,48 @@ PHP_METHOD(EventBuffer, pullup)
 }
 /* }}} */
 
+/* {{{ proto int EventBuffer::write(mixed fd[, int howmuch]);
+ *
+ * Write contents of the buffer to a file descriptor.
+ * The buffer will be drained after the bytes have been successfully written.
+ *
+ * Returns the number of bytes written, or &false; on error.
+ */
+PHP_METHOD(EventBuffer, write)
+{
+	zval                *zbuf  = getThis();
+	php_event_buffer_t  *b;
+	zval               **ppzfd;
+	evutil_socket_t      fd;
+	long                 res;
+	long                 howmuch = -1;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z|l",
+				&ppzfd) == FAILURE) {
+		return;
+	}
+
+	fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
+	if (fd == -1) {
+		RETURN_FALSE;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (howmuch < 0) {
+		res = evbuffer_write(b->buf, fd);
+	} else {
+		res = evbuffer_write_atmost(b->buf, fd, howmuch);
+	}
+
+	if (res == -1) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_LONG(res);
+}
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4

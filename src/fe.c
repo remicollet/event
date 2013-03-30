@@ -251,6 +251,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_pullup, 0, 0, 1)
 	ZEND_ARG_INFO(0, size)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_write, 0, 0, 1)
+	ZEND_ARG_INFO(0, fd)
+	ZEND_ARG_INFO(0, howmuch)
+ZEND_END_ARG_INFO();
+
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_socket_1, 0, 0, 0)
 	ZEND_ARG_INFO(0, socket)
@@ -378,6 +383,13 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_get_socket_name, 0, 0, 2)
 	ZEND_ARG_INFO(0, socket)
 	ZEND_ARG_INFO(1, address)
 	ZEND_ARG_INFO(1, port)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_set_socket_option, 0, 0, 4)
+	ZEND_ARG_INFO(0, socket)
+	ZEND_ARG_INFO(0, level)
+	ZEND_ARG_INFO(0, optname)
+	ZEND_ARG_INFO(0, optval)
 ZEND_END_ARG_INFO();
 
 
@@ -570,6 +582,7 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, search,        arginfo_evbuffer_search,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, searchEol,     arginfo_evbuffer_search_eol,    ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, pullup,        arginfo_evbuffer_pullup,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, write,         arginfo_evbuffer_write,         ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };
@@ -578,13 +591,14 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 	PHP_ABSTRACT_ME(EventUtil, __construct, NULL)
 
-	PHP_ME(EventUtil, getLastSocketErrno,    arginfo_event_socket_1,             ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-	PHP_ME(EventUtil, getLastSocketError,    arginfo_event_socket_1,             ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, getLastSocketErrno, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, getLastSocketError, arginfo_event_socket_1, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 #ifdef            HAVE_EVENT_OPENSSL_LIB
 	PHP_ME(EventUtil, sslRandPoll,           arginfo_event__void,                ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 #endif
-	PHP_ME(EventUtil, getSocketName,         arginfo_event_util_get_socket_name, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, getSocketName,   arginfo_event_util_get_socket_name,   ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, setSocketOption, arginfo_event_util_set_socket_option, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 	PHP_FE_END
 };
