@@ -36,6 +36,7 @@
   Fix: address argument of the listener accept callback contained garbage in case of a client connected via UNIX domain socket
   Add: EventBuffer::write, EventUtil::setSocketOption methods and some constants
   Refact: automatically set the upper bound of EventBuffer::search to the buffer length, if it is greater then the length
+  Fix: make the code compatible with PHP 5.6.0-dev
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -145,6 +146,7 @@
   Fix: address argument of the listener accept callback contained garbage in case of a client connected via UNIX domain socket
   Add: EventBuffer::write, EventUtil::setSocketOption methods and some constants
   Refact: automatically set the upper bound of EventBuffer::search to the buffer length, if it is greater then the length
+  Fix: make the code compatible with PHP 5.6.0-dev
   ]]></notes>
     </release>
     <!--}}}-->
