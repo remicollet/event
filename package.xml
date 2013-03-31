@@ -37,6 +37,7 @@
   Add: EventBuffer::write, EventUtil::setSocketOption methods and some constants
   Refact: automatically set the upper bound of EventBuffer::search to the buffer length, if it is greater then the length
   Fix: make the code compatible with PHP 5.6.0-dev
+  Fix: build error with zts PHP setup
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -147,6 +148,7 @@
   Add: EventBuffer::write, EventUtil::setSocketOption methods and some constants
   Refact: automatically set the upper bound of EventBuffer::search to the buffer length, if it is greater then the length
   Fix: make the code compatible with PHP 5.6.0-dev
+  Fix: build error with zts PHP setup
   ]]></notes>
     </release>
     <!--}}}-->

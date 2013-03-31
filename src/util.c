@@ -107,7 +107,7 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 /* }}} */
 
 /* {{{ _php_event_getsockname */
-int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport TSRMLS_CC)
+int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport TSRMLS_DC)
 {
 	php_sockaddr_storage  sa_storage;
 	struct sockaddr      *sa         = (struct sockaddr *) &sa_storage;

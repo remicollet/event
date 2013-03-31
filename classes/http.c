@@ -24,7 +24,7 @@
 
 /* {{{ _new_http_cb
  * Allocate memory for new callback structure for the next HTTP server's URI */
-static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zarg, const zend_fcall_info *fci, const zend_fcall_info_cache *fcc TSRMLS_CC)
+static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zarg, const zend_fcall_info *fci, const zend_fcall_info_cache *fcc TSRMLS_DC)
 {
 	php_event_http_cb_t *cb = emalloc(sizeof(php_event_http_cb_t));
 
