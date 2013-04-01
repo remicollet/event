@@ -1,5 +1,9 @@
 --TEST--
 Check for EventListener error behaviour 
+--SKIPIF--
+<?php
+if (!class_exists("EventListener")) echo "skip Event extra functions are disabled"
+?>
 --FILE--
 <?php
 $base = new EventBase();

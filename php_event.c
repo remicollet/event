@@ -49,6 +49,7 @@ static HashTable classes;
 static HashTable event_properties;
 static HashTable event_bevent_properties;
 static HashTable event_buffer_properties;
+static HashTable event_listener_properties;
 #ifdef HAVE_EVENT_OPENSSL_LIB
 static HashTable event_ssl_context_properties;
 int php_event_ssl_data_index;
@@ -953,7 +954,7 @@ static zend_always_inline void register_classes(TSRMLS_D)
 	PHP_EVENT_REGISTER_CLASS("Event", event_object_create, php_event_ce, php_event_ce_functions);
 	ce = php_event_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-	zend_hash_init(&event_properties, 0, NULL, NULL, 1);
+	zend_hash_init(&event_properties, 2, NULL, NULL, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_properties, event_property_entries);
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_property_entry_info);
 	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_properties,
@@ -973,7 +974,7 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			php_event_bevent_ce_functions);
 	ce = php_event_bevent_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
-	zend_hash_init(&event_bevent_properties, 0, NULL, NULL, 1);
+	zend_hash_init(&event_bevent_properties, 4, NULL, NULL, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_bevent_properties, event_bevent_property_entries);
 	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_bevent_property_entry_info);
 	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_bevent_properties,
@@ -999,6 +1000,11 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			php_event_listener_ce_functions);
 	ce = php_event_listener_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL_CLASS;
+	zend_hash_init(&event_listener_properties, 1, NULL, NULL, 1);
+	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_listener_properties, event_listener_property_entries);
+	PHP_EVENT_DECL_CLASS_PROPERTIES(ce, event_listener_property_entry_info);
+	zend_hash_add(&classes, ce->name, ce->name_length + 1, &event_listener_properties,
+			sizeof(event_listener_properties), NULL);
 
 	PHP_EVENT_REGISTER_CLASS("EventHttpConnection", event_http_conn_object_create,
 			php_event_http_conn_ce,
@@ -1280,6 +1286,7 @@ PHP_MSHUTDOWN_FUNCTION(event)
 	zend_hash_destroy(&event_properties);
 	zend_hash_destroy(&event_bevent_properties);
 	zend_hash_destroy(&event_buffer_properties);
+	zend_hash_destroy(&event_listener_properties);
 #ifdef HAVE_EVENT_OPENSSL_LIB
 	zend_hash_destroy(&event_ssl_context_properties);
 #endif

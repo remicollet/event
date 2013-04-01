@@ -18,9 +18,11 @@
 
 #ifndef PHP_EVENT_HTTP_H
 #define PHP_EVENT_HTTP_H
+#ifdef HAVE_EVENT_EXTRA_LIB
 
 void _php_event_free_http_cb(php_event_http_cb_t *cb);
 
+#endif /* HAVE_EVENT_EXTRA_LIB */
 #endif /* PHP_EVENT_HTTP_H */
 /*
  * Local variables:

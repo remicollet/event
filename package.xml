@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-03-30</date>
+  <date>2013-04-01</date>
   <!--{{{ Current version -->
   <version>
     <release>1.6.0</release>
@@ -38,6 +38,8 @@
   Refact: automatically set the upper bound of EventBuffer::search to the buffer length, if it is greater then the length
   Fix: make the code compatible with PHP 5.6.0-dev
   Fix: build error with zts PHP setup
+  Fix: build error with libevent_extra disabled
+  Add: EventListener fd readonly property for numeric file descriptor of the socket associated with the listener
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -149,6 +151,8 @@
   Refact: automatically set the upper bound of EventBuffer::search to the buffer length, if it is greater then the length
   Fix: make the code compatible with PHP 5.6.0-dev
   Fix: build error with zts PHP setup
+  Fix: build error with libevent_extra disabled
+  Add: EventListener fd readonly property for numeric file descriptor of the socket associated with the listener
   ]]></notes>
     </release>
     <!--}}}-->
