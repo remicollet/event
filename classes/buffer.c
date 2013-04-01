@@ -638,6 +638,82 @@ PHP_METHOD(EventBuffer, write)
 }
 /* }}} */
 
+/* {{{ proto string EventBuffer::substr(int start[, int length]);
+ * Returns portion of the buffer contents specified by
+ * <parameter>start</parameter> and <parameter>length</parameter>
+ */
+PHP_METHOD(EventBuffer, substr)
+{
+	zval               *zbuf   = getThis();
+	php_event_buffer_t *b;
+	long                n_start;
+	long                n_length = -1;
+
+	struct evbuffer_ptr    ptr;
+	struct evbuffer_iovec *pv;
+	int                    n_chunks;
+	long                   n_read   = 0;
+	int                    i;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|l",
+				&n_start, &n_length) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	if (_get_pos(&ptr, n_start, b->buf TSRMLS_CC) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	/* Disable changes to the front and end of the buffer */
+	evbuffer_freeze(b->buf, 0);
+	evbuffer_freeze(b->buf, 1);
+
+	/* Determine how many chunks we need */
+	n_chunks = evbuffer_peek(b->buf, n_length, &ptr, NULL, 0);
+	/* Allocate space for the chunks. */
+	pv = emalloc(sizeof(struct evbuffer_iovec) * n_chunks);
+	/* Fill up pv */
+	n_chunks = evbuffer_peek(b->buf, n_length, &ptr, pv, n_chunks);
+
+	/* Determine the size of the result string */
+	for (i = 0; i < n_chunks; ++i) {
+		size_t len = pv[i].iov_len;
+
+		if (n_read + len > n_length) {
+			len = n_length - n_read;
+		}
+
+		n_read += len;
+	}
+
+	/* Build result string */
+	Z_TYPE_P(return_value)   = IS_STRING;
+	Z_STRLEN_P(return_value) = n_read;
+	Z_STRVAL_P(return_value) = emalloc(n_read + 1);
+
+	for (n_read = 0, i = 0; i < n_chunks; ++i) {
+		size_t len = pv[i].iov_len;
+
+		if (n_read + len > n_length) {
+			len = n_length - n_read;
+		}
+
+		memcpy(Z_STRVAL_P(return_value) + n_read, pv[i].iov_base, len);
+
+		n_read += len;
+	}
+	Z_STRVAL_P(return_value)[n_read] = '\0';
+
+	efree(pv);
+
+	/* Enable changes to the front and end of the buffer */
+	evbuffer_unfreeze(b->buf, 0);
+	evbuffer_unfreeze(b->buf, 1);
+}
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4

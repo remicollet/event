@@ -496,7 +496,7 @@ PHP_METHOD(EventBufferEvent, connectHost)
 	long                port;
 	long                family       = AF_UNSPEC;
 
-#if HAVE_EVENT_EXTRA_LIB
+#ifdef HAVE_EVENT_EXTRA_LIB
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O!sl|l",
 				&zdns_base, php_event_dns_base_ce, &hostname, &hostname_len,
 				&port, &family) == FAILURE) {

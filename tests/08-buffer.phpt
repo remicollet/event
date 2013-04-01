@@ -20,6 +20,26 @@ for ($i = 0, $j = 1; $i < $s_len; $i += 4, ++$j) {
 $b3 = new EventBuffer();
 $b3->add("123");
 echo "$j ", $b3->search("23", 1, 10) == 1 ? "ok" : "failed", PHP_EOL;
+
+
+$s = "";
+$b4 = new EventBuffer();
+for ($i = 0; $i < 10; ++$i) {
+	$s .= $i;
+}
+$b4->add($s);
+
+$success = TRUE;
+for ($i = 0; $i < 10; ++$i) {
+	for ($j = 1; $j < 10; ++$j) {
+		if ($b4->substr($i, $j) != substr($s, $i, $j)) {
+			$success = FALSE;
+			break;
+		}
+	}
+}
+echo "9 ", $success ? "ok" : "failed";
+
 ?>
 --EXPECT--
 1 ok
@@ -30,4 +50,5 @@ echo "$j ", $b3->search("23", 1, 10) == 1 ? "ok" : "failed", PHP_EOL;
 6 ok
 7 ok
 8 ok
+9 ok
 

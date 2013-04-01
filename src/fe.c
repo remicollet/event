@@ -256,6 +256,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_write, 0, 0, 1)
 	ZEND_ARG_INFO(0, howmuch)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_substr, 0, 0, 1)
+	ZEND_ARG_INFO(0, start)
+	ZEND_ARG_INFO(0, length)
+ZEND_END_ARG_INFO();
+
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_socket_1, 0, 0, 0)
 	ZEND_ARG_INFO(0, socket)
@@ -583,6 +588,7 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, searchEol,     arginfo_evbuffer_search_eol,    ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, pullup,        arginfo_evbuffer_pullup,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, write,         arginfo_evbuffer_write,         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, substr,        arginfo_evbuffer_substr,        ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };

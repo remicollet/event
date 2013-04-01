@@ -40,6 +40,7 @@
   Fix: build error with zts PHP setup
   Fix: build error with libevent_extra disabled
   Add: EventListener fd readonly property for numeric file descriptor of the socket associated with the listener
+  Add: EventBuffer::substr method
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -153,6 +154,7 @@
   Fix: build error with zts PHP setup
   Fix: build error with libevent_extra disabled
   Add: EventListener fd readonly property for numeric file descriptor of the socket associated with the listener
+  Add: EventBuffer::substr method
   ]]></notes>
     </release>
     <!--}}}-->
