@@ -666,10 +666,6 @@ PHP_METHOD(EventBuffer, substr)
 		RETURN_FALSE;
 	}
 
-	/* Disable changes to the front and end of the buffer */
-	evbuffer_freeze(b->buf, 0);
-	evbuffer_freeze(b->buf, 1);
-
 	/* Determine how many chunks we need */
 	n_chunks = evbuffer_peek(b->buf, n_length, &ptr, NULL, 0);
 	/* Allocate space for the chunks. */
@@ -707,10 +703,6 @@ PHP_METHOD(EventBuffer, substr)
 	Z_STRVAL_P(return_value)[n_read] = '\0';
 
 	efree(pv);
-
-	/* Enable changes to the front and end of the buffer */
-	evbuffer_unfreeze(b->buf, 0);
-	evbuffer_unfreeze(b->buf, 1);
 }
 /* }}} */
 
