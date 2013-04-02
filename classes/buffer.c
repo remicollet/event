@@ -613,7 +613,7 @@ PHP_METHOD(EventBuffer, write)
 	long                 howmuch = -1;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z|l",
-				&ppzfd) == FAILURE) {
+				&ppzfd, &howmuch) == FAILURE) {
 		return;
 	}
 
