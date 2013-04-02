@@ -854,26 +854,19 @@ PHP_METHOD(EventBufferEvent, writeBuffer)
 }
 /* }}} */
 
-/* {{{ proto int EventBufferEvent::read(string &data, int size);
+/* {{{ proto string EventBufferEvent::read(int size);
  * Removes up to size bytes from the input buffer, storing them into the memory at data.
- *
- * Returns the number of bytes actually removed.  */
+ */
 PHP_METHOD(EventBufferEvent, read)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
-	zval               *zdata;
 	long                size;
 	char               *data;
 	long                ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zl",
-				&zdata, &size) == FAILURE) {
-		return;
-	}
-
-	if (!Z_ISREF_P(zdata)) {
-		/* Was not passed by reference */
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&size) == FAILURE) {
 		return;
 	}
 
@@ -885,15 +878,12 @@ PHP_METHOD(EventBufferEvent, read)
 	ret = bufferevent_read(bev->bevent, data, size);
 
 	if (ret > 0) {
-		convert_to_string(zdata);
-		zval_dtor(zdata);
-		Z_STRVAL_P(zdata) = estrndup(data, ret);
-		Z_STRLEN_P(zdata) = ret;
+		RETVAL_STRINGL(data, ret, 1);
+	} else {
+		RETVAL_NULL();
 	}
 
 	efree(data);
-
-	RETVAL_LONG(ret);
 }
 /* }}} */
 

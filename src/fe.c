@@ -162,8 +162,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_write_buffer, 0, 0, 1)
 	ZEND_ARG_INFO(0, buf)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_read, 0, 0, 2)
-	ZEND_ARG_INFO(1, data)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_read, 0, 0, 1)
 	ZEND_ARG_INFO(0, size)
 ZEND_END_ARG_INFO();
 
@@ -221,8 +220,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_len, 0, 0, 1)
 	ZEND_ARG_INFO(0, len)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove, 0, 0, 2)
-	ZEND_ARG_INFO(1, data)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove, 0, 0, 1)
 	ZEND_ARG_INFO(0, max_bytes)
 ZEND_END_ARG_INFO();
 
@@ -576,8 +574,8 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, enableLocking, arginfo_event__void,            ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, add,           arginfo_evbuffer_add,           ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, addBuffer,     arginfo_evbuffer_add_buffer,    ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, removeBuffer,  arginfo_evbuffer_remove_buffer, ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, remove,        arginfo_evbuffer_remove,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, appendFrom,    arginfo_evbuffer_remove_buffer, ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, read,          arginfo_evbuffer_remove,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, expand,        arginfo_evbuffer_len,           ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, prepend,       arginfo_evbuffer_add,           ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, prependBuffer, arginfo_evbuffer_add_buffer,    ZEND_ACC_PUBLIC)

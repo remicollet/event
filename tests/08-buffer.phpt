@@ -11,8 +11,8 @@ $b1->add($s);
 
 $tmp = "";
 for ($i = 0, $j = 1; $i < $s_len; $i += 4, ++$j) {
-	if ($b2->removeBuffer($b1, 4)) {
-		$b2->remove($tmp, 32);
+	if ($b2->appendFrom($b1, 4)) {
+		$tmp = $b2->read(32);
 		echo $j, ' ', $tmp == substr($s, $i, 4) ? "ok" : "failed", PHP_EOL;
 	}
 }

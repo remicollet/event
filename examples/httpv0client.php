@@ -7,7 +7,7 @@ function readcb($bev, $base) {
 	//$pos = $input->search("TTP");
 	$pos = $bev->input->search("TTP");
 
-	while (($n = $bev->input->remove($buf, 1024)) > 0) {
+	while (!empty($buf = $bev->input->read(1024)) > 0) {
 		echo $buf;
 	}
 }

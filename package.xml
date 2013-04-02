@@ -41,6 +41,11 @@
   Fix: build error with libevent_extra disabled
   Add: EventListener fd readonly property for numeric file descriptor of the socket associated with the listener
   Add: EventBuffer::substr method
+
+  INCOMPATIBLE CHANGES!
+  Renamed EventBuffer::remove to EventBuffer::read, EventBuffer::read now takes only max_bytes argument and returns string.
+  Renamed EventBuffer::removeBuffer to EventBuffer::appendFrom
+  EventBuffer::read now takes single argument 'size' and returns the string read
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -155,6 +160,11 @@
   Fix: build error with libevent_extra disabled
   Add: EventListener fd readonly property for numeric file descriptor of the socket associated with the listener
   Add: EventBuffer::substr method
+
+  INCOMPATIBLE CHANGES!
+  Renamed EventBuffer::remove to EventBuffer::read, EventBuffer::read now takes only max_bytes argument and returns string.
+  Renamed EventBuffer::removeBuffer to EventBuffer::appendFrom
+  EventBuffer::read now takes single argument 'size' and returns the string read
   ]]></notes>
     </release>
     <!--}}}-->

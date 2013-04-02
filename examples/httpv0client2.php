@@ -13,7 +13,7 @@
 function readcb($bev, $base) {
 	$input = $bev->getInput();
 
-	while (($n = $input->remove($buf, 1024)) > 0) {
+	while (!empty($buf = $input->read(1024))) {
 		echo $buf;
 	}
 }

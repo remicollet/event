@@ -10,9 +10,9 @@ function read_callback_uppercase($bev, $unused) {
 	$tmp = NULL;
 
 	while (1) {
-		$n = bufferevent_read($bev, $tmp, 128);
-		($n > 0) or break;
-		bufferevent_write($bev, strtoupper($tmp), $n);
+		$tmp = $bev->read(128);
+		(!empty($tmp)) or break;
+		$bev->write(strtoupper($tmp), $n);
 	}
 }
 ?>

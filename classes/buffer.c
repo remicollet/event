@@ -184,30 +184,22 @@ PHP_METHOD(EventBuffer, add)
 }
 /* }}} */
 
-/* {{{ proto int EventBuffer::remove(string &data, long max_bytes);
+/* {{{ proto string EventBuffer::read(long max_bytes);
  *
  * Read data from an evbuffer and drain the bytes read.  If more bytes are
  * requested than are available in the evbuffer, we only extract as many bytes
  * as were available.
- *
- * Returns the number of bytes read, or -1 if we can't drain the buffer.
  */
-PHP_METHOD(EventBuffer, remove)
+PHP_METHOD(EventBuffer, read)
 {
 	php_event_buffer_t *b;
 	zval               *zbuf      = getThis();
-	zval               *zdata;
 	long                max_bytes;
 	long                ret;
 	char               *data;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zl",
-				&zdata, &max_bytes) == FAILURE) {
-		return;
-	}
-
-	if (!Z_ISREF_P(zdata)) {
-		/* Was not passed by reference */
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+				&max_bytes) == FAILURE) {
 		return;
 	}
 
@@ -216,17 +208,13 @@ PHP_METHOD(EventBuffer, remove)
 	data = emalloc(sizeof(char) * max_bytes + 1);
 
 	ret = evbuffer_remove(b->buf, data, max_bytes);
-
 	if (ret > 0) {
-		convert_to_string(zdata);
-		zval_dtor(zdata);
-		Z_STRVAL_P(zdata) = estrndup(data, ret);
-		Z_STRLEN_P(zdata) = ret;
+		RETVAL_STRINGL(data, ret, 1);
+	} else {
+		RETVAL_NULL();
 	}
 
 	efree(data);
-
-	RETVAL_LONG(ret);
 }
 /* }}} */
 
@@ -257,10 +245,10 @@ PHP_METHOD(EventBuffer, addBuffer)
 }
 /* }}} */
 
-/* {{{ proto int EventBuffer::removeBuffer(EventBuffer buf, int len); 
+/* {{{ proto int EventBuffer::appendFrom(EventBuffer buf, int len); 
  * Moves exactly len bytes from buf to the end of current instance of EventBuffer
  */
-PHP_METHOD(EventBuffer, removeBuffer)
+PHP_METHOD(EventBuffer, appendFrom)
 {
 	php_event_buffer_t *b_dst;
 	php_event_buffer_t *b_src;
@@ -277,7 +265,6 @@ PHP_METHOD(EventBuffer, removeBuffer)
 	PHP_EVENT_FETCH_BUFFER(b_src, zbuf_src);
 
 	RETVAL_LONG(evbuffer_remove_buffer(b_src->buf, b_dst->buf, (size_t) len));
-
 }
 /* }}} */
 
