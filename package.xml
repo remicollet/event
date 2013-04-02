@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-04-01</date>
+  <date>2013-04-02</date>
   <!--{{{ Current version -->
   <version>
     <release>1.6.0</release>
@@ -36,7 +36,7 @@
   Fix: address argument of the listener accept callback contained garbage in case of a client connected via UNIX domain socket
   Add: EventBuffer::write, EventUtil::setSocketOption methods and some constants
   Refact: automatically set the upper bound of EventBuffer::search to the buffer length, if it is greater then the length
-  Fix: make the code compatible with PHP 5.6.0-dev
+  Fix: make the code compatible with PHP 5.5.0 .. 5.6.0-dev
   Fix: build error with zts PHP setup
   Fix: build error with libevent_extra disabled
   Add: EventListener fd readonly property for numeric file descriptor of the socket associated with the listener
@@ -143,7 +143,7 @@
     <release>
       <version>
         <release>1.6.0</release>
-        <api>1.5.0</api>
+        <api>1.6.0</api>
       </version>
       <stability>
         <release>stable</release>
@@ -155,7 +155,7 @@
   Fix: address argument of the listener accept callback contained garbage in case of a client connected via UNIX domain socket
   Add: EventBuffer::write, EventUtil::setSocketOption methods and some constants
   Refact: automatically set the upper bound of EventBuffer::search to the buffer length, if it is greater then the length
-  Fix: make the code compatible with PHP 5.6.0-dev
+  Fix: make the code compatible with PHP 5.5.0 .. 5.6.0-dev
   Fix: build error with zts PHP setup
   Fix: build error with libevent_extra disabled
   Add: EventListener fd readonly property for numeric file descriptor of the socket associated with the listener
