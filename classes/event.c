@@ -202,14 +202,15 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
  * Creates new event */
 PHP_METHOD(Event, __construct)
 {
+	zval                   *zself = getThis();
 	zval                   *zbase;
 	php_event_base_t       *b;
 	zval                  **ppzfd;
 	evutil_socket_t         fd;
 	long                    what;
-	zend_fcall_info         fci     = empty_fcall_info;
-	zend_fcall_info_cache   fcc     = empty_fcall_info_cache;
-	zval                   *arg     = NULL;
+	zend_fcall_info         fci   = empty_fcall_info;
+	zend_fcall_info_cache   fcc   = empty_fcall_info_cache;
+	zval                   *arg   = NULL;
 	php_event_t            *e;
 	struct event           *event;
 
@@ -220,21 +221,24 @@ PHP_METHOD(Event, __construct)
 
 	if (what & ~(EV_TIMEOUT | EV_READ | EV_WRITE | EV_SIGNAL | EV_PERSIST | EV_ET)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid mask");
-		RETURN_FALSE;
+		ZVAL_NULL(zself);
+		return;
 	}
 
 	if (what & EV_SIGNAL) {
 		fd = zval_to_signum(ppzfd);
 		if (fd == -1) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid signal passed");
-			RETURN_FALSE;
+			ZVAL_NULL(zself);
+			return;
 		}
 	} else if (what & EV_TIMEOUT) {
 		fd = -1;
 	} else {
 		fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);
 		if (fd < 0) {
-			RETURN_FALSE;
+			ZVAL_NULL(zself);
+			return;
 		}
 	}
 
@@ -242,12 +246,13 @@ PHP_METHOD(Event, __construct)
 
 	/* TODO: check if a signum bound to different event bases */
 
-	e = (php_event_t *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	e = (php_event_t *) zend_object_store_get_object(zself TSRMLS_CC);
 
 	event = event_new(b->base, fd, what, event_cb, (void *) e);
 	if (!event) {
 		php_error_docref(NULL TSRMLS_CC, E_ERROR, "event_new failed");
-		RETURN_FALSE;
+		ZVAL_NULL(zself);
+		return;
 	}
 
 	e->event = event;
