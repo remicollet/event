@@ -189,6 +189,8 @@ PHP_METHOD(EventHttpRequest, addHeader);
 PHP_METHOD(EventHttpRequest, clearHeaders);
 PHP_METHOD(EventHttpRequest, removeHeader);
 PHP_METHOD(EventHttpRequest, findHeader);
+PHP_METHOD(EventHttpRequest, getEventBufferEvent);
+
 /* Extra API END }}} */
 #endif
 

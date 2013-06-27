@@ -355,6 +355,34 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
 }
 /* }}} */
 
+
+/* {{{ proto EventBufferEvent EventHttpRequest::getEventBufferEvent(void);
+ * Returns EventBufferEvent object. */
+PHP_METHOD(EventHttpRequest, getEventBufferEvent)
+{
+	php_event_http_req_t *http_req;
+        struct evhttp_connection *conn;
+        php_event_bevent_t *bev;
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+
+	_check_http_req_ptr(http_req);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
+	PHP_EVENT_FETCH_BEVENT(bev, return_value);
+	conn = evhttp_request_get_connection(http_req->ptr);
+	bev->bevent = evhttp_connection_get_bufferevent(conn);
+	bev->self = return_value;
+	Z_ADDREF_P(return_value);
+	bev->input = bev->output = NULL;
+}
+/* }}} */
+
+
+
 /* {{{ proto void EventHttpRequest::sendError(int error[, string reason = NULL]);
  * Send an HTML error message to the client.
  */
