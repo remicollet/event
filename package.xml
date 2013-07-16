@@ -33,6 +33,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: bug #64678 where Fedora Packaging Guidlines required LICENSE file
+  Fix: bug #64680 where we should check for SKIP_ONLINE_TESTS environment variable
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -140,6 +141,7 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
   Fix: bug #64678 where Fedora Packaging Guidlines required LICENSE file
+  Fix: bug #64680 where we should check for SKIP_ONLINE_TESTS environment variable
   ]]></notes>
     </release>
     <!--}}}-->
