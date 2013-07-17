@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-07-16</date>
+  <date>2013-07-17</date>
   <!--{{{ Current version -->
   <version>
     <release>1.6.2</release>
@@ -34,6 +34,7 @@
   <notes><![CDATA[
   Fix: bug #64678 where Fedora Packaging Guidlines required LICENSE file
   Fix: bug #64680 where we should check for SKIP_ONLINE_TESTS environment variable
+  Fix: bug #64679 where we had buffer overflow caused by struct sockaddr_storage * pointer
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -142,6 +143,7 @@
       <notes><![CDATA[
   Fix: bug #64678 where Fedora Packaging Guidlines required LICENSE file
   Fix: bug #64680 where we should check for SKIP_ONLINE_TESTS environment variable
+  Fix: bug #64679 where we had buffer overflow caused by struct sockaddr_storage * pointer
   ]]></notes>
     </release>
     <!--}}}-->
