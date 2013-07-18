@@ -620,6 +620,43 @@ PHP_METHOD(EventBuffer, write)
 }
 /* }}} */
 
+/* {{{ proto int EventBuffer::readFrom(mixed fd[, int howmuch]);
+ *
+ * Read data from a file descriptor onto the end of the buffer.
+ *
+ * Returns the number of bytes read, or &false; on error.
+ */
+PHP_METHOD(EventBuffer, readFrom)
+{
+	zval                *zbuf = getThis();
+	php_event_buffer_t  *b;
+	zval               **ppzfd;
+	evutil_socket_t      fd;
+	long                 res;
+	long                 howmuch = -1;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z|l",
+				&ppzfd, &howmuch) == FAILURE) {
+		return;
+	}
+
+	fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
+	if (fd == -1) {
+		RETURN_FALSE;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	res = evbuffer_read(b->buf, fd, howmuch);
+
+	if (res == -1) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_LONG(res);
+}
+/* }}} */
+
 /* {{{ proto string EventBuffer::substr(int start[, int length]);
  * Returns portion of the buffer contents specified by
  * <parameter>start</parameter> and <parameter>length</parameter>

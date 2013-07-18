@@ -591,6 +591,7 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, searchEol,     arginfo_evbuffer_search_eol,    ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, pullup,        arginfo_evbuffer_pullup,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, write,         arginfo_evbuffer_write,         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, readFrom,      arginfo_evbuffer_write,         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, substr,        arginfo_evbuffer_substr,        ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
