@@ -224,6 +224,19 @@ PHP_METHOD(EventUtil, setSocketOption)
 }
 /* }}} */
 
+/* {{{ proto bool EventUtil::getSocketFd(mixed socket)
+ *    Gets numeric file descriptor of a socket. */
+PHP_METHOD(EventUtil, getSocketFd) {
+	zval **ppzfd = NULL;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z",
+				&ppzfd) == FAILURE) {
+		return;
+	}
+
+	RETVAL_LONG(ppzfd ? php_event_zval_to_fd(ppzfd TSRMLS_CC) : -1);
+}
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4
