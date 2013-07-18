@@ -393,11 +393,6 @@ PHP_METHOD(EventBuffer, copyout)
 		return;
 	}
 
-	if (!Z_ISREF_P(zdata)) {
-		/* Was not passed by reference */
-		return;
-	}
-
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
 	data = emalloc(sizeof(char) * max_bytes + 1);
