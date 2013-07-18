@@ -393,6 +393,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_get_socket_name, 0, 0, 2)
 	ZEND_ARG_INFO(1, port)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_get_socket_fd, 0, 0, 1)
+	ZEND_ARG_INFO(0, socket)
+ZEND_END_ARG_INFO();
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_set_socket_option, 0, 0, 4)
 	ZEND_ARG_INFO(0, socket)
 	ZEND_ARG_INFO(0, level)
@@ -608,6 +612,7 @@ const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 	PHP_ME(EventUtil, sslRandPoll,           arginfo_event__void,                ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 #endif
 	PHP_ME(EventUtil, getSocketName,   arginfo_event_util_get_socket_name,   ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, getSocketFd,     arginfo_event_util_get_socket_fd,     ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventUtil, setSocketOption, arginfo_event_util_set_socket_option, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 	PHP_FE_END
