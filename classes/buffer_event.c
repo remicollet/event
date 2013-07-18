@@ -950,7 +950,7 @@ PHP_METHOD(EventBufferEvent, setTimeouts)
 	struct timeval      tv_read;
 	struct timeval      tv_write;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ll",
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "dd",
 				&timeout_read, &timeout_write) == FAILURE) {
 		return;
 	}
