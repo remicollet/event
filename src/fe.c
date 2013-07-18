@@ -217,8 +217,8 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove_buffer, 0, 0, 2)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_copyout, 0, 0, 2)
-	ZEND_ARG_INFO(1, buf)
-	ZEND_ARG_INFO(0, len)
+	ZEND_ARG_INFO(1, data)
+	ZEND_ARG_INFO(0, max_bytes)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_len, 0, 0, 1)
