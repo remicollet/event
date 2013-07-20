@@ -19,6 +19,11 @@
 #include "src/priv.h"
 #include "src/util.h"
 
+#define PHP_EVENT_PROP_REQUIRE(x) \
+	do {                          \
+		if (!(x)) return FAILURE; \
+	} while (0);
+
 static inline void _prop_write_zval(zval **ppz, const zval *value)
 {
 	if (!*ppz) {
@@ -64,7 +69,7 @@ static int event_pending_prop_read(php_event_abstract_object_t *obj, zval **retv
 {
 	php_event_t *e = (php_event_t *) obj;
 
-	PHP_EVENT_ASSERT(e->event);
+	PHP_EVENT_PROP_REQUIRE(e->event);
 
 	MAKE_STD_ZVAL(*retval);
 	ZVAL_BOOL(*retval, (php_event_is_pending(e->event) ? 1 : 0));
@@ -79,7 +84,7 @@ static zval **event_data_prop_get_ptr_ptr(php_event_abstract_object_t *obj TSRML
 {
 	php_event_t *e = (php_event_t *) obj;
 
-	PHP_EVENT_ASSERT(e->event);
+	if (!e->event) return NULL;
 
 	return (e->data ? &e->data : NULL);
 }
@@ -90,7 +95,7 @@ static int event_data_prop_read(php_event_abstract_object_t *obj, zval **retval 
 {
 	php_event_t *e = (php_event_t *) obj;
 
-	PHP_EVENT_ASSERT(e->event);
+	PHP_EVENT_PROP_REQUIRE(e->event);
 
 	_prop_read_zval(e->data, retval);
 
@@ -103,7 +108,7 @@ static int event_data_prop_write(php_event_abstract_object_t *obj, zval *value T
 {
 	php_event_t *e = (php_event_t *) obj;
 
-	PHP_EVENT_ASSERT(e->event);
+	PHP_EVENT_PROP_REQUIRE(e->event);
 
 	_prop_write_zval(&e->data, value);
 
@@ -117,7 +122,7 @@ static int event_buffer_length_prop_read(php_event_abstract_object_t *obj, zval 
 {
 	php_event_buffer_t *b = (php_event_buffer_t *) obj;
 
-	PHP_EVENT_ASSERT(b->buf);
+	PHP_EVENT_PROP_REQUIRE(b->buf);
 
 	MAKE_STD_ZVAL(*retval);
 	ZVAL_LONG(*retval, evbuffer_get_length(b->buf));
@@ -131,7 +136,7 @@ static int event_buffer_contiguous_space_prop_read(php_event_abstract_object_t *
 {
 	php_event_buffer_t *b = (php_event_buffer_t *) obj;
 
-	PHP_EVENT_ASSERT(b->buf);
+	PHP_EVENT_PROP_REQUIRE(b->buf);
 
 	MAKE_STD_ZVAL(*retval);
 	ZVAL_LONG(*retval, evbuffer_get_contiguous_space(b->buf));
@@ -197,11 +202,13 @@ static int event_bevent_fd_prop_read(php_event_abstract_object_t *obj, zval **re
 	MAKE_STD_ZVAL(*retval);
 
 	/* Uninitialized / free'd */
+#if 0
 	if (!b->bevent) {
 		ZVAL_NULL(*retval);
 		return SUCCESS;
 	}
-	PHP_EVENT_ASSERT(b->bevent);
+#endif
+	PHP_EVENT_PROP_REQUIRE(b->bevent);
 
 	fd = bufferevent_getfd(b->bevent);
 	if (fd == -1) {
