@@ -19,7 +19,7 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "1.6.1"
+#define PHP_EVENT_VERSION "1.7.1"
 
 #define PHP_EVENT_SUN_PREFIX "unix:"
 

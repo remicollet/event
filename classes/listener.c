@@ -272,7 +272,7 @@ PHP_METHOD(EventListener, __construct)
 	PHP_EVENT_FETCH_BASE(base, zbase);
 
 	if (Z_TYPE_PP(ppztarget) == IS_STRING) {
-		struct sockaddr_storage *ss;
+		struct sockaddr_storage ss;
 		socklen_t ss_len = sizeof(ss);
 		memset(&ss, 0, sizeof(ss));
 

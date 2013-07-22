@@ -393,11 +393,6 @@ PHP_METHOD(EventBuffer, copyout)
 		return;
 	}
 
-	if (!Z_ISREF_P(zdata)) {
-		/* Was not passed by reference */
-		return;
-	}
-
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
 	data = emalloc(sizeof(char) * max_bytes + 1);
@@ -616,6 +611,43 @@ PHP_METHOD(EventBuffer, write)
 	} else {
 		res = evbuffer_write_atmost(b->buf, fd, howmuch);
 	}
+
+	if (res == -1) {
+		RETURN_FALSE;
+	}
+
+	RETVAL_LONG(res);
+}
+/* }}} */
+
+/* {{{ proto int EventBuffer::readFrom(mixed fd[, int howmuch]);
+ *
+ * Read data from a file descriptor onto the end of the buffer.
+ *
+ * Returns the number of bytes read, or &false; on error.
+ */
+PHP_METHOD(EventBuffer, readFrom)
+{
+	zval                *zbuf = getThis();
+	php_event_buffer_t  *b;
+	zval               **ppzfd;
+	evutil_socket_t      fd;
+	long                 res;
+	long                 howmuch = -1;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z|l",
+				&ppzfd, &howmuch) == FAILURE) {
+		return;
+	}
+
+	fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
+	if (fd == -1) {
+		RETURN_FALSE;
+	}
+
+	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+
+	res = evbuffer_read(b->buf, fd, howmuch);
 
 	if (res == -1) {
 		RETURN_FALSE;

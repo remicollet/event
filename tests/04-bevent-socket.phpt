@@ -1,5 +1,14 @@
 --TEST--
 Check for event_buffer sockets 
+--SKIPIF--
+<?php
+    if (!extension_loaded('event')) {
+        die('skip - event extension not available.');
+    }
+    if (getenv("SKIP_ONLINE_TESTS")) {
+        die("skip test requiring internet connection");
+    }
+?>
 --FILE--
 <?php 
 $base = new EventBase();

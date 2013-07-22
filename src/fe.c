@@ -216,6 +216,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_remove_buffer, 0, 0, 2)
 	ZEND_ARG_INFO(0, len)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_copyout, 0, 0, 2)
+	ZEND_ARG_INFO(1, data)
+	ZEND_ARG_INFO(0, max_bytes)
+ZEND_END_ARG_INFO();
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_len, 0, 0, 1)
 	ZEND_ARG_INFO(0, len)
 ZEND_END_ARG_INFO();
@@ -386,6 +391,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_get_socket_name, 0, 0, 2)
 	ZEND_ARG_INFO(0, socket)
 	ZEND_ARG_INFO(1, address)
 	ZEND_ARG_INFO(1, port)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_get_socket_fd, 0, 0, 1)
+	ZEND_ARG_INFO(0, socket)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_set_socket_option, 0, 0, 4)
@@ -580,12 +589,13 @@ const zend_function_entry php_event_buffer_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBuffer, prepend,       arginfo_evbuffer_add,           ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, prependBuffer, arginfo_evbuffer_add_buffer,    ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, drain,         arginfo_evbuffer_len,           ZEND_ACC_PUBLIC)
-	PHP_ME(EventBuffer, copyout,       arginfo_evbuffer_remove,        ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, copyout,       arginfo_evbuffer_copyout,       ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, readLine,      arginfo_evbuffer_read_line,     ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, search,        arginfo_evbuffer_search,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, searchEol,     arginfo_evbuffer_search_eol,    ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, pullup,        arginfo_evbuffer_pullup,        ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, write,         arginfo_evbuffer_write,         ZEND_ACC_PUBLIC)
+	PHP_ME(EventBuffer, readFrom,      arginfo_evbuffer_write,         ZEND_ACC_PUBLIC)
 	PHP_ME(EventBuffer, substr,        arginfo_evbuffer_substr,        ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
@@ -602,6 +612,7 @@ const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 	PHP_ME(EventUtil, sslRandPoll,           arginfo_event__void,                ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 #endif
 	PHP_ME(EventUtil, getSocketName,   arginfo_event_util_get_socket_name,   ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, getSocketFd,     arginfo_event_util_get_socket_fd,     ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventUtil, setSocketOption, arginfo_event_util_set_socket_option, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 	PHP_FE_END
