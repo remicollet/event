@@ -19,7 +19,7 @@
 #ifndef PHP_EVENT_STRUCTS_H
 #define PHP_EVENT_STRUCTS_H
 
-/* Thread context. With it we are getting rid of need 
+/* Thread context. With it we are getting rid of need
  * to call the heavy TSRMLS_FETCH() */
 #ifdef ZTS
 # define PHP_EVENT_COMMON_THREAD_CTX void ***thread_ctx
@@ -71,6 +71,7 @@ typedef struct _php_event_bevent_t {
 	PHP_EVENT_OBJECT_HEAD;
 
 	struct bufferevent    *bevent;
+        int                   _internal;
 	zval                  *self;        /* Object itself. For callbacks                   */
 	zval                  *data;        /* User custom data                               */
 	zval                  *input;       /* Input buffer */

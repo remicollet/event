@@ -130,7 +130,7 @@ PHP_METHOD(EventHttpRequest, __construct)
 	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
 	zval                  *zarg     = NULL;
 	struct evhttp_request *req;
-	
+
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "f|z",
 				&fci, &fcc, &zarg) == FAILURE) {
@@ -378,6 +378,7 @@ PHP_METHOD(EventHttpRequest, getEventBufferEvent)
 	bev->self = return_value;
 	Z_ADDREF_P(return_value);
 	bev->input = bev->output = NULL;
+        bev->_internal = 1;
 }
 /* }}} */
 
@@ -468,7 +469,7 @@ PHP_METHOD(EventHttpRequest, sendReplyChunk)
 /* }}} */
 
 /* {{{ proto void EventHttpRequest::sendReplyEnd(void);
- * Complete a chunked reply, freeing the request as appropriate. 
+ * Complete a chunked reply, freeing the request as appropriate.
  */
 PHP_METHOD(EventHttpRequest, sendReplyEnd)
 {
@@ -524,7 +525,7 @@ PHP_METHOD(EventHttpRequest, sendReplyStart)
  *
  * Cancels an ongoing HTTP request. The callback associated with this request
  * is not executed and the request object is freed. If the request is currently
- * being processed, e.g. it is ongoing, the corresponding EventHttpConnection 
+ * being processed, e.g. it is ongoing, the corresponding EventHttpConnection
  * object is going to get reset.
  *
  * A request cannot be canceled if its callback has executed already. A request
