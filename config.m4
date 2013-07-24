@@ -26,28 +26,54 @@ PHP_ARG_WITH(event-extra, for event extra functionality support,
 PHP_ARG_WITH(event-openssl, for OpenSSL support in event,
 [  --with-event-openssl Include libevent OpenSSL support], yes, no)
 
-PHP_ARG_WITH(openssl-dir, OpenSSL installation prefix,
+PHP_ARG_WITH(openssl-dir, for OpenSSL installation prefix,
 [  --with-openssl-dir[=DIR]  Event: openssl installation prefix], no, no)
 
 PHP_ARG_WITH([event-libevent-dir], [],
 [  --with-event-libevent-dir[=DIR] Event: libevent installation prefix], no, no)
 
-PHP_ARG_ENABLE(event-debug, Event: debug support,
+PHP_ARG_ENABLE(event-debug, whether Event debugging support enabled,
 [  --enable-event-debug     Enable debug support in event], no, no)
 
 if test "$PHP_EVENT_CORE" != "no"; then
   dnl {{{ Check for PHP version
-  export OLD_CPPFLAGS="$CPPFLAGS"
-  export CPPFLAGS="$CPPFLAGS $INCLUDES -DHAVE_EV"
-  AC_MSG_CHECKING(PHP version)
-  AC_TRY_COMPILE([#include <php_version.h>], [
-  #if PHP_VERSION_ID < 50400
-  # error  this extension requires at least PHP version 5.4.0
-  #endif
-  ],
-  [AC_MSG_RESULT(ok)],
-  [AC_MSG_ERROR([need at least PHP 5.4.0])])
-  export CPPFLAGS="$OLD_CPPFLAGS"
+
+  dnl The following fails sometimes. See bug #65319
+  dnl
+  dnl export OLD_CPPFLAGS="$CPPFLAGS"
+  dnl export CPPFLAGS="$CPPFLAGS $INCLUDES -DHAVE_EV"
+  dnl AC_MSG_CHECKING(PHP version)
+  dnl AC_TRY_COMPILE([#include <php_version.h>], [
+  dnl #if PHP_VERSION_ID < 50400
+  dnl # error  this extension requires at least PHP version 5.4.0
+  dnl #endif
+  dnl ],
+  dnl [AC_MSG_RESULT(ok)],
+  dnl [AC_MSG_ERROR([need at least PHP 5.4.0])])
+  dnl export CPPFLAGS="$OLD_CPPFLAGS"
+  dnl
+
+  AC_MSG_CHECKING(whether Event supports the current PHP version)
+  tmp_php_version=$PHP_VERSION
+  if test -z "$tmp_php_version"; then
+    if test -z "$PHP_CONFIG"; then
+      AC_MSG_ERROR([php-config not found])
+    fi
+    PHP_EVENT_VERSION_ORIG=`$PHP_CONFIG --version`;
+  else
+    PHP_EVENT_VERSION_ORIG=$tmp_php_version
+  fi
+
+  if test -z $PHP_EVENT_VERSION_ORIG; then
+    AC_MSG_ERROR([failed to detect PHP version, please file a bug])
+  fi
+
+  PHP_EVENT_VERSION_MASK=`echo ${PHP_EVENT_VERSION_ORIG} | awk 'BEGIN { FS = "."; } { printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
+  if test $PHP_EVENT_VERSION_MASK -lt 5004000; then
+    AC_MSG_ERROR([need at least PHP 5.4.0])
+  else
+    AC_MSG_RESULT([ok])
+  fi
   dnl }}}
   
   dnl {{{ --enable-event-debug
@@ -179,6 +205,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   PHP_ADD_BUILD_DIR($ext_builddir/classes)
   PHP_ADD_INCLUDE($ext_builddir/src)
   PHP_ADD_INCLUDE($ext_builddir/classes)
+  PHP_ADD_INCLUDE($ext_builddir)
   PHP_ADD_EXTENSION_DEP(event, sockets, true)
   PHP_SUBST(EVENT_SHARED_LIBADD)
   PHP_SUBST(CFLAGS)
