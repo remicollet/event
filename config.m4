@@ -68,7 +68,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
     AC_MSG_ERROR([failed to detect PHP version, please file a bug])
   fi
 
-  PHP_EVENT_VERSION_MASK=`echo ${PHP_EVENT_VERSION_ORIG} | awk 'BEGIN { FS = "."; } { printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
+  PHP_EVENT_VERSION_MASK=`echo ${PHP_EVENT_VERSION_ORIG} | $AWK 'BEGIN { FS = "."; } { printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
   if test $PHP_EVENT_VERSION_MASK -lt 5004000; then
     AC_MSG_ERROR([need at least PHP 5.4.0])
   else
