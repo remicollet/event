@@ -192,13 +192,14 @@ PHP_METHOD(EventHttpRequest, clearHeaders);
 PHP_METHOD(EventHttpRequest, removeHeader);
 PHP_METHOD(EventHttpRequest, findHeader);
 PHP_METHOD(EventHttpRequest, getEventBufferEvent);
+PHP_METHOD(EventHttpRequest, getEventHttpConnection);
 
 /* Extra API END }}} */
 #endif
 
 #endif /* PHP_EVENT_FE_H */
 
-/* 
+/*
  * Local variables:
  * tab-width: 4
  * c-basic-offset: 4

@@ -382,6 +382,32 @@ PHP_METHOD(EventHttpRequest, getEventBufferEvent)
 }
 /* }}} */
 
+/* {{{ proto EventHttpConnection EventHttpRequest::getEventHttpConnection(void);
+ * Returns EventHttpConnection object. */
+PHP_METHOD(EventHttpRequest, getEventHttpConnection)
+{
+	php_event_http_req_t *http_req;
+        struct evhttp_connection *conn;
+        php_event_http_conn_t    *evcon;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+
+	_check_http_req_ptr(http_req);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_http_conn_ce);
+        PHP_EVENT_FETCH_HTTP_CONN(evcon, return_value);
+	conn = evhttp_request_get_connection(http_req->ptr);
+	evcon->conn = conn;
+	evcon->base = NULL;
+        evcon->dns_base = NULL;
+	Z_ADDREF_P(return_value);
+}
+/* }}} */
+
 
 
 /* {{{ proto void EventHttpRequest::sendError(int error[, string reason = NULL]);
