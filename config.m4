@@ -126,7 +126,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
     EVENT_LIBS="-L$EVENT_DIR/$PHP_LIBDIR"
     EVENT_LIBDIR=$EVENT_DIR/$PHP_LIBDIR
   fi
-  LDFLAGS="$EVENT_LIBS -levent_core -levent_pthreads $LDFLAGS"
+  LDFLAGS="$EVENT_LIBS -levent_core $LDFLAGS"
 
   dnl {{{ event_core
 	AC_CHECK_LIB(event_core, event_free, [
@@ -151,7 +151,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   if test "$PHP_EVENT_PTHREADS" != "no"; then
 	  AC_CHECK_LIB(event_pthreads, evthread_use_pthreads, [
 	    PHP_ADD_LIBRARY_WITH_PATH(event_pthreads, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
-      LDFLAGS="-lpthread -levent_pthreads $LDFLAGS"
+      LDFLAGS="$LDFLAGS -lpthread -levent_pthreads"
       AC_DEFINE(HAVE_EVENT_PTHREADS_LIB, 1, [ ])
 	  ], [
       AC_MSG_ERROR([evthread_use_pthreads not found in event_pthreads library, or the library is not installed])
@@ -163,7 +163,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   if test "$PHP_EVENT_EXTRA" != "no"; then
     AC_CHECK_LIB(event_extra, evdns_base_free, [
 	    PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
-      LDFLAGS="-levent_extra $LDFLAGS"
+      LDFLAGS="$LDFLAGS -levent_extra"
       AC_DEFINE(HAVE_EVENT_EXTRA_LIB, 1, [ ])
     ], [
       AC_MSG_ERROR([evdns_base_free not found in event_extra library, or the library is not installed])
@@ -190,7 +190,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
 
     AC_CHECK_LIB(event_openssl, bufferevent_openssl_get_ssl, [
       PHP_ADD_LIBRARY_WITH_PATH(event_openssl, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
-      LDFLAGS="-levent_openssl $LDFLAGS"
+      LDFLAGS="$LDFLAGS -levent_openssl"
       AC_DEFINE(HAVE_EVENT_OPENSSL_LIB, 1, [ ])
     ], [
       AC_MSG_ERROR([bufferevent_openssl_get_ssl not found in event_openssl library, or the library is not installed])

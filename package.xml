@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-07-24</date>
+  <date>2013-07-26</date>
   <!--{{{ Current version -->
   <version>
     <release>1.7.2</release>
@@ -34,6 +34,7 @@
   <notes><![CDATA[
   Fix: bug #65320 where we got build errors in attempts to compile event statically(thanks to florin)
   Fix: bug #65319 where config.m4 used <php_version.h> to detect current PHP version
+  Fix: config.m4 included -levent_pthreads into LDFLAGS even --without-event-pthreads configuration
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -144,6 +145,7 @@
       <notes><![CDATA[
   Fix: bug #65320 where we got build errors in attempts to compile event statically(thanks to florin)
   Fix: bug #65319 where config.m4 used <php_version.h> to detect current PHP version
+  Fix: config.m4 included -levent_pthreads into LDFLAGS even --without-event-pthreads configuration
   ]]></notes>
     </release>
     <!--}}}-->
