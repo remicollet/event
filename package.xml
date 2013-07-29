@@ -20,10 +20,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-07-28</date>
+  <date>2013-07-29</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.7.2</release>
+    <release>1.7.3</release>
     <api>1.7.0</api>
   </version>
   <stability>
@@ -32,10 +32,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: bug #65320 where we got build errors in attempts to compile event statically(thanks to florin)
-  Fix: bug #65319 where config.m4 used <php_version.h> to detect current PHP version
-  Fix: config.m4 included -levent_pthreads into LDFLAGS even --without-event-pthreads configuration
-  Fix: evthread_use_pthreads() call skept due to a "macro magic"(PHP_EVENT_ASSERT)
+  Fix: in php_event.c write_property function wasn't static
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -132,6 +129,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ Current version -->
+    <release>
+      <version>
+        <release>1.7.3</release>
+        <api>1.7.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Fix: in php_event.c write_property function wasn't static
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.7.2 -->
     <release>
       <version>

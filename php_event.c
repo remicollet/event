@@ -708,7 +708,7 @@ static zval *read_property(zval *object, zval *member, int type, const zend_lite
 /* }}} */
 
 /* {{{ write_property */
-void write_property(zval *object, zval *member, zval *value, const zend_literal *key TSRMLS_DC)
+static void write_property(zval *object, zval *member, zval *value, const zend_literal *key TSRMLS_DC)
 {
 	zval                         tmp_member;
 	php_event_abstract_object_t *obj;
