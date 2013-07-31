@@ -693,6 +693,7 @@ const zend_function_entry php_event_http_req_ce_functions[] = {
 	PHP_ME(EventHttpRequest, findHeader,       arginfo_event_http_req_remove_header,    ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpRequest, getEventBufferEvent,   arginfo_event__void,                ZEND_ACC_PUBLIC)
         PHP_ME(EventHttpRequest, getEventHttpConnection,   arginfo_event__void,                ZEND_ACC_PUBLIC)
+        PHP_ME(EventHttpRequest, closeConnection,   arginfo_event__void,                ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };

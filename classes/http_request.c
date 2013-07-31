@@ -409,6 +409,28 @@ PHP_METHOD(EventHttpRequest, getEventHttpConnection)
 /* }}} */
 
 
+/* {{{ proto void EventHttpRequest::closeConnection(void);
+ */
+PHP_METHOD(EventHttpRequest, closeConnection)
+{
+	php_event_http_req_t *http_req;
+        struct evhttp_connection *conn;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+
+	_check_http_req_ptr(http_req);
+
+	conn = evhttp_request_get_connection(http_req->ptr);
+	evhttp_connection_free(conn);
+//	evhttp_connection_done(conn);
+}
+/* }}} */
+
+
 
 /* {{{ proto void EventHttpRequest::sendError(int error[, string reason = NULL]);
  * Send an HTML error message to the client.
