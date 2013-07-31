@@ -708,7 +708,7 @@ static zval *read_property(zval *object, zval *member, int type, const zend_lite
 /* }}} */
 
 /* {{{ write_property */
-void write_property(zval *object, zval *member, zval *value, const zend_literal *key TSRMLS_DC)
+static void write_property(zval *object, zval *member, zval *value, const zend_literal *key TSRMLS_DC)
 {
 	zval                         tmp_member;
 	php_event_abstract_object_t *obj;
@@ -1249,7 +1249,10 @@ PHP_MINIT_FUNCTION(event)
 # error "Windows is not supported right now"
 	evthread_use_windows_threads();
 # else
-	PHP_EVENT_ASSERT(evthread_use_pthreads() == 0);
+	if (evthread_use_pthreads()) {
+		php_error_docref(NULL TSRMLS_CC, E_ERROR,
+				"evthread_use_pthreads failed, submit a bug");
+	}
 # endif
 #endif
 
