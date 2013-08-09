@@ -920,6 +920,14 @@ static HashTable *get_properties(zval *object TSRMLS_DC)
 /* }}} */
 #endif
 
+static HashTable *get_gc(zval *object, zval ***table, int *n TSRMLS_DC)
+{
+	*table = NULL;
+	*n = 0;
+	return zend_std_get_properties(object TSRMLS_CC);
+}
+
+
 #define PHP_EVENT_ADD_CLASS_PROPERTIES(a, b)                                           \
 {                                                                                      \
     int i = 0;                                                                         \
@@ -1065,6 +1073,7 @@ PHP_MINIT_FUNCTION(event)
 #if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 4
 	object_handlers.get_properties       = get_properties;
 #endif
+	object_handlers.get_gc               = get_gc;
 
 	zend_hash_init(&classes, 8, NULL, NULL, 1);
 	register_classes(TSRMLS_C);
