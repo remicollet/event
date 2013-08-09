@@ -897,7 +897,8 @@ static HashTable *get_properties(zval *object TSRMLS_DC)
 	ulong                        num_key;
 
 	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
-	props = zend_std_get_properties(object TSRMLS_CC);
+	/*props = zend_std_get_properties(object TSRMLS_CC);*/
+	props = obj->zo.properties;
 
 	if (obj->prop_handler) {
 		zend_hash_internal_pointer_reset_ex(obj->prop_handler, &pos);
