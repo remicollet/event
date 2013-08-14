@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-07-29</date>
+  <date>2013-08-10</date>
   <!--{{{ Current version -->
   <version>
     <release>1.7.3</release>
@@ -32,7 +32,8 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: in php_event.c write_property function wasn't static
+  Fix: in php_event.c write_property function was non-static
+  Fix: absence of get_gc property handler caused segfaults with gc_collect_cycles()
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -104,6 +105,7 @@
         <file role="src" name="08-buffer.phpt"/>
         <file role="src" name="09-gc-cycles.phpt"/>
         <file role="src" name="10-event-data-dtor.phpt"/>
+        <file role="src" name="11-gc-cycles.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -129,7 +131,7 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ Current version -->
+    <!--{{{ 1.7.3 -->
     <release>
       <version>
         <release>1.7.3</release>
@@ -141,7 +143,8 @@
       </stability>
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
-  Fix: in php_event.c write_property function wasn't static
+  Fix: in php_event.c write_property function was non-static
+  Fix: absence of get_gc property handler caused segfaults with gc_collect_cycles()
   ]]></notes>
     </release>
     <!--}}}-->
