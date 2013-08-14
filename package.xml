@@ -20,10 +20,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-08-10</date>
+  <date>2013-08-14</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.7.3</release>
+    <release>1.7.4</release>
     <api>1.7.0</api>
   </version>
   <stability>
@@ -32,8 +32,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: in php_event.c write_property function was non-static
-  Fix: absence of get_gc property handler caused segfaults with gc_collect_cycles()
+  Fix: Segmentation fault caused by direct access to the zend object properties' hash table
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -106,6 +105,7 @@
         <file role="src" name="09-gc-cycles.phpt"/>
         <file role="src" name="10-event-data-dtor.phpt"/>
         <file role="src" name="11-gc-cycles.phpt"/>
+        <file role="src" name="12-serialization.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -131,6 +131,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 1.7.4 -->
+    <release>
+      <version>
+        <release>1.7.4</release>
+        <api>1.7.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Fix: Segmentation fault caused by direct access to the zend object properties' hash table
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.7.3 -->
     <release>
       <version>
