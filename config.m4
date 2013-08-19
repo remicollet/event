@@ -126,7 +126,8 @@ if test "$PHP_EVENT_CORE" != "no"; then
     EVENT_LIBS="-L$EVENT_DIR/$PHP_LIBDIR"
     EVENT_LIBDIR=$EVENT_DIR/$PHP_LIBDIR
   fi
-  LDFLAGS="$EVENT_LIBS -levent_core $LDFLAGS"
+  LDFLAGS="$EVENT_LIBS $LDFLAGS"
+  LIBS="$LIBS -levent_core"
 
   dnl {{{ event_core
 	AC_CHECK_LIB(event_core, event_free, [
@@ -210,6 +211,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   PHP_SUBST(EVENT_SHARED_LIBADD)
   PHP_SUBST(CFLAGS)
   PHP_SUBST(LDLAGS)
+  PHP_SUBST(LIBS)
 fi
 
 dnl vim: ft=m4.sh fdm=marker cms=dnl\ %s
