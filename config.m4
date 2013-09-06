@@ -14,13 +14,13 @@ dnl +----------------------------------------------------------------------+
 dnl | Author: Ruslan Osmanov <osmanov@php.net>                             |
 dnl +----------------------------------------------------------------------+
 
-PHP_ARG_WITH(event-core, for event core support,
+PHP_ARG_WITH(event-core, for Event core support,
 [  --with-event-core        Include core libevent support])
 
-PHP_ARG_WITH(event-pthreads, for event thread safety support,
-[  --with-event-pthreads    Include libevent's pthreads library and enable thread safety support in event], no, no)
+PHP_ARG_WITH(event-pthreads, for Event thread safety support,
+[  --with-event-pthreads    Include libevent's pthreads library and enable thread safety support in Event], no, no)
 
-PHP_ARG_WITH(event-extra, for event extra functionality support,
+PHP_ARG_WITH(event-extra, for Event extra functionality support,
 [  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, no)
 
 PHP_ARG_WITH(event-openssl, for OpenSSL support in event,
@@ -33,7 +33,10 @@ PHP_ARG_WITH([event-libevent-dir], [],
 [  --with-event-libevent-dir[=DIR] Event: libevent installation prefix], no, no)
 
 PHP_ARG_ENABLE(event-debug, whether Event debugging support enabled,
-[  --enable-event-debug     Enable debug support in event], no, no)
+[  --enable-event-debug     Enable debug support in Event], no, no)
+
+PHP_ARG_ENABLE(event-sockets, whether to enable sockets support in Event,
+[  --enable-event-sockets Enable sockets support in Event], no, no)
 
 if test "$PHP_EVENT_CORE" != "no"; then
   dnl {{{ Check for PHP version
@@ -207,7 +210,12 @@ if test "$PHP_EVENT_CORE" != "no"; then
   PHP_ADD_INCLUDE($ext_builddir/src)
   PHP_ADD_INCLUDE($ext_builddir/classes)
   PHP_ADD_INCLUDE($ext_builddir)
-  PHP_ADD_EXTENSION_DEP(event, sockets, true)
+
+  if test "$PHP_EVENT_SOCKETS" != "no"; then
+    PHP_ADD_EXTENSION_DEP(event, sockets)
+    AC_DEFINE(PHP_EVENT_SOCKETS, 1, [Sockets extension is required])
+  fi
+
   PHP_SUBST(EVENT_SHARED_LIBADD)
   PHP_SUBST(CFLAGS)
   PHP_SUBST(LDLAGS)
