@@ -35,12 +35,8 @@
 #include <signal.h>
 
 #ifdef PHP_EVENT_SOCKETS
-# if PHP_VERSION_ID >= 50301 && (HAVE_SOCKETS || defined(COMPILE_DL_SOCKETS))
-#  include "ext/sockets/php_sockets.h"
-#  define PHP_EVENT_SOCKETS_SUPPORT
-# else
-#  error Sockets extension is required
-# endif
+# include "ext/sockets/php_sockets.h"
+# define PHP_EVENT_SOCKETS_SUPPORT
 #endif
 
 

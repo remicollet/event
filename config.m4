@@ -36,7 +36,7 @@ PHP_ARG_ENABLE(event-debug, whether Event debugging support enabled,
 [  --enable-event-debug     Enable debug support in Event], no, no)
 
 PHP_ARG_ENABLE(event-sockets, whether to enable sockets support in Event,
-[  --enable-event-sockets Enable sockets support in Event], no, no)
+[  --enable-event-sockets Enable sockets support in Event], yes, no)
 
 if test "$PHP_EVENT_CORE" != "no"; then
   dnl {{{ Check for PHP version
