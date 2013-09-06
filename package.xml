@@ -147,7 +147,7 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
   Change: sockets extension is now required(see bug #65597). The user can still
-  turn this requirement explicitly with --disable-event-sockets configure
+  turn this requirement off explicitly with --disable-event-sockets configure
   option
   ]]></notes>
     </release>
