@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-09-06</date>
+  <date>2013-09-07</date>
   <!--{{{ Current version -->
   <version>
     <release>1.7.6</release>
@@ -33,7 +33,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Change: sockets extension is now required(see bug #65597). The user can still
-  turn this requirement explicitly with --disable-event-sockets configure
+  turn off this requirement explicitly with --disable-event-sockets configure
   option
   ]]></notes>
   <!--}}}-->
@@ -147,7 +147,7 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
   Change: sockets extension is now required(see bug #65597). The user can still
-  turn this requirement off explicitly with --disable-event-sockets configure
+  turn off this requirement off explicitly with --disable-event-sockets configure
   option
   ]]></notes>
     </release>
