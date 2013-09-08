@@ -61,8 +61,6 @@ static zend_object_handlers object_handlers;
 static const zend_module_dep event_deps[] = {
 #ifdef PHP_EVENT_SOCKETS_SUPPORT
 	ZEND_MOD_REQUIRED("sockets")
-#else
-	ZEND_MOD_OPTIONAL("sockets")
 #endif
 	{NULL, NULL, NULL}
 };

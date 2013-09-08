@@ -210,16 +210,27 @@ if test "$PHP_EVENT_CORE" != "no"; then
   PHP_ADD_INCLUDE($ext_builddir/src)
   PHP_ADD_INCLUDE($ext_builddir/classes)
   PHP_ADD_INCLUDE($ext_builddir)
-
-  if test "$PHP_EVENT_SOCKETS" != "no"; then
-    PHP_ADD_EXTENSION_DEP(event, sockets)
-    AC_DEFINE(PHP_EVENT_SOCKETS, 1, [Sockets extension is required])
-  fi
-
   PHP_SUBST(EVENT_SHARED_LIBADD)
   PHP_SUBST(CFLAGS)
   PHP_SUBST(LDLAGS)
   PHP_SUBST(LIBS)
+
+  dnl This works with static building only
+  dnl test -z $PHP_SOCKETS && PHP_SOCKETS="no"
+
+  if test "$PHP_EVENT_SOCKETS" != "no"; then
+    AC_CHECK_HEADERS([$phpincludedir/ext/sockets/php_sockets.h], ,
+      [
+        AC_MSG_ERROR([Couldn't find $phpincludedir/sockets/php_sockets.h. Please check if sockets extension installed])
+      ]
+    )
+    PHP_ADD_EXTENSION_DEP(event, sockets)
+    AC_DEFINE(PHP_EVENT_SOCKETS, 1, [Whether sockets extension is required])
+    dnl Hack for distroes installing sockets separately
+    AC_DEFINE(HAVE_SOCKETS, 1, [Whether sockets extension is enabled])
+  fi
+
+  PHP_ADD_MAKEFILE_FRAGMENT
 fi
 
 dnl vim: ft=m4.sh fdm=marker cms=dnl\ %s
