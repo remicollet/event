@@ -59,9 +59,18 @@ Install it (as `root`):
 
 	# make install
 
+##NOTES
+
+Methods of the Event extension accept different types of resources containing a
+file descriptor: a castable PHP stream, socket resource, or just a number(the
+file descriptor itself). If you don't have _sockets_ extension installed, or
+just don't plan to use the standard PHP sockets, then configure Event with
+`--disable-event-sockets` option, or choose `n`("No") when the PEAR installer
+asks whether `sockets` support is required.
+
 
 FINALLY
-------
+-------
 
 In <php.ini>, or some other configuration like
 </usr/local/etc/php/conf.d/ev.ini> write:

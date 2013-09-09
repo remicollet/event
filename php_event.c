@@ -59,7 +59,9 @@ int php_event_ssl_data_index;
 static zend_object_handlers object_handlers;
 
 static const zend_module_dep event_deps[] = {
-	ZEND_MOD_OPTIONAL("sockets")
+#ifdef PHP_EVENT_SOCKETS_SUPPORT
+	ZEND_MOD_REQUIRED("sockets")
+#endif
 	{NULL, NULL, NULL}
 };
 
@@ -1311,7 +1313,12 @@ PHP_MSHUTDOWN_FUNCTION(event)
 PHP_MINFO_FUNCTION(event)
 {
 	php_info_print_table_start();
-	php_info_print_table_header(2, "event support", "enabled");
+	php_info_print_table_header(2, "Event support", "enabled");
+#ifdef PHP_EVENT_SOCKETS_SUPPORT
+	php_info_print_table_header(2, "Sockets support", "enabled");
+#else
+	php_info_print_table_header(2, "Sockets support", "disabled");
+#endif
 #ifdef PHP_EVENT_DEBUG 
 	php_info_print_table_row(2, "Debug support", "enabled");
 #else

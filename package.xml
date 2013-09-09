@@ -20,10 +20,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-08-14</date>
+  <date>2013-09-08</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.7.4</release>
+    <release>1.7.7</release>
     <api>1.7.0</api>
   </version>
   <stability>
@@ -32,7 +32,8 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: Segmentation fault caused by direct access to the zend object properties' hash table
+  Fix: incorrect handling of sockets extension dependency
+  (a hack for distros installing sockets separately)
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -122,15 +123,67 @@
   </dependencies>
   <providesextension>event</providesextension>
   <extsrcrelease>
-    <configureoption default="no" name="enable-event-debug" prompt="Enable internal debugging in event"/>
+    <configureoption default="no" name="enable-event-debug" prompt="Enable internal debugging in Event"/>
+    <configureoption default="yes" name="enable-event-sockets" prompt="Enable sockets support in Event"/>
     <configureoption default="/usr" name="with-event-libevent-dir" prompt="libevent installation prefix"/>
-    <configureoption default="no" name="with-event-pthreads" prompt="Include libevent's pthreads library and enable thread safety support in event"/>
+    <configureoption default="no" name="with-event-pthreads" prompt="Include libevent's pthreads library and enable thread safety support in Event"/>
     <configureoption default="yes" name="with-event-extra" prompt="Include libevent protocol-specific functionality support including HTTP, DNS, and RPC"/>
     <configureoption default="yes" name="with-event-openssl" prompt="Include libevent OpenSSL support"/>
     <configureoption default="no" name="with-openssl-dir" prompt="openssl installation prefix"/>
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 1.7.7 -->
+    <release>
+      <version>
+        <release>1.7.7</release>
+        <api>1.7.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Fix: incorrect handling of sockets extension dependency
+  (a hack for distros installing sockets separately)
+  ]]></notes>
+    </release>
+    <!--}}}-->
+    <!--{{{ 1.7.6 -->
+    <release>
+      <version>
+        <release>1.7.6</release>
+        <api>1.7.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Change: sockets extension is now required(see bug #65597). The user can still
+  turn off this requirement off explicitly with --disable-event-sockets configure
+  option
+  ]]></notes>
+    </release>
+    <!--}}}-->
+    <!--{{{ 1.7.5 -->
+    <release>
+      <version>
+        <release>1.7.5</release>
+        <api>1.7.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Fix: build error with custom libevent installation prefixes like /lib(John Wamer)
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.7.4 -->
     <release>
       <version>
