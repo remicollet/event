@@ -20,10 +20,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-09-13</date>
+  <date>2013-09-14</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.7.7</release>
+    <release>1.7.8</release>
     <api>1.7.0</api>
   </version>
   <stability>
@@ -32,8 +32,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: incorrect handling of sockets extension dependency
-  (a hack for distros installing sockets separately)
+  Fix: build error on Solaris(when sockaddr_un was not available)
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -133,6 +132,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 1.7.8 -->
+    <release>
+      <version>
+        <release>1.7.8</release>
+        <api>1.7.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Fix: build error on Solaris(when sockaddr_un was not available)
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.7.7 -->
     <release>
       <version>

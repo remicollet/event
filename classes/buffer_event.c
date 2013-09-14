@@ -432,6 +432,7 @@ PHP_METHOD(EventBufferEvent, connect)
 
 	memset(&ss, 0, sizeof(ss));
 
+#ifdef AF_UNIX
 	if (strncasecmp(addr, PHP_EVENT_SUN_PREFIX,
 				sizeof(PHP_EVENT_SUN_PREFIX) - 1) == 0) {
 		/* UNIX domain socket path */
@@ -444,14 +445,16 @@ PHP_METHOD(EventBufferEvent, connect)
 
 		strcpy(s_un->sun_path, addr + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
 
-	} else if (evutil_parse_sockaddr_port(addr, (struct sockaddr *) &ss, &ss_len)) {
-		/* Numeric addresses only. Don't try to resolve hostname. */
+	} else
+#endif
+		if (evutil_parse_sockaddr_port(addr, (struct sockaddr *) &ss, &ss_len)) {
+			/* Numeric addresses only. Don't try to resolve hostname. */
 
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"Failed parsing address: the address is not well-formed, "
-				"or the port is out of range");
-		RETURN_FALSE;
-	}
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"Failed parsing address: the address is not well-formed, "
+					"or the port is out of range");
+			RETURN_FALSE;
+		}
 
 	/* bufferevent_socket_connect() allocates a socket stream internally, if we
 	 * didn't provide the file descriptor to the bufferevent before, e.g. with
