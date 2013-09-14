@@ -278,12 +278,12 @@ PHP_METHOD(EventListener, __construct)
 
 		if (strncasecmp(Z_STRVAL_PP(ppztarget), PHP_EVENT_SUN_PREFIX,
 					sizeof(PHP_EVENT_SUN_PREFIX) - 1) == 0) {
-			struct sockaddr_un *sun;
+			struct sockaddr_un *s_un;
 
-			sun             = (struct sockaddr_un *) &ss;
-			sun->sun_family = AF_UNIX;
+			s_un             = (struct sockaddr_un *) &ss;
+			s_un->sun_family = AF_UNIX;
 
-			strcpy(sun->sun_path, Z_STRVAL_PP(ppztarget) + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
+			strcpy(s_un->sun_path, Z_STRVAL_PP(ppztarget) + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
 			ss_len = sizeof(struct sockaddr_un);
 		} else if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget),
 					Z_STRLEN_PP(ppztarget), (struct sockaddr *) &ss, &ss_len TSRMLS_CC) != SUCCESS) {

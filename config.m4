@@ -39,6 +39,10 @@ PHP_ARG_ENABLE(event-sockets, whether to enable sockets support in Event,
 [  --enable-event-sockets Enable sockets support in Event], yes, no)
 
 if test "$PHP_EVENT_CORE" != "no"; then
+
+  OLD_LDFLAGS=$LDFLAGS
+  OLD_LIBS=$LIBS
+
   dnl {{{ Check for PHP version
 
   dnl The following fails sometimes. See bug #65319
@@ -211,9 +215,9 @@ if test "$PHP_EVENT_CORE" != "no"; then
   PHP_ADD_INCLUDE($ext_builddir/classes)
   PHP_ADD_INCLUDE($ext_builddir)
   PHP_SUBST(EVENT_SHARED_LIBADD)
-  PHP_SUBST(CFLAGS)
-  PHP_SUBST(LDLAGS)
-  PHP_SUBST(LIBS)
+
+  LDFLAGS=$OLD_LDFLAGS
+  LIBS=$OLD_LIBS
 
   dnl This works with static building only
   dnl test -z $PHP_SOCKETS && PHP_SOCKETS="no"
@@ -229,6 +233,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
     dnl Hack for distroes installing sockets separately
     AC_DEFINE(HAVE_SOCKETS, 1, [Whether sockets extension is enabled])
   fi
+
 
   PHP_ADD_MAKEFILE_FRAGMENT
 fi
