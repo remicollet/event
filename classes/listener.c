@@ -276,6 +276,7 @@ PHP_METHOD(EventListener, __construct)
 		socklen_t ss_len = sizeof(ss);
 		memset(&ss, 0, sizeof(ss));
 
+#ifdef AF_UNIX
 		if (strncasecmp(Z_STRVAL_PP(ppztarget), PHP_EVENT_SUN_PREFIX,
 					sizeof(PHP_EVENT_SUN_PREFIX) - 1) == 0) {
 			struct sockaddr_un *sun;
@@ -285,11 +286,13 @@ PHP_METHOD(EventListener, __construct)
 
 			strcpy(sun->sun_path, Z_STRVAL_PP(ppztarget) + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
 			ss_len = sizeof(struct sockaddr_un);
-		} else if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget),
-					Z_STRLEN_PP(ppztarget), (struct sockaddr *) &ss, &ss_len TSRMLS_CC) != SUCCESS) {
-			ZVAL_NULL(zself);
-			return;
-		}
+		} else
+#endif
+			if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget),
+						Z_STRLEN_PP(ppztarget), (struct sockaddr *) &ss, &ss_len TSRMLS_CC) != SUCCESS) {
+				ZVAL_NULL(zself);
+				return;
+			}
 
 		PHP_EVENT_FETCH_LISTENER(l, zself);
 
