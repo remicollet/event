@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-09-14</date>
+  <date>2013-09-15</date>
   <!--{{{ Current version -->
   <version>
     <release>1.7.8</release>
@@ -118,6 +118,14 @@
       <pearinstaller>
         <min>1.4.0a1</min>
       </pearinstaller>
+      <extension>
+        <name>libevent</name>
+        <conflicts/>
+      </extension>
+      <os>
+        <name>windows</name>
+        <conflicts/>
+      </os>
     </required>
   </dependencies>
   <providesextension>event</providesextension>
