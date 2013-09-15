@@ -33,6 +33,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
   Fix: build error on Solaris
+  Introduced negative dependencies: libevent extension, windows OS
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -153,6 +154,7 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
   Fix: build error on Solaris
+  Introduced negative dependencies: libevent extension, windows OS
   ]]></notes>
     </release>
     <!--}}}-->
