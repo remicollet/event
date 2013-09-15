@@ -119,6 +119,13 @@
       <pearinstaller>
         <min>1.4.0a1</min>
       </pearinstaller>
+      <package>
+        <name>libevent</name>
+        <channel>pecl.php.net</channel>
+        <min>0.0.2</min>
+        <conflicts/>
+        <providesextension>libevent</providesextension>
+      </package>
       <extension>
         <name>libevent</name>
         <conflicts/>
