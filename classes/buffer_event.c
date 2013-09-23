@@ -280,7 +280,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 				"Failed to allocate bufferevent for socket");
 		return;
 	}
-        bev->_internal = 0;
+	bev->_internal = 0;
 	bev->bevent = bevent;
 
 	bev->self = zself;
@@ -343,9 +343,9 @@ PHP_METHOD(EventBufferEvent, free)
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 
 	if (bev->bevent) {
-                if(!bev->_internal){
-		    bufferevent_free(bev->bevent);
-                }
+		if (!bev->_internal) {
+			bufferevent_free(bev->bevent);
+		}
 		bev->bevent = 0;
 
 		/* Do it once */

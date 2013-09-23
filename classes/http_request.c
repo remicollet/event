@@ -360,9 +360,10 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
  * Returns EventBufferEvent object. */
 PHP_METHOD(EventHttpRequest, getEventBufferEvent)
 {
-	php_event_http_req_t *http_req;
-        struct evhttp_connection *conn;
-        php_event_bevent_t *bev;
+	php_event_http_req_t     *http_req;
+	struct evhttp_connection *conn;
+	php_event_bevent_t       *bev;
+
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
@@ -378,7 +379,7 @@ PHP_METHOD(EventHttpRequest, getEventBufferEvent)
 	bev->self = return_value;
 	Z_ADDREF_P(return_value);
 	bev->input = bev->output = NULL;
-        bev->_internal = 1;
+	bev->_internal = 1;
 }
 /* }}} */
 
@@ -386,9 +387,9 @@ PHP_METHOD(EventHttpRequest, getEventBufferEvent)
  * Returns EventHttpConnection object. */
 PHP_METHOD(EventHttpRequest, getEventHttpConnection)
 {
-	php_event_http_req_t *http_req;
-        struct evhttp_connection *conn;
-        php_event_http_conn_t    *evcon;
+	php_event_http_req_t     *http_req;
+	struct evhttp_connection *conn;
+	php_event_http_conn_t    *evcon;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -399,22 +400,21 @@ PHP_METHOD(EventHttpRequest, getEventHttpConnection)
 	_check_http_req_ptr(http_req);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_http_conn_ce);
-        PHP_EVENT_FETCH_HTTP_CONN(evcon, return_value);
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, return_value);
 	conn = evhttp_request_get_connection(http_req->ptr);
 	evcon->conn = conn;
 	evcon->base = NULL;
-        evcon->dns_base = NULL;
+	evcon->dns_base = NULL;
 	Z_ADDREF_P(return_value);
 }
 /* }}} */
-
 
 /* {{{ proto void EventHttpRequest::closeConnection(void);
  */
 PHP_METHOD(EventHttpRequest, closeConnection)
 {
-	php_event_http_req_t *http_req;
-        struct evhttp_connection *conn;
+	php_event_http_req_t     *http_req;
+	struct evhttp_connection *conn;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -426,7 +426,6 @@ PHP_METHOD(EventHttpRequest, closeConnection)
 
 	conn = evhttp_request_get_connection(http_req->ptr);
 	evhttp_connection_free(conn);
-//	evhttp_connection_done(conn);
 }
 /* }}} */
 
