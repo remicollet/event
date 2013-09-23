@@ -280,7 +280,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 				"Failed to allocate bufferevent for socket");
 		return;
 	}
-
+        bev->_internal = 0;
 	bev->bevent = bevent;
 
 	bev->self = zself;
@@ -343,7 +343,9 @@ PHP_METHOD(EventBufferEvent, free)
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 
 	if (bev->bevent) {
-		bufferevent_free(bev->bevent);
+                if(!bev->_internal){
+		    bufferevent_free(bev->bevent);
+                }
 		bev->bevent = 0;
 
 		/* Do it once */
@@ -513,7 +515,7 @@ PHP_METHOD(EventBufferEvent, connectHost)
 		return;
 	}
 #endif
-	
+
 	if (family & ~(AF_INET | AF_INET6 | AF_UNSPEC)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING,
 				"Invalid address family specified");
@@ -1056,7 +1058,7 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OZOl|l",
 				&zbase, php_event_base_ce,
-				&ppzfd, 
+				&ppzfd,
 				&zctx, php_event_ssl_context_ce,
 				&state, &options) == FAILURE) {
 		return;
@@ -1132,7 +1134,7 @@ PHP_METHOD(EventBufferEvent, sslError)
 
 	e = bufferevent_get_openssl_error(bev->bevent);
 	if (e) {
-		RETURN_STRING(ERR_error_string(e, buf), 1);	
+		RETURN_STRING(ERR_error_string(e, buf), 1);
 	}
 
 	RETVAL_FALSE;
