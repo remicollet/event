@@ -20,11 +20,11 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-09-15</date>
+  <date>2013-09-24</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.7.8</release>
-    <api>1.7.0</api>
+    <release>1.8.0</release>
+    <api>1.8.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -32,8 +32,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: build error on Solaris
-  Introduced negative dependencies: libevent extension, windows OS
+  Add: EventHttpRequest methods: getEventBufferEvent, getEventHttpConnection, closeConnection(thanks to rickysu at Bitbucket)
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -148,6 +147,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 1.8.0 -->
+    <release>
+      <version>
+        <release>1.8.0</release>
+        <api>1.8.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Add: EventHttpRequest methods: getEventBufferEvent, getEventHttpConnection, closeConnection(thanks to rickysu at Bitbucket)
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.7.8 -->
     <release>
       <version>
