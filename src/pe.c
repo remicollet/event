@@ -156,7 +156,11 @@ static int event_buffer_length_prop_read(php_event_abstract_object_t *obj, zval 
 	PHP_EVENT_PROP_REQUIRE(b->buf);
 
 	MAKE_STD_ZVAL(*retval);
-	ZVAL_LONG(*retval, evbuffer_get_length(b->buf));
+	if (b && b->buf){
+		ZVAL_LONG(*retval, evbuffer_get_length(b->buf));
+	} else {
+		ZVAL_LONG(*retval, 0);
+	}
 
 	return SUCCESS;
 }

@@ -130,7 +130,7 @@ PHP_METHOD(EventHttpRequest, __construct)
 	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
 	zval                  *zarg     = NULL;
 	struct evhttp_request *req;
-	
+
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "f|z",
 				&fci, &fcc, &zarg) == FAILURE) {
@@ -355,6 +355,82 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
 }
 /* }}} */
 
+
+/* {{{ proto EventBufferEvent EventHttpRequest::getEventBufferEvent(void);
+ * Returns EventBufferEvent object. */
+PHP_METHOD(EventHttpRequest, getEventBufferEvent)
+{
+	php_event_http_req_t     *http_req;
+	struct evhttp_connection *conn;
+	php_event_bevent_t       *bev;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+
+	_check_http_req_ptr(http_req);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
+	PHP_EVENT_FETCH_BEVENT(bev, return_value);
+	conn = evhttp_request_get_connection(http_req->ptr);
+	bev->bevent = evhttp_connection_get_bufferevent(conn);
+	bev->self = return_value;
+	Z_ADDREF_P(return_value);
+	bev->input = bev->output = NULL;
+	bev->_internal = 1;
+}
+/* }}} */
+
+/* {{{ proto EventHttpConnection EventHttpRequest::getEventHttpConnection(void);
+ * Returns EventHttpConnection object. */
+PHP_METHOD(EventHttpRequest, getEventHttpConnection)
+{
+	php_event_http_req_t     *http_req;
+	struct evhttp_connection *conn;
+	php_event_http_conn_t    *evcon;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+
+	_check_http_req_ptr(http_req);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_http_conn_ce);
+	PHP_EVENT_FETCH_HTTP_CONN(evcon, return_value);
+	conn = evhttp_request_get_connection(http_req->ptr);
+	evcon->conn = conn;
+	evcon->base = NULL;
+	evcon->dns_base = NULL;
+	Z_ADDREF_P(return_value);
+}
+/* }}} */
+
+/* {{{ proto void EventHttpRequest::closeConnection(void);
+ */
+PHP_METHOD(EventHttpRequest, closeConnection)
+{
+	php_event_http_req_t     *http_req;
+	struct evhttp_connection *conn;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+
+	_check_http_req_ptr(http_req);
+
+	conn = evhttp_request_get_connection(http_req->ptr);
+	evhttp_connection_free(conn);
+}
+/* }}} */
+
+
+
 /* {{{ proto void EventHttpRequest::sendError(int error[, string reason = NULL]);
  * Send an HTML error message to the client.
  */
@@ -440,7 +516,7 @@ PHP_METHOD(EventHttpRequest, sendReplyChunk)
 /* }}} */
 
 /* {{{ proto void EventHttpRequest::sendReplyEnd(void);
- * Complete a chunked reply, freeing the request as appropriate. 
+ * Complete a chunked reply, freeing the request as appropriate.
  */
 PHP_METHOD(EventHttpRequest, sendReplyEnd)
 {
@@ -496,7 +572,7 @@ PHP_METHOD(EventHttpRequest, sendReplyStart)
  *
  * Cancels an ongoing HTTP request. The callback associated with this request
  * is not executed and the request object is freed. If the request is currently
- * being processed, e.g. it is ongoing, the corresponding EventHttpConnection 
+ * being processed, e.g. it is ongoing, the corresponding EventHttpConnection
  * object is going to get reset.
  *
  * A request cannot be canceled if its callback has executed already. A request
