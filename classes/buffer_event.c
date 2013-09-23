@@ -439,13 +439,13 @@ PHP_METHOD(EventBufferEvent, connect)
 				sizeof(PHP_EVENT_SUN_PREFIX) - 1) == 0) {
 		/* UNIX domain socket path */
 
-		struct sockaddr_un *sun;
+		struct sockaddr_un *s_un;
 
-		sun             = (struct sockaddr_un *) &ss;
-		sun->sun_family = AF_UNIX;
+		s_un             = (struct sockaddr_un *) &ss;
+		s_un->sun_family = AF_UNIX;
 		ss_len          = sizeof(struct sockaddr_un);
 
-		strcpy(sun->sun_path, addr + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
+		strcpy(s_un->sun_path, addr + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
 
 	} else
 #endif
