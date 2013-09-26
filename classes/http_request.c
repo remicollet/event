@@ -355,9 +355,8 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
 }
 /* }}} */
 
-
 /* {{{ proto EventBufferEvent EventHttpRequest::getEventBufferEvent(void);
- * Returns EventBufferEvent object. */
+ * Returns EventBufferEvent object on success, otherwise &null. */
 PHP_METHOD(EventHttpRequest, getEventBufferEvent)
 {
 	php_event_http_req_t     *http_req;
@@ -372,9 +371,14 @@ PHP_METHOD(EventHttpRequest, getEventBufferEvent)
 
 	_check_http_req_ptr(http_req);
 
+	conn = evhttp_request_get_connection(http_req->ptr);
+	if (conn == NULL) {
+		RETURN_NULL();
+	}
+
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
 	PHP_EVENT_FETCH_BEVENT(bev, return_value);
-	conn = evhttp_request_get_connection(http_req->ptr);
+
 	bev->bevent = evhttp_connection_get_bufferevent(conn);
 	bev->self = return_value;
 	Z_ADDREF_P(return_value);
@@ -399,9 +403,14 @@ PHP_METHOD(EventHttpRequest, getEventHttpConnection)
 
 	_check_http_req_ptr(http_req);
 
+	conn = evhttp_request_get_connection(http_req->ptr);
+	if (conn == NULL) {
+		RETURN_NULL();
+	}
+
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_http_conn_ce);
 	PHP_EVENT_FETCH_HTTP_CONN(evcon, return_value);
-	conn = evhttp_request_get_connection(http_req->ptr);
+
 	evcon->conn = conn;
 	evcon->base = NULL;
 	evcon->dns_base = NULL;
@@ -428,8 +437,6 @@ PHP_METHOD(EventHttpRequest, closeConnection)
 	evhttp_connection_free(conn);
 }
 /* }}} */
-
-
 
 /* {{{ proto void EventHttpRequest::sendError(int error[, string reason = NULL]);
  * Send an HTML error message to the client.
