@@ -20,7 +20,7 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-09-24</date>
+  <date>2013-10-06</date>
   <!--{{{ Current version -->
   <version>
     <release>1.8.0</release>
@@ -32,7 +32,8 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Add: EventHttpRequest methods: getEventBufferEvent, getEventHttpConnection, closeConnection(thanks to rickysu at Bitbucket)
+  Add: EventHttpRequest methods: getBufferEvent, getConnection, closeConnection(thanks to rickysu at Bitbucket)
+  Add: EventHttpConnection::setCloseCallback method
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -74,6 +75,7 @@
         <file role="doc" name="http_accept.php"/>
         <file role="doc" name="http_alias.php"/>
         <file role="doc" name="http_bind.php"/>
+        <file role="doc" name="http_closecb.php"/>
         <file role="doc" name="http_request.php"/>
         <file role="doc" name="httpv0client.php"/>
         <file role="doc" name="httpv0client2.php"/>
@@ -159,7 +161,8 @@
       </stability>
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
-  Add: EventHttpRequest methods: getEventBufferEvent, getEventHttpConnection, closeConnection(thanks to rickysu at Bitbucket)
+  Add: EventHttpRequest methods: getBufferEvent, getConnection, closeConnection(thanks to rickysu at Bitbucket)
+  Add: EventHttpConnection::setCloseCallback method
   ]]></notes>
     </release>
     <!--}}}-->

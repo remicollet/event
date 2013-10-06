@@ -158,6 +158,7 @@ PHP_METHOD(EventHttpConnection, setMaxHeadersSize);
 PHP_METHOD(EventHttpConnection, setMaxBodySize);
 PHP_METHOD(EventHttpConnection, setRetries);
 PHP_METHOD(EventHttpConnection, makeRequest);
+PHP_METHOD(EventHttpConnection, setCloseCallback);
 
 PHP_METHOD(EventHttp, __construct);
 PHP_METHOD(EventHttp, accept);
@@ -191,8 +192,8 @@ PHP_METHOD(EventHttpRequest, addHeader);
 PHP_METHOD(EventHttpRequest, clearHeaders);
 PHP_METHOD(EventHttpRequest, removeHeader);
 PHP_METHOD(EventHttpRequest, findHeader);
-PHP_METHOD(EventHttpRequest, getEventBufferEvent);
-PHP_METHOD(EventHttpRequest, getEventHttpConnection);
+PHP_METHOD(EventHttpRequest, getBufferEvent);
+PHP_METHOD(EventHttpRequest, getConnection);
 PHP_METHOD(EventHttpRequest, closeConnection);
 
 /* Extra API END }}} */

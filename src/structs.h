@@ -166,6 +166,15 @@ typedef struct _php_event_http_conn_t {
 	struct evhttp_connection *conn;
 	zval                     *base;       /* Event base associated with the listener */
 	zval                     *dns_base;   /* Associated EventDnsBase                 */
+	zval                     *self;
+
+	/* User custom data passed to the callback for connection close */
+	zval                  *data_closecb;
+	/* Callback for connection close */
+	zend_fcall_info       *fci_closecb;
+	zend_fcall_info_cache *fcc_closecb;
+	
+	PHP_EVENT_COMMON_THREAD_CTX;
 } php_event_http_conn_t;
 
 typedef struct {

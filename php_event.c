@@ -297,6 +297,18 @@ static void event_http_conn_object_free_storage(void *ptr TSRMLS_DC)
 
 	PHP_EVENT_ASSERT(evcon);
 
+	PHP_EVENT_FREE_FCALL_INFO(evcon->fci_closecb, evcon->fcc_closecb);
+
+	if (evcon->self) {
+		zval_ptr_dtor(&evcon->self);
+		evcon->self = NULL;
+	}
+
+	if (evcon->data_closecb) {
+		zval_ptr_dtor(&evcon->data_closecb);
+		evcon->data_closecb = NULL;
+	}
+
 	if (evcon->base) {
 		zval_ptr_dtor(&evcon->base);
 		evcon->base = NULL;

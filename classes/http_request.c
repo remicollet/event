@@ -355,9 +355,9 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
 }
 /* }}} */
 
-/* {{{ proto EventBufferEvent EventHttpRequest::getEventBufferEvent(void);
+/* {{{ proto EventBufferEvent EventHttpRequest::getBufferEvent(void);
  * Returns EventBufferEvent object on success, otherwise &null. */
-PHP_METHOD(EventHttpRequest, getEventBufferEvent)
+PHP_METHOD(EventHttpRequest, getBufferEvent)
 {
 	php_event_http_req_t     *http_req;
 	struct evhttp_connection *conn;
@@ -382,14 +382,24 @@ PHP_METHOD(EventHttpRequest, getEventBufferEvent)
 	bev->bevent = evhttp_connection_get_bufferevent(conn);
 	bev->self = return_value;
 	Z_ADDREF_P(return_value);
-	bev->input = bev->output = NULL;
+	bev->input = NULL;
+	bev->output = NULL;
 	bev->_internal = 1;
 }
 /* }}} */
 
-/* {{{ proto EventHttpConnection EventHttpRequest::getEventHttpConnection(void);
- * Returns EventHttpConnection object. */
-PHP_METHOD(EventHttpRequest, getEventHttpConnection)
+/* {{{ proto EventHttpConnection EventHttpRequest::getConnection(void);
+ * Returns EventHttpConnection object. 
+ *
+ * Warning! Libevent API allows http request objects not bound to any http connection.
+ * Therefore we can't unambiguously associate EventHttpRequest with EventHttpConnection.
+ * Thus, we construct EventHttpConnection object on-the-fly. Having no information about
+ * base, dns_base and connection-close callback, we just leave these fields unset.
+ *
+ * If somebody finds some way to return full-value EventHttpConnection object,
+ * please don't hesitate to make a pull request.
+ */
+PHP_METHOD(EventHttpRequest, getConnection)
 {
 	php_event_http_req_t     *http_req;
 	struct evhttp_connection *conn;
@@ -412,8 +422,16 @@ PHP_METHOD(EventHttpRequest, getEventHttpConnection)
 	PHP_EVENT_FETCH_HTTP_CONN(evcon, return_value);
 
 	evcon->conn = conn;
-	evcon->base = NULL;
-	evcon->dns_base = NULL;
+	evcon->self = return_value;
+	Z_ADDREF_P(return_value);
+
+	/* Set in ctor:
+	   evcon->base = NULL;
+	   evcon->dns_base = NULL;
+	   evcon->data_closecb = NULL;
+	   evcon->fci_closecb = NULL;
+	   evcon->fcc_closecb = NULL;
+	*/
 	Z_ADDREF_P(return_value);
 }
 /* }}} */
@@ -434,6 +452,9 @@ PHP_METHOD(EventHttpRequest, closeConnection)
 	_check_http_req_ptr(http_req);
 
 	conn = evhttp_request_get_connection(http_req->ptr);
+	if (conn == NULL) {
+		return;
+	}
 	evhttp_connection_free(conn);
 }
 /* }}} */
