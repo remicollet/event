@@ -539,9 +539,8 @@ PHP_METHOD(EventHttpRequest, sendReplyChunk)
 	if (zbuf) {
 		PHP_EVENT_FETCH_BUFFER(b, zbuf);
 		PHP_EVENT_ASSERT(b->buf);
+		evhttp_send_reply_chunk(http_req->ptr, b->buf);
 	}
-
-	evhttp_send_reply_chunk(http_req->ptr, b->buf);
 }
 /* }}} */
 

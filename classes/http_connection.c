@@ -83,7 +83,7 @@ PHP_METHOD(EventHttpConnection, __construct)
 	zval                     *zbase;
 	php_event_base_t         *b;
 	zval                     *zdns_base   = NULL;
-	php_event_dns_base_t     *dnsb;
+	php_event_dns_base_t     *dnsb = NULL;
 	char                     *address;
 	int                       address_len;
 	long                      port;
