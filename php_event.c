@@ -1352,7 +1352,8 @@ PHP_MINFO_FUNCTION(event)
 	php_info_print_table_row(2, "Thread safety support", "disabled");
 #endif
 
-	php_info_print_table_row(2, "Version", PHP_EVENT_VERSION);
+	php_info_print_table_row(2, "Extension version", PHP_EVENT_VERSION);
+	php_info_print_table_row(2, "libevent2 headers version", LIBEVENT_VERSION);
 	php_info_print_table_end();
 }
 /* }}} */
