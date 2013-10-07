@@ -192,7 +192,9 @@ PHP_METHOD(EventHttpRequest, addHeader);
 PHP_METHOD(EventHttpRequest, clearHeaders);
 PHP_METHOD(EventHttpRequest, removeHeader);
 PHP_METHOD(EventHttpRequest, findHeader);
+#if LIBEVENT_VERSION_NUMBER >= 0x02001100
 PHP_METHOD(EventHttpRequest, getBufferEvent);
+#endif
 PHP_METHOD(EventHttpRequest, getConnection);
 PHP_METHOD(EventHttpRequest, closeConnection);
 
