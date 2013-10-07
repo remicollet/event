@@ -697,7 +697,7 @@ const zend_function_entry php_event_http_req_ce_functions[] = {
 	PHP_ME(EventHttpRequest, clearHeaders,     arginfo_event__void,                     ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpRequest, removeHeader,     arginfo_event_http_req_remove_header,    ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpRequest, findHeader,       arginfo_event_http_req_remove_header,    ZEND_ACC_PUBLIC)
-#if LIBEVENT_VERSION_NUMBER >= 0x02000170
+#if LIBEVENT_VERSION_NUMBER >= 0x02001100
 	PHP_ME(EventHttpRequest, getBufferEvent,   arginfo_event__void,                     ZEND_ACC_PUBLIC)
 #endif
 	PHP_ME(EventHttpRequest, getConnection,    arginfo_event__void,                     ZEND_ACC_PUBLIC)
