@@ -20,10 +20,10 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-10-06</date>
+  <date>2013-10-07</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.8.0</release>
+    <release>1.8.1</release>
     <api>1.8.0</api>
   </version>
   <stability>
@@ -32,8 +32,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Add: EventHttpRequest methods: getBufferEvent, getConnection, closeConnection(thanks to rickysu at Bitbucket)
-  Add: EventHttpConnection::setCloseCallback method
+  Fix: Bug #65847 Issue with old libevent2 where evhttp_connection_get_bufferevent function was not available with libevent version < 2.0.17 (thanks to Remi <remi@php.net>)
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -149,6 +148,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 1.8.1 -->
+    <release>
+      <version>
+        <release>1.8.1</release>
+        <api>1.8.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Fix: Bug #65847 Issue with old libevent2 where evhttp_connection_get_bufferevent function was not available with libevent version < 2.0.17 (thanks to Remi <remi@php.net>)
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.8.0 -->
     <release>
       <version>

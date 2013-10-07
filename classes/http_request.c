@@ -355,7 +355,7 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
 }
 /* }}} */
 
-#if LIBEVENT_VERSION_NUMBER >= 0x02001100
+#if LIBEVENT_VERSION_NUMBER >= 0x02000170
 /* {{{ proto EventBufferEvent EventHttpRequest::getBufferEvent(void);
  * Returns EventBufferEvent object on success, otherwise &null. */
 PHP_METHOD(EventHttpRequest, getBufferEvent)
