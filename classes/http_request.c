@@ -355,6 +355,7 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
 }
 /* }}} */
 
+#if LIBEVENT_VERSION_NUMBER >= 0x02001100
 /* {{{ proto EventBufferEvent EventHttpRequest::getBufferEvent(void);
  * Returns EventBufferEvent object on success, otherwise &null. */
 PHP_METHOD(EventHttpRequest, getBufferEvent)
@@ -387,6 +388,7 @@ PHP_METHOD(EventHttpRequest, getBufferEvent)
 	bev->_internal = 1;
 }
 /* }}} */
+#endif
 
 /* {{{ proto EventHttpConnection EventHttpRequest::getConnection(void);
  * Returns EventHttpConnection object. 
@@ -537,9 +539,8 @@ PHP_METHOD(EventHttpRequest, sendReplyChunk)
 	if (zbuf) {
 		PHP_EVENT_FETCH_BUFFER(b, zbuf);
 		PHP_EVENT_ASSERT(b->buf);
+		evhttp_send_reply_chunk(http_req->ptr, b->buf);
 	}
-
-	evhttp_send_reply_chunk(http_req->ptr, b->buf);
 }
 /* }}} */
 
