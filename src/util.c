@@ -102,7 +102,7 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 #ifndef PHP_WIN32
 	if (file_desc >= 0 && fcntl(file_desc, F_GETFD) == -1) {
 #else
-	if (file_desc == INVALID_HANDLE_VALUE) {
+	if (file_desc == INVALID_SOCKET) {
 #endif
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fcntl: invalid file descriptor passed");
 		return -1;

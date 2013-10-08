@@ -29,7 +29,7 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	zval  *arg_data;
 	zval  *arg_conn;
 	zval **args[2];
-	zval  *retval_ptr;
+	zval  *retval_ptr = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(evcon && conn);

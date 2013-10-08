@@ -68,7 +68,7 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	zval  *arg_data;
 	zval  *arg_req;
 	zval **args[2];
-	zval  *retval_ptr;
+	zval  *retval_ptr = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(http_req && http_req->ptr);

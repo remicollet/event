@@ -41,7 +41,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 	zval  *arg_data;
 	zval  *arg_self;
 	zval **args[2];
-	zval  *retval_ptr;
+	zval  *retval_ptr = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(bev);
@@ -131,7 +131,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	zval  *arg_events;
 	zval  *arg_self;
 	zval **args[3];
-	zval  *retval_ptr;
+	zval  *retval_ptr = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(pfci && pfcc);

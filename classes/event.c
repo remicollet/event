@@ -46,7 +46,7 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	zend_fcall_info     *pfci;
 	zval                *arg_data;
 	zval               **args[1];
-	zval                *retval_ptr;
+	zval                *retval_ptr = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(e);
@@ -95,7 +95,7 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	zval                *arg_fd;
 	zval                *arg_what;
 	zval               **args[3];
-	zval                *retval_ptr;
+	zval                *retval_ptr = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(e);
@@ -159,7 +159,7 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	zval                *arg_data;
 	zval                *arg_signum;
 	zval               **args[2];
-	zval                *retval_ptr;
+	zval                *retval_ptr = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(e);
@@ -317,7 +317,7 @@ PHP_METHOD(Event, set)
 	zval                   *zevent  = getThis();
 	php_event_t            *e;
 	zval                  **ppzfd   = NULL;
-	evutil_socket_t         fd;
+	evutil_socket_t         fd = -1;
 	long                    what    = -1;
 	zend_fcall_info         fci     = empty_fcall_info;
 	zend_fcall_info_cache   fcc     = empty_fcall_info_cache;

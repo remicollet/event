@@ -101,7 +101,7 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	zval   *arg_fd;
 	zval   *arg_address;
 	zval   *arg_data;
-	zval   *retval_ptr;
+	zval   *retval_ptr = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(l);
@@ -199,7 +199,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	zend_fcall_info_cache *pfcc;
 	zval  **args[2];
 	zval   *arg_data;
-	zval   *retval_ptr;
+	zval   *retval_ptr = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(l);

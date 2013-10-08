@@ -3,6 +3,8 @@
 
 ARG_WITH("event", "for event support", "no");
 
+/* XXX fix libevent makefile.nmake to support openssl */
+
 if (PHP_EVENT != "no") {
 
 	/* XXX separate for options */
@@ -13,9 +15,9 @@ if (PHP_EVENT != "no") {
 		CHECK_HEADER_ADD_INCLUDE("pthread.h", "CFLAGS_EVENT", PHP_EVENT + ";" + configure_module_dirname) &&
 		CHECK_HEADER_ADD_INCLUDE("sched.h", "CFLAGS_EVENT", PHP_EVENT + ";" + configure_module_dirname) &&
 		CHECK_LIB("pthreadVC2.lib", "event", PHP_EVENT) &&
-		/*CHECK_HEADER_ADD_INCLUDE("openssl/ssl.h", "CFLAGS_EVENT") &&
+		/* CHECK_HEADER_ADD_INCLUDE("openssl/ssl.h", "CFLAGS_EVENT") &&
 		CHECK_LIB("ssleay32.lib", "event", PHP_EVENT) &&
-		CHECK_LIB("libeay32.lib", "event", PHP_EVENT) &&*/
+		CHECK_LIB("libeay32.lib", "event", PHP_EVENT) && */
 		CHECK_HEADER_ADD_INCLUDE("common.h", "CFLAGS_EVENT", configure_module_dirname + "\\src") &&
 		CHECK_HEADER_ADD_INCLUDE("http.h", "CFLAGS_EVENT", configure_module_dirname + "\\classes.h") &&
 		CHECK_HEADER_ADD_INCLUDE("php_event.h", "CFLAGS_EVENT", configure_module_dirname)) {
@@ -24,7 +26,8 @@ if (PHP_EVENT != "no") {
 		ADD_FLAG("CFLAGS_EVENT", "/D PHP_EVENT_SOCKETS=1");
 
 		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_PTHREADS_LIB=1");
-		/*ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_OPENSSL_LIB=1");*/
+		/* ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_OPENSSL_LIB=1");
+		ADD_FLAG("CFLAGS_EVENT", "/D _EVENT_HAVE_OPENSSL=1"); */
 		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_EXTRA_LIB=1");
 
 		EXTENSION("event", "php_event.c", "true");
