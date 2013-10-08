@@ -191,9 +191,9 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 		}
 
 		switch (idx) {
-			case PHP_EVENT_OPT_LOCAL_CERT:
-				convert_to_string_ex(ppzval);
+			case PHP_EVENT_OPT_LOCAL_CERT: {
 				zval **ppz_private_key;
+				convert_to_string_ex(ppzval);
 
 				if (zend_hash_index_find(ht, PHP_EVENT_OPT_LOCAL_PK,
 						(void **) &ppz_private_key) == SUCCESS) {
@@ -202,6 +202,7 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), NULL TSRMLS_CC);
 				}
 				break;
+			}
 			case PHP_EVENT_OPT_LOCAL_PK:
 				/* Skip. SSL_CTX_use_PrivateKey_file is applied in "local_cert". */
 				break;

@@ -19,6 +19,9 @@
 #include "src/util.h"
 #include "src/priv.h"
 
+extern const zend_function_entry php_event_dns_base_ce_functions[];
+extern zend_class_entry *php_event_dns_base_ce;
+
 /* {{{ Private */
 
 #define _ret_if_invalid_bevent_ptr(bev)             \
@@ -34,18 +37,22 @@
  * Is called from the bufferevent read and write callbacks */
 static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_event_bevent_t *bev, zend_fcall_info *pfci, zend_fcall_info_cache *pfcc)
 {
+
+	zval  *arg_data;
+	zval  *arg_self;
+	zval **args[2];
+	zval  *retval_ptr;
+	PHP_EVENT_TSRM_DECL
+
 	PHP_EVENT_ASSERT(bev);
 	PHP_EVENT_ASSERT(bevent);
 	PHP_EVENT_ASSERT(bevent == bev->bevent);
 	PHP_EVENT_ASSERT(pfci && pfcc);
 	PHP_EVENT_ASSERT(bev->self);
 
-	zval  *arg_data = bev->data;
-	zval  *arg_self;
-	zval **args[2];
-	zval  *retval_ptr;
+	arg_data = bev->data;
 
-	TSRMLS_FETCH_FROM_CTX(bev->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(bev->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 #ifdef HAVE_EVENT_PTHREADS_LIB
@@ -120,6 +127,12 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	php_event_bevent_t    *bev  = (php_event_bevent_t *) ptr;
 	zend_fcall_info       *pfci = bev->fci_event;
 	zend_fcall_info_cache *pfcc = bev->fcc_event;
+	zval  *arg_data;
+	zval  *arg_events;
+	zval  *arg_self;
+	zval **args[3];
+	zval  *retval_ptr;
+	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(pfci && pfcc);
 	PHP_EVENT_ASSERT(bevent);
@@ -127,13 +140,9 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	PHP_EVENT_ASSERT(bev->self);
 
 
-	zval  *arg_data   = bev->data;
-	zval  *arg_events;
-	zval  *arg_self;
-	zval **args[3];
-	zval  *retval_ptr;
+	arg_data = bev->data;
 
-	TSRMLS_FETCH_FROM_CTX(bev->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(bev->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 #ifdef HAVE_EVENT_PTHREADS_LIB
@@ -500,6 +509,9 @@ PHP_METHOD(EventBufferEvent, connectHost)
 	int                 hostname_len;
 	long                port;
 	long                family       = AF_UNSPEC;
+#ifdef HAVE_EVENT_EXTRA_LIB
+	php_event_dns_base_t *dnsb;
+#endif
 
 #ifdef HAVE_EVENT_EXTRA_LIB
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O!sl|l",
@@ -530,8 +542,6 @@ PHP_METHOD(EventBufferEvent, connectHost)
 	 * bufferevent_socket_new() */
 
 #ifdef HAVE_EVENT_EXTRA_LIB
-	php_event_dns_base_t *dnsb;
-
 	if (zdns_base) {
 		PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
 	}

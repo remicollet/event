@@ -5,6 +5,7 @@ ARG_WITH("event", "for event support", "no");
 
 if (PHP_EVENT != "no") {
 
+	/* XXX separate for options */
 	if (CHECK_HEADER_ADD_INCLUDE("event2/event.h", "CFLAGS_EVENT", PHP_PHP_BUILD + "\\include;" + PHP_EVENT) &&
 		CHECK_LIB("libevent.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
 		CHECK_LIB("libevent_core.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
@@ -12,14 +13,19 @@ if (PHP_EVENT != "no") {
 		CHECK_HEADER_ADD_INCLUDE("pthread.h", "CFLAGS_EVENT", PHP_EVENT + ";" + configure_module_dirname) &&
 		CHECK_HEADER_ADD_INCLUDE("sched.h", "CFLAGS_EVENT", PHP_EVENT + ";" + configure_module_dirname) &&
 		CHECK_LIB("pthreadVC2.lib", "event", PHP_EVENT) &&
-		CHECK_HEADER_ADD_INCLUDE("openssl/ssl.h", "CFLAGS_OPENSSL") &&
-		CHECK_LIB("ssleay32.lib", "openssl", PHP_OPENSSL) &&
-		CHECK_LIB("libeay32.lib", "openssl", PHP_OPENSSL) &&
+		/*CHECK_HEADER_ADD_INCLUDE("openssl/ssl.h", "CFLAGS_EVENT") &&
+		CHECK_LIB("ssleay32.lib", "event", PHP_EVENT) &&
+		CHECK_LIB("libeay32.lib", "event", PHP_EVENT) &&*/
 		CHECK_HEADER_ADD_INCLUDE("common.h", "CFLAGS_EVENT", configure_module_dirname + "\\src") &&
-		CHECK_HEADER_ADD_INCLUDE("http.h", "CFLAGS_EVENT", configure_module_dirname + "\\classes.h")) {
+		CHECK_HEADER_ADD_INCLUDE("http.h", "CFLAGS_EVENT", configure_module_dirname + "\\classes.h") &&
+		CHECK_HEADER_ADD_INCLUDE("php_event.h", "CFLAGS_EVENT", configure_module_dirname)) {
 
 		ADD_EXTENSION_DEP("event", "sockets");
-		AC_DEFINE("PHP_EVENT_SOCKETS", 1);
+		ADD_FLAG("CFLAGS_EVENT", "/D PHP_EVENT_SOCKETS=1");
+
+		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_PTHREADS_LIB=1");
+		/*ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_OPENSSL_LIB=1");*/
+		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_EXTRA_LIB=1");
 
 		EXTENSION("event", "php_event.c", "true");
 
@@ -36,9 +42,9 @@ if (PHP_EVENT != "no") {
 			listener.c \
 			http.c \
 			http_request.c \
-			http_connection.c \
-			ssl_context.c", 
+			http_connection.c", 
 			"event");
+			//ssl_context.c
 	} else {
 		WARNING("event not enabled, libraries or headers not found");
 	}

@@ -63,24 +63,28 @@ static zend_always_inline struct evkeyvalq *_get_http_req_headers(const php_even
 static void _req_handler(struct evhttp_request *req, void *arg)
 {
 	php_event_http_req_t *http_req = (php_event_http_req_t *) arg;
+	zend_fcall_info       *pfci;
+	zend_fcall_info_cache *pfcc;
+	zval  *arg_data;
+	zval  *arg_req;
+	zval **args[2];
+	zval  *retval_ptr;
+	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(http_req && http_req->ptr);
 	PHP_EVENT_ASSERT(http_req->fci && http_req->fcc);
 	PHP_EVENT_ASSERT(http_req->self);
 
-	zend_fcall_info       *pfci = http_req->fci;
-	zend_fcall_info_cache *pfcc = http_req->fcc;
+	pfci = http_req->fci;
+	pfcc = http_req->fcc;
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
-	TSRMLS_FETCH_FROM_CTX(http_req->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(http_req->thread_ctx);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data); */
 
-	zval  *arg_data = http_req->data;
-	zval  *arg_req;
-	zval **args[2];
-	zval  *retval_ptr;
+	arg_data = http_req->data;
 
 	arg_req = http_req->self;
 	/* req == NULL means timeout */
@@ -724,6 +728,7 @@ PHP_METHOD(EventHttpRequest, findHeader)
 	int                   key_len;
 	struct evkeyvalq     *headers;
 	long                  type;
+	const char *val;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl",
 				&key, &key_len, &type) == FAILURE) {
@@ -738,7 +743,7 @@ PHP_METHOD(EventHttpRequest, findHeader)
 	headers = _get_http_req_headers(http_req, type);
 	PHP_EVENT_ASSERT(headers);
 
-	const char *val = evhttp_find_header(headers, key);
+	val = evhttp_find_header(headers, key);
 	if (val == NULL) {
 		RETURN_NULL();
 	}

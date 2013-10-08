@@ -47,23 +47,27 @@ static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zarg, const ze
 static void _http_callback(struct evhttp_request *req, void *arg)
 {
 	php_event_http_cb_t *cb = (php_event_http_cb_t *) arg;
+	php_event_http_req_t *http_req;
+	zend_fcall_info       *pfci;
+	zend_fcall_info_cache *pfcc;
+	zval  *arg_data;
+	zval  *arg_req;
+	zval **args[2];
+	zval  *retval_ptr;
+	PHP_EVENT_TSRM_DECL
+
 	PHP_EVENT_ASSERT(cb);
 
-	php_event_http_req_t *http_req;
-
-	zend_fcall_info       *pfci = cb->fci;
-	zend_fcall_info_cache *pfcc = cb->fcc;
+	pfci = cb->fci;
+	pfcc = cb->fcc;
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
-	TSRMLS_FETCH_FROM_CTX(cb->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(cb->thread_ctx);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
-	zval  *arg_data = cb->data;
-	zval  *arg_req;
-	zval **args[2];
-	zval  *retval_ptr;
+	arg_data = cb->data;
 
 	MAKE_STD_ZVAL(arg_req);
 	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
@@ -101,23 +105,27 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 static void _http_default_callback(struct evhttp_request *req, void *arg)
 {
 	php_event_http_t *http = (php_event_http_t *) arg;
+	php_event_http_req_t *http_req;
+	zend_fcall_info       *pfci;
+	zend_fcall_info_cache *pfcc;
+	zval  *arg_data;
+	zval  *arg_req;
+	zval **args[2];
+	zval  *retval_ptr;
+	PHP_EVENT_TSRM_DECL
+
 	PHP_EVENT_ASSERT(http);
 
-	php_event_http_req_t *http_req;
-
-	zend_fcall_info       *pfci = http->fci;
-	zend_fcall_info_cache *pfcc = http->fcc;
+	pfci = http->fci;
+	pfcc = http->fcc;
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
-	TSRMLS_FETCH_FROM_CTX(http->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(http->thread_ctx);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
-	zval  *arg_data = http->data;
-	zval  *arg_req;
-	zval **args[2];
-	zval  *retval_ptr;
+	arg_data = http->data;
 
 	MAKE_STD_ZVAL(arg_req);
 	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
