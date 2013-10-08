@@ -1,0 +1,46 @@
+// $Id$
+// vim:ft=javascript
+
+ARG_WITH("event", "for event support", "no");
+
+if (PHP_EVENT != "no") {
+
+	if (CHECK_HEADER_ADD_INCLUDE("event2/event.h", "CFLAGS_EVENT", PHP_PHP_BUILD + "\\include;" + PHP_EVENT) &&
+		CHECK_LIB("libevent.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
+		CHECK_LIB("libevent_core.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
+		CHECK_LIB("libevent_extras.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
+		CHECK_HEADER_ADD_INCLUDE("pthread.h", "CFLAGS_EVENT", PHP_EVENT + ";" + configure_module_dirname) &&
+		CHECK_HEADER_ADD_INCLUDE("sched.h", "CFLAGS_EVENT", PHP_EVENT + ";" + configure_module_dirname) &&
+		CHECK_LIB("pthreadVC2.lib", "event", PHP_EVENT) &&
+		CHECK_HEADER_ADD_INCLUDE("openssl/ssl.h", "CFLAGS_OPENSSL") &&
+		CHECK_LIB("ssleay32.lib", "openssl", PHP_OPENSSL) &&
+		CHECK_LIB("libeay32.lib", "openssl", PHP_OPENSSL) &&
+		CHECK_HEADER_ADD_INCLUDE("common.h", "CFLAGS_EVENT", configure_module_dirname + "\\src") &&
+		CHECK_HEADER_ADD_INCLUDE("http.h", "CFLAGS_EVENT", configure_module_dirname + "\\classes.h")) {
+
+		ADD_EXTENSION_DEP("event", "sockets");
+		AC_DEFINE("PHP_EVENT_SOCKETS", 1);
+
+		EXTENSION("event", "php_event.c", "true");
+
+
+		ADD_SOURCES(configure_module_dirname + "\\src", "util.c fe.c pe.c", "event");
+		ADD_SOURCES(configure_module_dirname + "\\classes", " \
+			event.c \
+			base.c \
+			event_config.c \
+			buffer_event.c \
+			buffer.c \
+			event_util.c \
+			dns.c \
+			listener.c \
+			http.c \
+			http_request.c \
+			http_connection.c \
+			ssl_context.c", 
+			"event");
+	} else {
+		WARNING("event not enabled, libraries or headers not found");
+	}
+}
+
