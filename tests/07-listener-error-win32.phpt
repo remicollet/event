@@ -3,17 +3,14 @@ Check for EventListener error behaviour
 --SKIPIF--
 <?php
 if (!class_exists("EventListener")) die("skip Event extra functions are disabled");
-if (substr(PHP_OS, 0, 3) == "WIN") die('skip Not for Windows');
+if ( substr(PHP_OS, 0, 3) != "WIN" ) die('skip Run only on Windows');
 ?>
 --FILE--
 <?php
 $base = new EventBase();
 
 $sock_paths = array (
-	"unix:/tmp/".mt_rand().".sock" => TRUE,
-	"UNIX:/tmp/".mt_rand().".sock" => TRUE,
-	":/tmp/".mt_rand().".sock"     => FALSE,
-	"/tmp/".mt_rand().".sock"      => FALSE,
+	sys_get_temp_dir() . DIRECTORY_SEPARATOR . mt_rand().".sock"      => FALSE,
 );
 
 foreach ($sock_paths as $path => $expect) {
@@ -25,7 +22,4 @@ foreach ($sock_paths as $path => $expect) {
 
 ?>
 --EXPECT--
-bool(true)
-bool(true)
-bool(true)
 bool(true)
