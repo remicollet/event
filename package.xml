@@ -20,10 +20,22 @@
     <email>osmanov@php.net</email>
     <active>yes</active>
   </lead>
-  <date>2013-10-07</date>
+  <developer>
+    <name>Anatol Belski</name>
+    <user>weltling</user>
+    <email>ab@php.net</email>
+    <active>yes</active>
+  </developer>
+  <contributor>
+    <name>Remi Collet</name>
+    <user>remi</user>
+    <email>remi@php.net</email>
+    <active>yes</active>
+  </contributor>
+  <date>2013-10-08</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.8.1</release>
+    <release>1.9.0</release>
     <api>1.8.0</api>
   </version>
   <stability>
@@ -32,7 +44,9 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-  Fix: Bug #65847 Issue with old libevent2 where evhttp_connection_get_bufferevent function was not available with libevent version < 2.0.17 (thanks to Remi <remi@php.net>)
+  Windows support introduced(thanks to Anatol Belski <ab@php.net>)
+
+  LIBEVENT_VERSION is now reported in phpinfo(Remi <remi@php.net>)
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -145,6 +159,24 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ Current version -->
+    <release>
+      <version>
+        <release>1.9.0</release>
+        <api>1.8.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+  Windows support introduced(thanks to Anatol Belski <ab@php.net>)
+
+  LIBEVENT_VERSION is now reported in phpinfo(Remi <remi@php.net>)
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.8.1 -->
     <release>
       <version>
