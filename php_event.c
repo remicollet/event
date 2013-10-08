@@ -26,6 +26,9 @@ ZEND_DECLARE_MODULE_GLOBALS(event)
 static PHP_GINIT_FUNCTION(event);
 #endif
 
+extern const zend_property_info event_listener_property_entry_info[];
+extern const php_event_property_entry_t event_listener_property_entries[];
+
 zend_class_entry *php_event_ce;
 zend_class_entry *php_event_base_ce;
 zend_class_entry *php_event_config_ce;
@@ -106,9 +109,11 @@ ZEND_GET_MODULE(event)
 /* {{{ event_generic_object_free_storage */
 static zend_always_inline void event_generic_object_free_storage(void *ptr TSRMLS_DC)
 {
+	php_event_abstract_object_t *obj;
+
 	PHP_EVENT_ASSERT(ptr);
 
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) ptr;
+	obj = (php_event_abstract_object_t *) ptr;
 
 	zend_object_std_dtor(&obj->zo TSRMLS_CC);
 
@@ -515,10 +520,12 @@ static zend_object_value event_buffer_object_create(zend_class_entry *ce TSRMLS_
  * EventUtil object ctor */
 static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC)
 {
+	php_event_abstract_object_t *obj;
+
 	/* EventUtil is a singleton. This function must never be called */
 	PHP_EVENT_ASSERT(0);
 
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_abstract_object_t) TSRMLS_CC);
+	obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_abstract_object_t) TSRMLS_CC);
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
 			event_generic_object_free_storage TSRMLS_CC);
@@ -622,12 +629,12 @@ static void fatal_error_cb(int err)
  * Overrides libevent's default error logging(it logs to stderr) */
 static void log_cb(int severity, const char *msg)
 {
+	int error_type;
+
 	/* TSRMLS_FETCH consumes a fair amount of resources.  But a ready-to-use
 	 * program shouldn't get any error logs. Nevertheless, we have no other way
 	 * to fetch TSRMLS. */
 	TSRMLS_FETCH();
-
-	int error_type;
 
 	switch (severity) {
 		case PHP_EVENT_LOG_CONST(EVENT_LOG_DEBUG):
@@ -1118,6 +1125,7 @@ PHP_MINIT_FUNCTION(event)
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, SIGNAL,  EV_SIGNAL);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, TIMEOUT, EV_TIMEOUT);
 
+	/* XXX define on the fly by calling event_base_get_features() first */
 	/* Features of event_base usually passed to event_config_require_features */
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_ET,  EV_FEATURE_ET);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_O1,  EV_FEATURE_O1);
@@ -1271,7 +1279,6 @@ PHP_MINIT_FUNCTION(event)
 
 #ifdef HAVE_EVENT_PTHREADS_LIB
 # ifdef WIN32
-# error "Windows is not supported right now"
 	evthread_use_windows_threads();
 # else
 	if (evthread_use_pthreads()) {

@@ -22,7 +22,7 @@
 /* Thread context. With it we are getting rid of need
  * to call the heavy TSRMLS_FETCH() */
 #ifdef ZTS
-# define PHP_EVENT_COMMON_THREAD_CTX void ***thread_ctx
+# define PHP_EVENT_COMMON_THREAD_CTX void ***thread_ctx;
 #else
 # define PHP_EVENT_COMMON_THREAD_CTX
 #endif
@@ -56,7 +56,7 @@ typedef struct _php_event_t {
 	zend_fcall_info       *fci;
 	zend_fcall_info_cache *fcc;
 
-	PHP_EVENT_COMMON_THREAD_CTX;
+	PHP_EVENT_COMMON_THREAD_CTX
 } php_event_t;
 
 /* Represents EventConfig object */
@@ -85,7 +85,7 @@ typedef struct _php_event_bevent_t {
 	zend_fcall_info       *fci_event;
 	zend_fcall_info_cache *fcc_event;
 
-	PHP_EVENT_COMMON_THREAD_CTX;
+	PHP_EVENT_COMMON_THREAD_CTX
 } php_event_bevent_t;
 
 /* Represents EventBuffer object */
@@ -126,7 +126,7 @@ typedef struct _php_event_listener_t {
 	zend_fcall_info       *fci_err;
 	zend_fcall_info_cache *fcc_err;
 
-	PHP_EVENT_COMMON_THREAD_CTX;
+	PHP_EVENT_COMMON_THREAD_CTX
 } php_event_listener_t;
 
 typedef struct _php_event_http_cb_t php_event_http_cb_t;
@@ -138,7 +138,7 @@ struct _php_event_http_cb_t {
 	zend_fcall_info       *fci;
 	zend_fcall_info_cache *fcc;
 
-	PHP_EVENT_COMMON_THREAD_CTX;
+	PHP_EVENT_COMMON_THREAD_CTX
 };
 
 /* Represents EventHttp object */
@@ -156,7 +156,7 @@ typedef struct _php_event_http_t {
 	/* Linked list of attached callbacks */
 	php_event_http_cb_t   *cb_head;
 
-	PHP_EVENT_COMMON_THREAD_CTX;
+	PHP_EVENT_COMMON_THREAD_CTX
 } php_event_http_t;
 
 /* Represents EventHttpConnection object */
@@ -174,7 +174,7 @@ typedef struct _php_event_http_conn_t {
 	zend_fcall_info       *fci_closecb;
 	zend_fcall_info_cache *fcc_closecb;
 	
-	PHP_EVENT_COMMON_THREAD_CTX;
+	PHP_EVENT_COMMON_THREAD_CTX
 } php_event_http_conn_t;
 
 typedef struct {
@@ -190,7 +190,7 @@ typedef struct {
 	zend_fcall_info       *fci;
 	zend_fcall_info_cache *fcc;
 
-	PHP_EVENT_COMMON_THREAD_CTX;
+	PHP_EVENT_COMMON_THREAD_CTX
 } php_event_http_req_t;
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */

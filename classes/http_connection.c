@@ -24,21 +24,26 @@
 static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 {
 	php_event_http_conn_t *evcon = (php_event_http_conn_t *) arg;
+	zend_fcall_info       *pfci;
+	zend_fcall_info_cache *pfcc;
+	zval  *arg_data;
+	zval  *arg_conn;
+	zval **args[2];
+	zval  *retval_ptr = NULL;
+	PHP_EVENT_TSRM_DECL
+
 	PHP_EVENT_ASSERT(evcon && conn);
 
-	zend_fcall_info       *pfci = evcon->fci_closecb;
-	zend_fcall_info_cache *pfcc = evcon->fcc_closecb;
+	pfci = evcon->fci_closecb;
+	pfcc = evcon->fcc_closecb;
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
-	TSRMLS_FETCH_FROM_CTX(evcon->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(evcon->thread_ctx);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpConnection conn, mixed data); */
 
-	zval  *arg_data = evcon->data_closecb;
-	zval  *arg_conn;
-	zval **args[2];
-	zval  *retval_ptr;
+	arg_data = evcon->data_closecb;
 
 	arg_conn = evcon->self;
 	if (conn == NULL || !arg_conn) {

@@ -43,17 +43,20 @@ static zend_always_inline evutil_socket_t zval_to_signum(zval **ppzfd)
 static void timer_cb(evutil_socket_t fd, short what, void *arg)
 {
 	php_event_t *e = (php_event_t *) arg;
+	zend_fcall_info     *pfci;
+	zval                *arg_data;
+	zval               **args[1];
+	zval                *retval_ptr = NULL;
+	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(e);
 	PHP_EVENT_ASSERT(what & EV_TIMEOUT);
 	PHP_EVENT_ASSERT(e->fci && e->fcc);
 
-	zend_fcall_info     *pfci       = e->fci;
-	zval                *arg_data   = e->data;
-	zval               **args[1];
-	zval                *retval_ptr;
+	pfci     = e->fci;
+	arg_data = e->data;
 
-	TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback arg */
@@ -87,18 +90,21 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 static void event_cb(evutil_socket_t fd, short what, void *arg)
 {
 	php_event_t *e = (php_event_t *) arg;
+	zend_fcall_info     *pfci;
+	zval                *arg_data;
+	zval                *arg_fd;
+	zval                *arg_what;
+	zval               **args[3];
+	zval                *retval_ptr = NULL;
+	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(e);
 	PHP_EVENT_ASSERT(e->fci && e->fcc);
 
-	zend_fcall_info     *pfci       = e->fci;
-	zval                *arg_data   = e->data;
-	zval                *arg_fd;
-	zval                *arg_what;
-	zval               **args[3];
-	zval                *retval_ptr;
+	pfci       = e->fci;
+	arg_data   = e->data;
 
-	TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback arguments */
@@ -149,18 +155,21 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 static void signal_cb(evutil_socket_t signum, short what, void *arg)
 {
 	php_event_t *e = (php_event_t *) arg;
+	zend_fcall_info     *pfci;
+	zval                *arg_data;
+	zval                *arg_signum;
+	zval               **args[2];
+	zval                *retval_ptr = NULL;
+	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(e);
 	PHP_EVENT_ASSERT(what & EV_SIGNAL);
 	PHP_EVENT_ASSERT(e->fci && e->fcc);
 
-	zend_fcall_info     *pfci       = e->fci;
-	zval                *arg_data   = e->data;
-	zval                *arg_signum;
-	zval               **args[2];
-	zval                *retval_ptr;
+	pfci     = e->fci;
+	arg_data = e->data;
 
-	TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback args */
@@ -308,7 +317,7 @@ PHP_METHOD(Event, set)
 	zval                   *zevent  = getThis();
 	php_event_t            *e;
 	zval                  **ppzfd   = NULL;
-	evutil_socket_t         fd;
+	evutil_socket_t         fd = -1;
 	long                    what    = -1;
 	zend_fcall_info         fci     = empty_fcall_info;
 	zend_fcall_info_cache   fcc     = empty_fcall_info_cache;

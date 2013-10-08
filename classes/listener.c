@@ -95,21 +95,25 @@ static int sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
 /* {{{ _php_event_listener_cb */
 static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *address, int socklen, void *ctx) {
 	php_event_listener_t *l = (php_event_listener_t *) ctx;
-
-	PHP_EVENT_ASSERT(l);
-
-	zend_fcall_info       *pfci = l->fci;
-	zend_fcall_info_cache *pfcc = l->fcc;
-
-	PHP_EVENT_ASSERT(pfci && pfcc);
-
+	zend_fcall_info       *pfci;
+	zend_fcall_info_cache *pfcc;
 	zval  **args[4];
 	zval   *arg_fd;
 	zval   *arg_address;
-	zval   *arg_data     = l->data;
-	zval   *retval_ptr;
+	zval   *arg_data;
+	zval   *retval_ptr = NULL;
+	PHP_EVENT_TSRM_DECL
 
-	TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
+	PHP_EVENT_ASSERT(l);
+
+	pfci = l->fci;
+	pfcc = l->fcc;
+
+	PHP_EVENT_ASSERT(pfci && pfcc);
+
+	arg_data = l->data;
+
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
 
 	/* Call user function having proto:
 	 * void cb (EventListener $listener, resource $fd, array $address, mixed $data);
@@ -191,19 +195,23 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 /* {{{ listener_error_cb */
 static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	php_event_listener_t  *l = (php_event_listener_t *) ctx;
+	zend_fcall_info       *pfci;
+	zend_fcall_info_cache *pfcc;
+	zval  **args[2];
+	zval   *arg_data;
+	zval   *retval_ptr = NULL;
+	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(l);
 
-	zend_fcall_info       *pfci = l->fci_err;
-	zend_fcall_info_cache *pfcc = l->fcc_err;
+	pfci = l->fci_err;
+	pfcc = l->fcc_err;
 
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
-	zval  **args[2];
-	zval   *arg_data     = l->data;
-	zval   *retval_ptr;
+	arg_data = l->data;
 
-	TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
+	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
 
 	/* Call user function having proto:
 	 * void cb (EventListener $listener, mixed $data); */

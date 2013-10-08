@@ -28,7 +28,7 @@
 #include <php_network.h>
 #include <php_streams.h>
 
-#ifdef AF_UNIX
+#if !defined(PHP_WIN32) && defined(AF_UNIX)
 # include <sys/un.h>
 #endif
 
@@ -62,7 +62,7 @@
 # include <event2/bufferevent_ssl.h>
 #endif
 
-#if !defined(_WIN32) && !defined(_MINIX)
+#if !defined(_MINIX)
 # include <pthread.h>
 #endif
 
