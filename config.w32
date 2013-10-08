@@ -4,6 +4,7 @@
 ARG_WITH("event", "for event support", "no");
 
 /* XXX fix libevent makefile.nmake to support openssl */
+/* XXX maybe it'd make sense to define the config options to split the features like m4 does */
 
 if (PHP_EVENT != "no") {
 
