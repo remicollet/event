@@ -629,12 +629,12 @@ static void fatal_error_cb(int err)
  * Overrides libevent's default error logging(it logs to stderr) */
 static void log_cb(int severity, const char *msg)
 {
+	int error_type;
+
 	/* TSRMLS_FETCH consumes a fair amount of resources.  But a ready-to-use
 	 * program shouldn't get any error logs. Nevertheless, we have no other way
 	 * to fetch TSRMLS. */
 	TSRMLS_FETCH();
-
-	int error_type;
 
 	switch (severity) {
 		case PHP_EVENT_LOG_CONST(EVENT_LOG_DEBUG):

@@ -90,9 +90,14 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
     PHP_EVENT_SOCKETS_REQUIRED_NORET;                                          \
     RETURN_FALSE
 
-#ifdef PHP_WIN32
-# define PHP_EVENT_TSRMLS_FETCH_FROM_CTX(ctx) tsrm_ls = (void ***)ctx
-# define PHP_EVENT_TSRM_DECL void ***tsrm_ls;
+#if defined(PHP_WIN32)
+#if defined(ZTS)
+#  define PHP_EVENT_TSRMLS_FETCH_FROM_CTX(ctx) tsrm_ls = (void ***)ctx
+#  define PHP_EVENT_TSRM_DECL void ***tsrm_ls;
+# else
+#  define PHP_EVENT_TSRMLS_FETCH_FROM_CTX(ctx)
+#  define PHP_EVENT_TSRM_DECL
+# endif
 #else
 # define PHP_EVENT_TSRMLS_FETCH_FROM_CTX(ctx) TSRMLS_FETCH_FROM_CTX(ctx)
 # define PHP_EVENT_TSRM_DECL
