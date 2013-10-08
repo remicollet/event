@@ -1125,6 +1125,7 @@ PHP_MINIT_FUNCTION(event)
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, SIGNAL,  EV_SIGNAL);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, TIMEOUT, EV_TIMEOUT);
 
+	/* XXX define on the fly by calling event_base_get_features() first */
 	/* Features of event_base usually passed to event_config_require_features */
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_ET,  EV_FEATURE_ET);
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_O1,  EV_FEATURE_O1);
