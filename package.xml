@@ -117,6 +117,7 @@
         <file role="test" name="05-buffer-pos.phpt"/>
         <file role="test" name="06-timer.phpt"/>
         <file role="test" name="07-listener-error.phpt"/>
+        <file role="test" name="07-listener-error-win32.phpt"/>
         <file role="test" name="08-buffer.phpt"/>
         <file role="test" name="09-gc-cycles.phpt"/>
         <file role="test" name="10-event-data-dtor.phpt"/>
