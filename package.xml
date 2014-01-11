@@ -53,7 +53,6 @@
   <contents>
     <dir name="/">
       <file role="doc" name="CREDITS"/>
-      <file role="doc" name="EXPERIMENTAL"/>
       <file role="doc" name="INSTALL.md"/>
       <file role="doc" name="LICENSE"/>
       <file role="doc" name="README.md"/>
@@ -110,18 +109,19 @@
         <file role="src" name="util.h"/>
       </dir>
       <dir name="tests">
-        <file role="src" name="01-load.phpt"/>
-        <file role="src" name="02-features.phpt"/>
-        <file role="src" name="03-event-del.phpt"/>
-        <file role="src" name="04-bevent-socket.phpt"/>
-        <file role="src" name="05-buffer-pos.phpt"/>
-        <file role="src" name="06-timer.phpt"/>
-        <file role="src" name="07-listener-error.phpt"/>
-        <file role="src" name="08-buffer.phpt"/>
-        <file role="src" name="09-gc-cycles.phpt"/>
-        <file role="src" name="10-event-data-dtor.phpt"/>
-        <file role="src" name="11-gc-cycles.phpt"/>
-        <file role="src" name="12-serialization.phpt"/>
+        <file role="test" name="01-load.phpt"/>
+        <file role="test" name="02-features.phpt"/>
+        <file role="test" name="03-event-del.phpt"/>
+        <file role="test" name="04-bevent-socket.phpt"/>
+        <file role="test" name="05-buffer-pos.phpt"/>
+        <file role="test" name="06-timer.phpt"/>
+        <file role="test" name="07-listener-error.phpt"/>
+        <file role="test" name="07-listener-error-win32.phpt"/>
+        <file role="test" name="08-buffer.phpt"/>
+        <file role="test" name="09-gc-cycles.phpt"/>
+        <file role="test" name="10-event-data-dtor.phpt"/>
+        <file role="test" name="11-gc-cycles.phpt"/>
+        <file role="test" name="12-serialization.phpt"/>
       </dir>
     </dir>
   </contents>
