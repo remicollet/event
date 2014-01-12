@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2013 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -88,13 +88,13 @@ zend_module_entry event_module_entry = {
 	PHP_EVENT_VERSION,
 #endif
 #if 0
-    PHP_MODULE_GLOBALS(event),
-    PHP_GINIT(event),
-    NULL,
-    NULL,
-    STANDARD_MODULE_PROPERTIES_EX
+	PHP_MODULE_GLOBALS(event),
+	PHP_GINIT(event),
+	NULL,
+	NULL,
+	STANDARD_MODULE_PROPERTIES_EX,
 #endif
-    STANDARD_MODULE_PROPERTIES
+	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
 
@@ -257,8 +257,8 @@ static void event_dns_base_object_free_storage(void *ptr TSRMLS_DC)
 
 	if (dnsb->dns_base) {
 		/* Setting fail_requests to 1 makes all in-flight requests get
-	 	 * their callbacks invoked with a canceled error code before it
-	 	 * frees the base*/
+		 * their callbacks invoked with a canceled error code before it
+		 * frees the base*/
 		evdns_base_free(dnsb->dns_base, 1);
 	}
 
@@ -697,31 +697,31 @@ static zval *read_property(zval *object, zval *member, int type, const zend_lite
 	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
 
 	if (member->type != IS_STRING) {
-	    tmp_member = *member;
-	    zval_copy_ctor(&tmp_member);
-	    convert_to_string(&tmp_member);
-	    member = &tmp_member;
+		tmp_member = *member;
+		zval_copy_ctor(&tmp_member);
+		convert_to_string(&tmp_member);
+		member = &tmp_member;
 	}
 
 	if (obj->prop_handler != NULL) {
-	    ret = zend_hash_find(obj->prop_handler, Z_STRVAL_P(member), Z_STRLEN_P(member)+1, (void **) &hnd);
+		ret = zend_hash_find(obj->prop_handler, Z_STRVAL_P(member), Z_STRLEN_P(member)+1, (void **) &hnd);
 	}
 
 	if (ret == SUCCESS) {
-	    ret = hnd->read_func(obj, &retval TSRMLS_CC);
-	    if (ret == SUCCESS) {
-	        /* ensure we're creating a temporary variable */
-	        Z_SET_REFCOUNT_P(retval, 0);
-	    } else {
-	        retval = EG(uninitialized_zval_ptr);
-	    }
+		ret = hnd->read_func(obj, &retval TSRMLS_CC);
+		if (ret == SUCCESS) {
+			/* ensure we're creating a temporary variable */
+			Z_SET_REFCOUNT_P(retval, 0);
+		} else {
+			retval = EG(uninitialized_zval_ptr);
+		}
 	} else {
-	    zend_object_handlers * std_hnd = zend_get_std_object_handlers();
-	    retval = std_hnd->read_property(object, member, type, key TSRMLS_CC);
+		zend_object_handlers * std_hnd = zend_get_std_object_handlers();
+		retval = std_hnd->read_property(object, member, type, key TSRMLS_CC);
 	}
 
 	if (member == &tmp_member) {
-	    zval_dtor(member);
+		zval_dtor(member);
 	}
 
 	return(retval);
@@ -737,27 +737,27 @@ static void write_property(zval *object, zval *member, zval *value, const zend_l
 	int                          ret;
 
 	if (member->type != IS_STRING) {
-	    tmp_member = *member;
-	    zval_copy_ctor(&tmp_member);
-	    convert_to_string(&tmp_member);
-	    member = &tmp_member;
+		tmp_member = *member;
+		zval_copy_ctor(&tmp_member);
+		convert_to_string(&tmp_member);
+		member = &tmp_member;
 	}
 
 	ret = FAILURE;
 	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
 
 	if (obj->prop_handler != NULL) {
-	    ret = zend_hash_find((HashTable *) obj->prop_handler, Z_STRVAL_P(member), Z_STRLEN_P(member)+1, (void **) &hnd);
+		ret = zend_hash_find((HashTable *) obj->prop_handler, Z_STRVAL_P(member), Z_STRLEN_P(member)+1, (void **) &hnd);
 	}
 	if (ret == SUCCESS) {
-	    hnd->write_func(obj, value TSRMLS_CC);
+		hnd->write_func(obj, value TSRMLS_CC);
 	} else {
-	    zend_object_handlers * std_hnd = zend_get_std_object_handlers();
-	    std_hnd->write_property(object, member, value, key TSRMLS_CC);
+		zend_object_handlers * std_hnd = zend_get_std_object_handlers();
+		std_hnd->write_property(object, member, value, key TSRMLS_CC);
 	}
 
 	if (member == &tmp_member) {
-	    zval_dtor(member);
+		zval_dtor(member);
 	}
 }
 /* }}} */
@@ -775,37 +775,37 @@ static int object_has_property(zval *object, zval *member, int has_set_exists, c
 	if (obj->prop_handler) {
 		if (zend_hash_find(obj->prop_handler, Z_STRVAL_P(member),
 					Z_STRLEN_P(member) + 1, (void **) &p) == SUCCESS) {
-	    	switch (has_set_exists) {
-	        	case 2:
-	            	ret = 1;
-	            	break;
-	        	case 1: {
-	                		zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
-	                		if (value != EG(uninitialized_zval_ptr)) {
-	                	    	convert_to_boolean(value);
-	                	    	ret = Z_BVAL_P(value)? 1:0;
-	                	    	/* refcount is 0 */
-	                	    	Z_ADDREF_P(value);
-	                	    	zval_ptr_dtor(&value);
-	                		}
-	                		break;
-	                	}
-	        	case 0:{
-	                   	   zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
-	                   	   if (value != EG(uninitialized_zval_ptr)) {
-	                	   	   ret = Z_TYPE_P(value) != IS_NULL? 1:0;
-	                	   	   /* refcount is 0 */
-	                	   	   Z_ADDREF_P(value);
-	                	   	   zval_ptr_dtor(&value);
-	                   	   }
-	                   	   break;
-	               	   }
-	        	default:
-	               	   php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid value for has_set_exists");
-	    	}
+			switch (has_set_exists) {
+				case 2:
+					ret = 1;
+					break;
+				case 1: {
+							zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
+							if (value != EG(uninitialized_zval_ptr)) {
+								convert_to_boolean(value);
+								ret = Z_BVAL_P(value)? 1:0;
+								/* refcount is 0 */
+								Z_ADDREF_P(value);
+								zval_ptr_dtor(&value);
+							}
+							break;
+						}
+				case 0:{
+						   zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
+						   if (value != EG(uninitialized_zval_ptr)) {
+							   ret = Z_TYPE_P(value) != IS_NULL? 1:0;
+							   /* refcount is 0 */
+							   Z_ADDREF_P(value);
+							   zval_ptr_dtor(&value);
+						   }
+						   break;
+					   }
+				default:
+					   php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid value for has_set_exists");
+			}
 		} else {
-	    	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
-	    	ret = std_hnd->has_property(object, member, has_set_exists, key TSRMLS_CC);
+			zend_object_handlers *std_hnd = zend_get_std_object_handlers();
+			ret = std_hnd->has_property(object, member, has_set_exists, key TSRMLS_CC);
 		}
 	}
 	return ret;
@@ -836,27 +836,27 @@ static HashTable *object_get_debug_info(zval *object, int *is_temp TSRMLS_DC)
 
 	zend_hash_internal_pointer_reset_ex(props, &pos);
 	while (zend_hash_get_current_data_ex(props, (void **) &entry, &pos) == SUCCESS) {
-	    zval member;
-	    zval *value;
+		zval member;
+		zval *value;
 
-	    INIT_ZVAL(member);
-	    ZVAL_STRINGL(&member, entry->name, entry->name_len, 0);
+		INIT_ZVAL(member);
+		ZVAL_STRINGL(&member, entry->name, entry->name_len, 0);
 
-	    value = read_property(object, &member, BP_VAR_IS, 0 TSRMLS_CC);
-	    if (value != EG(uninitialized_zval_ptr)) {
-	        Z_ADDREF_P(value);
-	        zend_hash_add(retval, entry->name, entry->name_len + 1, &value, sizeof(zval *) , NULL);
-	    }       
+		value = read_property(object, &member, BP_VAR_IS, 0 TSRMLS_CC);
+		if (value != EG(uninitialized_zval_ptr)) {
+			Z_ADDREF_P(value);
+			zend_hash_add(retval, entry->name, entry->name_len + 1, &value, sizeof(zval *) , NULL);
+		}
 
-	    zend_hash_move_forward_ex(props, &pos);
-	}               
+		zend_hash_move_forward_ex(props, &pos);
+	}
 
-	*is_temp = 1;   
+	*is_temp = 1;
 
 	return retval;
-}               
+}
 /* }}} */
-#endif    
+#endif
 
 /* {{{ get_property_ptr_ptr */
 #if PHP_VERSION_ID >= 50500
@@ -953,24 +953,24 @@ static HashTable *get_gc(zval *object, zval ***table, int *n TSRMLS_DC)
 
 #define PHP_EVENT_ADD_CLASS_PROPERTIES(a, b)                                           \
 {                                                                                      \
-    int i = 0;                                                                         \
-    while (b[i].name != NULL) {                                                        \
-        add_property((a), (b)[i].name, (b)[i].name_length,                             \
-                (php_event_prop_read_t)(b)[i].read_func,                               \
-                (php_event_prop_write_t)(b)[i].write_func,                             \
-                (php_event_prop_get_prop_ptr_ptr_t)(b)[i].get_ptr_ptr_func TSRMLS_CC); \
-        i++;                                                                           \
-    }                                                                                  \
+	int i = 0;                                                                         \
+	while (b[i].name != NULL) {                                                        \
+		add_property((a), (b)[i].name, (b)[i].name_length,                             \
+				(php_event_prop_read_t)(b)[i].read_func,                               \
+				(php_event_prop_write_t)(b)[i].write_func,                             \
+				(php_event_prop_get_prop_ptr_ptr_t)(b)[i].get_ptr_ptr_func TSRMLS_CC); \
+		i++;                                                                           \
+	}                                                                                  \
 }
 
 #define PHP_EVENT_DECL_CLASS_PROPERTIES(a, b)                            \
 {                                                                        \
-    int i = 0;                                                           \
-    while (b[i].name != NULL) {                                          \
-        zend_declare_property_null((a), (b)[i].name, (b)[i].name_length, \
-                ZEND_ACC_PUBLIC TSRMLS_CC);                              \
-        i++;                                                             \
-    }                                                                    \
+	int i = 0;                                                           \
+	while (b[i].name != NULL) {                                          \
+		zend_declare_property_null((a), (b)[i].name, (b)[i].name_length, \
+				ZEND_ACC_PUBLIC TSRMLS_CC);                              \
+		i++;                                                             \
+	}                                                                    \
 }
 
 /* {{{ register_classes */
@@ -1075,8 +1075,8 @@ static zend_always_inline void register_classes(TSRMLS_D)
 /* Private functions }}} */
 
 #define REGISTER_EVENT_CLASS_CONST_LONG(pce, const_name, value) \
-    zend_declare_class_constant_long((pce), #const_name,        \
-            sizeof(#const_name) - 1, (long) value TSRMLS_CC)
+	zend_declare_class_constant_long((pce), #const_name,        \
+			sizeof(#const_name) - 1, (long) value TSRMLS_CC)
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
@@ -1262,14 +1262,14 @@ PHP_MINIT_FUNCTION(event)
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CIPHERS,           PHP_EVENT_OPT_CIPHERS);
 
 	/* Initialize openssl library */
-    SSL_library_init();
-    OpenSSL_add_all_ciphers();
-    OpenSSL_add_all_digests();
-    OpenSSL_add_all_algorithms();
-    SSL_load_error_strings();
+	SSL_library_init();
+	OpenSSL_add_all_ciphers();
+	OpenSSL_add_all_digests();
+	OpenSSL_add_all_algorithms();
+	SSL_load_error_strings();
 
 	/* Create new index which will be used to retreive custom data of the OpenSSL callbacks */
-    php_event_ssl_data_index = SSL_get_ex_new_index(0, "PHP EventSslContext index", NULL, NULL, NULL);
+	php_event_ssl_data_index = SSL_get_ex_new_index(0, "PHP EventSslContext index", NULL, NULL, NULL);
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
 
@@ -1338,7 +1338,7 @@ PHP_MINFO_FUNCTION(event)
 #else
 	php_info_print_table_header(2, "Sockets support", "disabled");
 #endif
-#ifdef PHP_EVENT_DEBUG 
+#ifdef PHP_EVENT_DEBUG
 	php_info_print_table_row(2, "Debug support", "enabled");
 #else
 	php_info_print_table_row(2, "Debug support", "disabled");

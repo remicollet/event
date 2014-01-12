@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2011 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -76,7 +76,7 @@ extern zend_class_entry *php_event_http_req_ce;
 
 #endif /* PHP_EVENT_PRIV_H */
 
-/* 
+/*
  * Local variables:
  * tab-width: 4
  * c-basic-offset: 4

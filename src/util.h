@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2011 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -26,17 +26,19 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 
 #define PHP_EVENT_REGISTER_CLASS(name, create_func, ce, ce_functions) \
 {                                                                     \
-    zend_class_entry tmp_ce;                                          \
-    INIT_CLASS_ENTRY(tmp_ce, name, ce_functions);                     \
-    ce = zend_register_internal_class(&tmp_ce TSRMLS_CC);             \
-    ce->create_object = create_func;                                  \
+	zend_class_entry tmp_ce;                                          \
+	INIT_CLASS_ENTRY(tmp_ce, name, ce_functions);                     \
+	ce = zend_register_internal_class(&tmp_ce TSRMLS_CC);             \
+	ce->create_object = create_func;                                  \
 }
 
 #define PHP_EVENT_INIT_CLASS_OBJECT(pz, pce) \
-        Z_TYPE_P((pz)) = IS_OBJECT;          \
-        object_init_ex((pz), (pce));         \
-        Z_SET_REFCOUNT_P((pz), 1);           \
-        Z_SET_ISREF_P((pz))
+	do {                                     \
+		Z_TYPE_P((pz)) = IS_OBJECT;          \
+		object_init_ex((pz), (pce));         \
+		Z_SET_REFCOUNT_P((pz), 1);           \
+		Z_SET_ISREF_P((pz));                 \
+	} while (0)
 
 #define PHP_EVENT_FETCH_EVENT(e, ze) \
 	e = (php_event_t *) zend_object_store_get_object(ze TSRMLS_CC)
@@ -74,21 +76,24 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 #define PHP_EVENT_FETCH_SSL_CONTEXT(p, zp) \
 	p = (php_event_ssl_context_t *) zend_object_store_get_object(zp TSRMLS_CC)
 
-#define PHP_EVENT_TIMEVAL_SET(tv, t)                     \
-        do {                                             \
-            tv.tv_sec  = (long) t;                       \
-            tv.tv_usec = (long) ((t - tv.tv_sec) * 1e6); \
-        } while (0)
+#define PHP_EVENT_TIMEVAL_SET(tv, t)                 \
+	do {                                             \
+		tv.tv_sec  = (long) t;                       \
+		tv.tv_usec = (long) ((t - tv.tv_sec) * 1e6); \
+	} while (0)
 
 #define PHP_EVENT_TIMEVAL_TO_DOUBLE(tv) (tv.tv_sec + tv.tv_usec * 1e-6)
 
 #define PHP_EVENT_SOCKETS_REQUIRED_NORET                                       \
-    php_error_docref(NULL TSRMLS_CC, E_ERROR, "`sockets' extension required. " \
-            "If you have `sockets' installed, rebuild `event' extension")
+	php_error_docref(NULL TSRMLS_CC, E_ERROR, "`sockets' extension required. " \
+			"If you have `sockets' installed, rebuild `event' extension")
 
-#define PHP_EVENT_SOCKETS_REQUIRED_RET                                         \
-    PHP_EVENT_SOCKETS_REQUIRED_NORET;                                          \
-    RETURN_FALSE
+#define PHP_EVENT_SOCKETS_REQUIRED_RET    \
+	do {                                  \
+		PHP_EVENT_SOCKETS_REQUIRED_NORET; \
+		RETURN_FALSE;                     \
+	} while (0)
+
 
 #if defined(PHP_WIN32)
 #if defined(ZTS)
@@ -105,7 +110,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 
 #endif /* PHP_EVENT_UTIL_H */
 
-/* 
+/*
  * Local variables:
  * tab-width: 4
  * c-basic-offset: 4

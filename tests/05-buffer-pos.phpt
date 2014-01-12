@@ -1,5 +1,5 @@
 --TEST--
-Check for manupulation with buffer position
+Check for manipulation with buffer position
 --FILE--
 <?php
 /* Count total occurances of 'str' in 'buf' */

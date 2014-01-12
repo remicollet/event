@@ -3,7 +3,7 @@ INSTALLATION OF EVENT PECL EXTENSION
 
 Tested under GNU/Linux only. But likely will work on others too. The following
 also concerns GNU/Linux. If you find it useful to publish instructions for
-other platforms, please drop me a note. 
+other platforms, please drop me a note.
 
 
 PRELIMINARIES
@@ -37,7 +37,7 @@ In a pinch the source code is always available on `libevent`'s homepage:
 AUTOMATIC INSTALLATION
 ----------------------
 
-Just run the following as `root`: 
+Just run the following as `root`:
 
 	# pecl install package.xml
 
@@ -49,7 +49,7 @@ Clone the project or download it as archive. In the package directory run:
 
 	$ phpize
 	$ ./configure --with-event-core --with-event-extra --enable-event-debug
-	$ make 
+	$ make
 
 Optionally run tests:
 
