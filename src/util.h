@@ -94,6 +94,13 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 		RETURN_FALSE;                     \
 	} while (0)
 
+#define PHP_EVENT_REQUIRE_BASE_BY_REF(zbase)                  \
+	do {                                                      \
+		if (!Z_ISREF_P((zbase))) {                            \
+			php_error_docref(NULL TSRMLS_CC, E_ERROR,         \
+					"EventBase must be passed by reference"); \
+		}                                                     \
+	} while (0)
 
 #if defined(PHP_WIN32)
 #if defined(ZTS)

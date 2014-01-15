@@ -228,6 +228,8 @@ PHP_METHOD(Event, __construct)
 		return;
 	}
 
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
+
 	if (what & ~(EV_TIMEOUT | EV_READ | EV_WRITE | EV_SIGNAL | EV_PERSIST | EV_ET)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid mask");
 		ZVAL_NULL(zself);
@@ -328,6 +330,8 @@ PHP_METHOD(Event, set)
 				&what, &fci, &fcc, &arg) == FAILURE) {
 		return;
 	}
+
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
 	if (what != -1) {
 		if (what & ~(EV_TIMEOUT | EV_READ | EV_WRITE | EV_SIGNAL | EV_PERSIST | EV_ET)) {
@@ -565,6 +569,8 @@ PHP_METHOD(Event, timer)
 		return;
 	}
 
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
+
 	PHP_EVENT_FETCH_BASE(b, zbase);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_ce);
@@ -608,6 +614,8 @@ PHP_METHOD(Event, setTimer)
 				&fci, &fcc, &arg) == FAILURE) {
 		return;
 	}
+
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
@@ -656,13 +664,15 @@ PHP_METHOD(Event, signal)
 	zval                  *arg    = NULL;
 	php_event_t           *e;
 	struct event          *event;
-	
+
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Olf|z",
 				&zbase, php_event_base_ce, &signum, &fci, &fcc, &arg) == FAILURE) {
 		return;
 	}
-	
+
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
+
 	if (signum < 0 || signum >= NSIG) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid signal passed");
 		RETURN_FALSE;

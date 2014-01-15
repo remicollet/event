@@ -7,7 +7,7 @@
   This is an extension to efficiently schedule I/O, time and signal based
   events using the best I/O notification mechanism available for specific platform.
   This is a port of libevent to the PHP infrastructure.
-  
+
   Version 1.0.0 introduces:
   * new OO API breaking backwards compatibility
   * support of libevent 2+ including HTTP, DNS, OpenSSL and the event listener.
@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2013-10-08</date>
+  <date>2014-01-16</date>
   <!--{{{ Current version -->
   <version>
     <release>1.9.0</release>
@@ -47,6 +47,10 @@
   Windows support introduced(thanks to Anatol Belski <ab@php.net>)
 
   LIBEVENT_VERSION is now reported in phpinfo(Remi <remi@php.net>)
+
+   Forced passing EventBase argument by reference. A method accepting EventBase
+   will generate fatal error in case if corresponding argument is not passed by
+   reference.
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -159,7 +163,7 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ Current version -->
+    <!--{{{ 1.9.0 -->
     <release>
       <version>
         <release>1.9.0</release>
@@ -174,6 +178,10 @@
   Windows support introduced(thanks to Anatol Belski <ab@php.net>)
 
   LIBEVENT_VERSION is now reported in phpinfo(Remi <remi@php.net>)
+
+   Forced passing EventBase argument by reference. A method accepting EventBase
+   will generate fatal error in case if corresponding argument is not passed by
+   reference.
   ]]></notes>
     </release>
     <!--}}}-->

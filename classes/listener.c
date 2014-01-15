@@ -277,6 +277,8 @@ PHP_METHOD(EventListener, __construct)
 		return;
 	}
 
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
+
 	PHP_EVENT_FETCH_BASE(base, zbase);
 
 	if (Z_TYPE_PP(ppztarget) == IS_STRING) {
@@ -327,7 +329,7 @@ PHP_METHOD(EventListener, __construct)
 		listener = evconnlistener_new(base->base, _php_event_listener_cb,
 				(void *) l, flags, backlog, fd);
 	}
-	
+
 	if (!listener) {
 		ZVAL_NULL(zself);
 		return;

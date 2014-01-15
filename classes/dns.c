@@ -40,6 +40,8 @@ PHP_METHOD(EventDnsBase, __construct)
 		return;
 	}
 
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
+
 	PHP_EVENT_FETCH_BASE(base, zbase);
 
 	PHP_EVENT_FETCH_DNS_BASE(dnsb, getThis());

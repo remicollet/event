@@ -254,6 +254,8 @@ PHP_METHOD(EventBufferEvent, __construct)
 		return;
 	}
 
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
+
 	if (ppzfd) {
 		/* php_event_zval_to_fd reports error
 	 	 * in case if it is not a valid socket resource */
@@ -388,6 +390,8 @@ PHP_METHOD(EventBufferEvent, createPair)
 				&zbase, php_event_base_ce, &options) == FAILURE) {
 		return;
 	}
+
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
 	PHP_EVENT_FETCH_BASE(base, zbase);
 
@@ -1009,6 +1013,8 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 		return;
 	}
 
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
+
 	if (!is_valid_ssl_state(state)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING,
 				"Invalid state specified");
@@ -1073,6 +1079,8 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 				&state, &options) == FAILURE) {
 		return;
 	}
+
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
 	if (!is_valid_ssl_state(state)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING,

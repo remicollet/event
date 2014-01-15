@@ -101,6 +101,8 @@ PHP_METHOD(EventHttpConnection, __construct)
 		return;
 	}
 
+	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
+
 	PHP_EVENT_FETCH_BASE(b, zbase);
 
 	if (zdns_base) {

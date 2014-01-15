@@ -73,7 +73,7 @@ PHP_METHOD(EventUtil, getLastSocketError)
 
 #ifdef HAVE_EVENT_OPENSSL_LIB/* {{{ */
 /* {{{ proto bool EventUtil::sslRandPoll(void);
- * 
+ *
  * Generates entropy by means of OpenSSL's RAND_poll()
  */
 PHP_METHOD(EventUtil, sslRandPoll)
@@ -132,7 +132,7 @@ PHP_METHOD(EventUtil, setSocketOption)
 	zval            **l_onoff  , **l_linger;
 	zval            **sec      , **usec;
 	evutil_socket_t   fd;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ZllZ",
 				&ppzfd, &level, &optname, &zoptval) == FAILURE) {
 		return;
@@ -143,7 +143,7 @@ PHP_METHOD(EventUtil, setSocketOption)
 		RETURN_FALSE;
 	}
 
-	errno = 0;
+	/*errno = 0;*/
 
 	switch (optname) {
 		case SO_LINGER: {
@@ -200,7 +200,7 @@ PHP_METHOD(EventUtil, setSocketOption)
 			opt_ptr = &tv;
 			break;
 		}
-		
+
 		default:
 			convert_to_long_ex(zoptval);
 			ov = Z_LVAL_PP(zoptval);
