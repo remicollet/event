@@ -1,7 +1,11 @@
 --TEST--
-Check for event configuration features 
+Check for event configuration features
+--SKIPIF--
+<?php
+if (substr(PHP_OS, 0, 3) == "WIN") die('skip Not for Windows');
+?>
 --FILE--
-<?php 
+<?php
 $cfg = new EventConfig();
 
 if ($cfg->requireFeatures(EventConfig::FEATURE_FDS)) {

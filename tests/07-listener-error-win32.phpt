@@ -23,7 +23,7 @@ foreach ($sock_paths as $path => $expect) {
 $l = new EventListener(new EventBase(), function() {}, NULL, EventUtil::AF_UNIX, 0, 'unix:/tmp/1.sock');
 
 ?>
---EXPECT--
+--EXPECTF--
 bool(true)
 
 Fatal error: EventListener::__construct(): EventBase must be passed by reference in %s on line %d

@@ -1,5 +1,9 @@
 --TEST--
 Check for EventBufferEvent::sslFilter() error behavior
+--SKIPIF--
+<?php
+if (!class_exists("EventSslContext")) die("skip Event extra functions are disabled");
+?>
 --FILE--
 <?php
 $base = new EventBase();

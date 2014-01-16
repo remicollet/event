@@ -1,5 +1,9 @@
 --TEST--
 Check for EventBufferEvent::sslSocket() error behavior
+--SKIPIF--
+<?php
+if (!class_exists("EventSslContext")) die("skip Event extra functions are disabled");
+?>
 --FILE--
 <?php
 $ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, []);
