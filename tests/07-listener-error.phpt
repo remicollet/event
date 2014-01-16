@@ -1,5 +1,5 @@
 --TEST--
-Check for EventListener error behaviour 
+Check for EventListener error behaviour
 --SKIPIF--
 <?php
 if (!class_exists("EventListener")) die("skip Event extra functions are disabled");
@@ -23,9 +23,12 @@ foreach ($sock_paths as $path => $expect) {
 	var_dump(is_null($listener) != $expect);
 }
 
+$l = new EventListener(new EventBase(), function() {}, NULL, EventUtil::AF_UNIX, 0, 'unix:/tmp/1.sock');
 ?>
---EXPECT--
+--EXPECTF--
 bool(true)
 bool(true)
 bool(true)
 bool(true)
+
+Fatal error: EventListener::__construct(): EventBase must be passed by reference in %s on line %d

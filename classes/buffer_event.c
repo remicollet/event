@@ -217,7 +217,7 @@ static zend_always_inline zend_bool is_valid_ssl_state(long state)
 /* {{{ proto EventBufferEvent EventBufferEvent::__construct(EventBase base[, mixed socket = NULL[, int options = 0[, callable readcb[, callable writecb[, callable eventcb[, mixed arg = NULL]]]]]]);
  *
  * Create a socket-based buffer event.
- * options is one of EVENT_BEV_OPT_* constants, or 0.
+ * options is one of EventBufferEvent::OPT_* constants, or 0.
  * Passing NULL to socket parameter means that the socket stream should be created later,
  * e.g. by means of bufferevent_socket_connect().
  *

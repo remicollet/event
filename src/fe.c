@@ -565,7 +565,7 @@ const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBufferEvent, writeBuffer,       arginfo_bufferevent_write_buffer,  ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, read,              arginfo_bufferevent_read,          ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, readBuffer,        arginfo_bufferevent_write_buffer,  ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, createPair,        arginfo_bufferevent_pair_new,      ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, createPair,        arginfo_bufferevent_pair_new,      ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventBufferEvent, setPriority,       arginfo_bufferevent_priority_set,  ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, setTimeouts,       arginfo_bufferevent_set_timeouts,  ZEND_ACC_PUBLIC)
 #ifdef HAVE_EVENT_OPENSSL_LIB

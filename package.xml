@@ -51,6 +51,8 @@
    Forced passing EventBase argument by reference. A method accepting EventBase
    will generate fatal error in case if corresponding argument is not passed by
    reference.
+
+   EventBufferEvent::createPair method made static.
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -99,6 +101,7 @@
         <file role="doc" name="listener.php"/>
         <file role="doc" name="misc.php"/>
         <file role="doc" name="signal.php"/>
+        <file role="doc" name="sslfilter.php"/>
         <file role="doc" name="timer.php"/>
         <file role="doc" name="uppercase_proxy.php"/>
       </dir>
@@ -126,6 +129,16 @@
         <file role="test" name="10-event-data-dtor.phpt"/>
         <file role="test" name="11-gc-cycles.phpt"/>
         <file role="test" name="12-serialization.phpt"/>
+        <file role="test" name="13-bevent-pair.phpt"/>
+        <file role="test" name="14-httpconn-error.phpt"/>
+        <file role="test" name="15-dnsbase-error.phpt"/>
+        <file role="test" name="16-http-error.phpt"/>
+        <file role="test" name="17-event-settimer-error.phpt"/>
+        <file role="test" name="18-timer-error.phpt"/>
+        <file role="test" name="19-event-signal-error.phpt"/>
+        <file role="test" name="20-bevent-error.phpt"/>
+        <file role="test" name="21-bevent-sslfilter-error.phpt"/>
+        <file role="test" name="21-bevent-sslsocket-error.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -182,6 +195,8 @@
    Forced passing EventBase argument by reference. A method accepting EventBase
    will generate fatal error in case if corresponding argument is not passed by
    reference.
+
+   EventBufferEvent::createPair method made static.
   ]]></notes>
     </release>
     <!--}}}-->
