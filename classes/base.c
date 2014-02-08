@@ -333,10 +333,10 @@ PHP_METHOD(EventBase, reInit)
 	PHP_EVENT_FETCH_BASE(b, zbase);
 
 	if (event_reinit(b->base)) {
-		RETURN_TRUE;
+		RETURN_FALSE;
 	}
 
-	RETVAL_FALSE;
+	RETVAL_TRUE;
 }
 /* }}} */
 
