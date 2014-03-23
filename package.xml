@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2014-02-08</date>
+  <date>2014-03-23</date>
   <!--{{{ Current version -->
   <version>
     <release>1.9.1</release>
@@ -45,6 +45,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
     Fix: return value of EventBase::reInit() was inverted
+    issue #7: PHP_EVENT_REQUIRE_BASE_BY_REF() didn't work in 5.6.0-dev (fixed by Remi Collet)
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -181,6 +182,7 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
     Fix: return value of EventBase::reInit() was inverted
+    issue #7: PHP_EVENT_REQUIRE_BASE_BY_REF() didn't work in 5.6.0-dev (fixed by Remi Collet)
   ]]></notes>
     </release>
     <!--}}}-->
