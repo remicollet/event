@@ -89,15 +89,15 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	pfci->param_count	 = 2;
 	pfci->no_separation  = 1;
 
-    if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
-        zval_ptr_dtor(&retval_ptr);
-    } else {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING,
-                "An error occurred while invoking the http request callback");
-    }
+	if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+		zval_ptr_dtor(&retval_ptr);
+	} else {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"An error occurred while invoking the http request callback");
+	}
 
-    zval_ptr_dtor(&arg_req);
-    zval_ptr_dtor(&arg_data);
+	zval_ptr_dtor(&arg_req);
+	zval_ptr_dtor(&arg_data);
 }
 /* }}} */
 
@@ -146,15 +146,15 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	pfci->param_count	 = 2;
 	pfci->no_separation  = 1;
 
-    if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
-        zval_ptr_dtor(&retval_ptr);
-    } else {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING,
-                "An error occurred while invoking the http request callback");
-    }
+	if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+		zval_ptr_dtor(&retval_ptr);
+	} else {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"An error occurred while invoking the http request callback");
+	}
 
-    zval_ptr_dtor(&arg_req);
-    zval_ptr_dtor(&arg_data);
+	zval_ptr_dtor(&arg_req);
+	zval_ptr_dtor(&arg_data);
 }
 /* }}} */
 

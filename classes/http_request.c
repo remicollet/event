@@ -110,15 +110,15 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)*/
 	evhttp_request_own(http_req->ptr);
 
-    if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
-        zval_ptr_dtor(&retval_ptr);
-    } else {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING,
-                "An error occurred while invoking the http request callback");
-    }
+	if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+		zval_ptr_dtor(&retval_ptr);
+	} else {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"An error occurred while invoking the http request callback");
+	}
 
-    zval_ptr_dtor(&arg_req);
-    zval_ptr_dtor(&arg_data);
+	zval_ptr_dtor(&arg_req);
+	zval_ptr_dtor(&arg_data);
 }
 /* }}} */
 
@@ -178,8 +178,21 @@ PHP_METHOD(EventHttpRequest, free)
 		return;
 	}
 
-	evhttp_request_free(http_req->ptr);
-	http_req->ptr = NULL;
+	if (http_req->ptr) {
+		/*
+		 * We're not calling evhttp_request_free(http_req->ptr) because AFAIK
+		 * Libevent handles the memory of evhttp_request all right.
+		 *
+		 * It just so happens that libevent invokes the function itself in
+		 * evhttp_connection_cb_cleanup() despite the ownership of the request
+		 * (thus causing a SEGFAULT). See bitbucket issue #3.
+		 *
+		 * By marking http_req as `internal` we prevent calling evhttp_request_free()
+		 * within event_http_req_object_free_storage().
+		 */
+		http_req->internal = 1;
+		/*http_req->ptr = NULL;*/
+	}
 
 	/* Do it once */
 	if (http_req->self) {
@@ -395,7 +408,7 @@ PHP_METHOD(EventHttpRequest, getBufferEvent)
 #endif
 
 /* {{{ proto EventHttpConnection EventHttpRequest::getConnection(void);
- * Returns EventHttpConnection object. 
+ * Returns EventHttpConnection object.
  *
  * Warning! Libevent API allows http request objects not bound to any http connection.
  * Therefore we can't unambiguously associate EventHttpRequest with EventHttpConnection.
