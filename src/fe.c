@@ -270,11 +270,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_socket_1, 0, 0, 0)
 ZEND_END_ARG_INFO();
 
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection__construct, 0, 0, 4)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection__construct, 0, 0, 5)
 	ZEND_ARG_INFO(1, base)
 	ZEND_ARG_INFO(0, dns_base)
 	ZEND_ARG_INFO(0, address)
 	ZEND_ARG_INFO(0, port)
+	ZEND_ARG_INFO(0, ctx)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_get_peer, 0, 0, 2)
