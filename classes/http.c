@@ -158,6 +158,28 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 }
 /* }}} */
 
+#if LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
+/*{{{ _bev_ssl_callback
+ *
+ * This callback is responsible for creating a new SSL connection
+ * and wrapping it in an OpenSSL bufferevent.  This is the way
+ * we implement an https server instead of a plain old http server.
+ * (borrowed from https://github.com/ppelleti/https-example/blob/master/https-server.c)
+ */
+static struct bufferevent* _bev_ssl_callback(struct event_base *base, void *arg) {
+	struct bufferevent* bev;
+	SSL_CTX *ctx = (SSL_CTX *) arg;
+
+	bev = bufferevent_openssl_socket_new(base,
+			-1,
+			SSL_new(ctx),
+			BUFFEREVENT_SSL_ACCEPTING,
+			BEV_OPT_CLOSE_ON_FREE);
+	return bev;
+}
+/*}}}*/
+#endif
+
 /* }}} */
 
 /* {{{  _php_event_free_http_cb */
@@ -174,7 +196,7 @@ void _php_event_free_http_cb(php_event_http_cb_t *cb)
 }
 /* }}} */
 
-/* {{{ proto EventHttp EventHttp::__construct(EventBase base);
+/* {{{ proto EventHttp EventHttp::__construct(EventBase base[, EventSslContext ctx = NULL]);
  * Creates new http server object.
  */
 PHP_METHOD(EventHttp, __construct)
@@ -184,10 +206,21 @@ PHP_METHOD(EventHttp, __construct)
 	php_event_http_t *http;
 	struct evhttp    *http_ptr;
 
+#if LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
+	php_event_ssl_context_t *ectx;
+	zval                    *zctx = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O|O!",
+				&zbase, php_event_base_ce,
+				&zctx, php_event_ssl_context_ce) == FAILURE) {
+		return;
+	}
+#else
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
 				&zbase, php_event_base_ce) == FAILURE) {
 		return;
 	}
+#endif
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
@@ -210,6 +243,15 @@ PHP_METHOD(EventHttp, __construct)
 	http->fcc     = NULL;
 	http->data    = NULL;
 	http->cb_head = NULL;
+
+
+#if LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
+	if (zctx) {
+		PHP_EVENT_FETCH_SSL_CONTEXT(ectx, zctx);
+		PHP_EVENT_ASSERT(ectx->ctx);
+		evhttp_set_bevcb(http_ptr, _bev_ssl_callback, ectx->ctx);
+	}
+#endif
 }
 /* }}} */
 

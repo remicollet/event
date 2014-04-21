@@ -389,10 +389,18 @@ static void event_http_req_object_free_storage(void *ptr TSRMLS_DC)
 		http_req->data = NULL;
 	}
 
+#if 0
+	/*
+	Libevent cleans up http_req->ptr despite the ownership of the pointer
+	(evhttp_request_own()). So we'll get SEGFAULT here if we call
+	evhttp_request_free().
+	*/
+
 	if (!http_req->internal && http_req->ptr) {
 		evhttp_request_free(http_req->ptr);
 		http_req->ptr = NULL;
 	}
+#endif
 
 	event_generic_object_free_storage(ptr TSRMLS_CC);
 }

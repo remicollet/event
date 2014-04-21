@@ -71,7 +71,7 @@ class MySslEchoServerClient {
 		$ctx = new EventSslContext(EventSslContext::SSLv3_CLIENT_METHOD, array (
  			EventSslContext::OPT_LOCAL_CERT  => $local_cert,
  			EventSslContext::OPT_LOCAL_PK    => $local_pk,
- 			//EventSslContext::OPT_PASSPHRASE  => "echo server",
+             //EventSslContext::OPT_PASSPHRASE  => "test",
  			EventSslContext::OPT_ALLOW_SELF_SIGNED => true,
 		));
 
