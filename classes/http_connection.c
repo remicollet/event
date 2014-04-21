@@ -147,7 +147,7 @@ PHP_METHOD(EventHttpConnection, __construct)
 		options = BEV_OPT_CLOSE_ON_FREE;
 #endif
 
-		bevent = bufferevent_openssl_socket_new(b->base, -1, ssl, BUFFEREVENT_SSL_ACCEPTING, options);
+		bevent = bufferevent_openssl_socket_new(b->base, -1, ssl, BUFFEREVENT_SSL_CONNECTING, options);
 		if (!bevent) {
 			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Failed to allocate bufferevent filter");
 			return;
