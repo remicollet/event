@@ -46,6 +46,7 @@
   <notes><![CDATA[
     Issue #3: Segmentation fault on EventHttpRequest->free() (Bitbucket's tracker).
     Add: EventHttpConnection::__construct() now optionally accepts EventSslContext argument (issue #5).
+    Add: EventHttp::__construct() now accepts EventSslContext object as argument.
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -186,6 +187,7 @@
       <notes><![CDATA[
         Issue #3: Segmentation fault on EventHttpRequest->free() (Bitbucket's tracker).
         Add: EventHttpConnection::__construct() now optionally accepts EventSslContext argument (Issue #5).
+        Add: EventHttp::__construct() now accepts EventSslContext object as argument.
         ]]></notes>
     </release>
     <!--}}}-->
