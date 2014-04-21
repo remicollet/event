@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2014-04-20</date>
+  <date>2014-04-21</date>
   <!--{{{ Current version -->
   <version>
     <release>1.10.0</release>
@@ -91,10 +91,12 @@
         <file role="doc" name="http_request.php"/>
         <file role="doc" name="httpv0client.php"/>
         <file role="doc" name="httpv0client2.php"/>
+        <file role="doc" name="https.php"/>
         <file role="doc" name="listener.php"/>
         <file role="doc" name="misc.php"/>
         <file role="doc" name="signal.php"/>
         <file role="doc" name="sslfilter.php"/>
+        <file role="doc" name="ssl-connection.php"/>
         <file role="doc" name="timer.php"/>
         <file role="doc" name="uppercase_proxy.php"/>
       </dir>

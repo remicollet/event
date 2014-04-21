@@ -142,9 +142,9 @@ PHP_METHOD(EventHttpConnection, __construct)
 		SSL_set_ex_data(ssl, php_event_ssl_data_index, ectx);
 
 #ifdef HAVE_EVENT_PTHREADS_LIB
-		options = BEV_OPT_CLOSE_ON_FREE | BEV_OPT_THREADSAFE;
+		options = BEV_OPT_DEFER_CALLBACKS | BEV_OPT_CLOSE_ON_FREE | BEV_OPT_THREADSAFE;
 #else
-		options = BEV_OPT_CLOSE_ON_FREE;
+		options = BEV_OPT_DEFER_CALLBACKS | BEV_OPT_CLOSE_ON_FREE;
 #endif
 
 		bevent = bufferevent_openssl_socket_new(b->base, -1, ssl, BUFFEREVENT_SSL_CONNECTING, options);

@@ -1,53 +1,14 @@
 <?php
 /*
- * Simple HTTP server.
+ * Simple HTTPS server.
  *
- * To test it:
- * 1) Run it on a port of your choice, e.g.:
- * $ php examples/http.php 8010
- * 2) In another terminal connect to some address on this port
- * and make GET or POST request(others are turned off here), e.g.:
- * $ nc -t 127.0.0.1 8010
- * POST /about HTTP/1.0
- * Content-Type: text/plain
- * Content-Length: 4
- * Connection: close
- * (press Enter)
- *
- * It will output
- * a=12
- * HTTP/1.0 200 OK
- * Content-Type: text/html; charset=ISO-8859-1
- * Connection: close
- *
- * $ nc -t 127.0.0.1 8010
- * GET /dump HTTP/1.0
- * Content-Type: text/plain
- * Content-Encoding: UTF-8
- * Connection: close
- * (press Enter)
- *
- * It will output:
- * HTTP/1.0 200 OK
- * Content-Type: text/html; charset=ISO-8859-1
- * Connection: close
- * (press Enter)
- *
- * $ nc -t 127.0.0.1 8010
- * GET /unknown HTTP/1.0
- * Connection: close
- *
- * It will output:
- * HTTP/1.0 200 OK
- * Content-Type: text/html; charset=ISO-8859-1
- * Connection: close
- *
- * 3) See what the server outputs on the previous terminal window.
+ * 1) Run the server: `php examples/https.php 9999`
+ * 2) Test it: `php examples/ssl-connection.php 9999`
  */
 
 function _http_dump($req, $data) {
 	static $counter      = 0;
-	static $max_requests = 2;
+	static $max_requests = 200;
 
 	if (++$counter >= $max_requests)  {
 		echo "Counter reached max requests $max_requests. Exiting\n";
@@ -68,12 +29,12 @@ function _http_dump($req, $data) {
 	$req->sendReply(200, "OK");
 	echo "OK\n";
 
-	echo "\n >> Reading input buffer ...\n";
 	$buf = $req->getInputBuffer();
-	while ($s = $buf->readLine(EventBuffer::EOL_ANY)) {
-		echo $s, PHP_EOL;
+	echo "\n >> Reading input buffer (", $buf->length, ") ...\n";
+	while ($s = $buf->read(1024)) {
+		echo $s;
 	}
-	echo "No more data in the buffer\n";
+	echo "\nNo more data in the buffer\n";
 }
 
 function _http_about($req) {
@@ -100,7 +61,7 @@ function _init_ssl() {
 	$local_cert = __DIR__."/ssl-echo-server/cert.pem";
 	$local_pk   = __DIR__."/ssl-echo-server/privkey.pem";
 
-	$ctx = new EventSslContext(EventSslContext::SSLv3_CLIENT_METHOD, array (
+	$ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, array (
 		EventSslContext::OPT_LOCAL_CERT  => $local_cert,
 		EventSslContext::OPT_LOCAL_PK    => $local_pk,
 		//EventSslContext::OPT_PASSPHRASE  => "test",
@@ -129,6 +90,5 @@ $http->setCallback("/about", "_http_about");
 $http->setCallback("/err400", "_http_400");
 $http->setDefaultCallback("_http_default", "custom data value");
 
-echo "bind($ip, $port)\n";
 $http->bind($ip, $port);
 $base->dispatch();

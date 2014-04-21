@@ -36,15 +36,7 @@ function _request_handler($req, $base) {
 }
 
 function _init_ssl() {
-	$local_cert = __DIR__."/ssl-echo-server/cert.pem";
-	$local_pk   = __DIR__."/ssl-echo-server/privkey.pem";
-
-	$ctx = new EventSslContext(EventSslContext::SSLv3_CLIENT_METHOD, array (
-		EventSslContext::OPT_LOCAL_CERT  => $local_cert,
-		EventSslContext::OPT_LOCAL_PK    => $local_pk,
-		//EventSslContext::OPT_PASSPHRASE  => "test",
-		EventSslContext::OPT_ALLOW_SELF_SIGNED => true,
-	));
+	$ctx = new EventSslContext(EventSslContext::SSLv3_CLIENT_METHOD, array ());
 
 	return $ctx;
 }
@@ -58,7 +50,7 @@ if ($argc > 1) {
 if ($port <= 0 || $port > 65535) {
 	exit("Invalid port\n");
 }
-$host = 'localhost';
+$host = '127.0.0.1';
 
 $ctx = _init_ssl();
 if (!$ctx) {
@@ -70,13 +62,16 @@ if (!$base) {
 	trigger_error("Failed to initialize event base", E_USER_ERROR);
 }
 
-echo "new EventHttpConnection(base, null, $host, $port, ctx)\n";
 $conn = new EventHttpConnection($base, NULL, $host, $port, $ctx);
 $conn->setTimeout(50);
 
 $req = new EventHttpRequest("_request_handler", $base);
 $req->addHeader("Host", $host, EventHttpRequest::OUTPUT_HEADER);
-$conn->makeRequest($req, EventHttpRequest::CMD_GET, "/about");
+$buf = $req->getOutputBuffer();
+$buf->add("<html>HTML TEST</html>");
+//$req->addHeader("Content-Length", $buf->length, EventHttpRequest::OUTPUT_HEADER);
+//$req->addHeader("Connection", "close", EventHttpRequest::OUTPUT_HEADER);
+$conn->makeRequest($req, EventHttpRequest::CMD_POST, "/dump");
 
 $base->dispatch();
 echo "END\n";

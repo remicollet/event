@@ -148,7 +148,7 @@ PHP_METHOD(EventHttpRequest, __construct)
 
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)
 	 * XXX Not sure if it's really needed here though. */
-	evhttp_request_own(req);
+	/*evhttp_request_own(req);*/
 	http_req->ptr = req;
 
 	if (zarg) {
