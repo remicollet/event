@@ -305,6 +305,7 @@ ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http__construct, 0, 0, 1)
 	ZEND_ARG_INFO(1, base)
+	ZEND_ARG_INFO(0, ctx)
 ZEND_END_ARG_INFO();
 
 

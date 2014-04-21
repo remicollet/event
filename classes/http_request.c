@@ -108,7 +108,7 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	pfci->no_separation  = 1;
 
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)*/
-	evhttp_request_own(http_req->ptr);
+	/*evhttp_request_own(http_req->ptr);*/
 
 	if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
 		zval_ptr_dtor(&retval_ptr);
@@ -148,7 +148,7 @@ PHP_METHOD(EventHttpRequest, __construct)
 
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)
 	 * XXX Not sure if it's really needed here though. */
-	evhttp_request_own(req);
+	/*evhttp_request_own(req);*/
 	http_req->ptr = req;
 
 	if (zarg) {

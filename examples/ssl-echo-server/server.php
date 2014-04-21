@@ -57,7 +57,9 @@ class MySslEchoServer {
 	// This callback is invoked when some even occurs on the event listener,
 	// e.g. connection closed, or an error occured
 	function ssl_event_cb($bev, $events, $ctx) {
+		echo __METHOD__, PHP_EOL;
 		if ($events & EventBufferEvent::ERROR) {
+			fprintf(STDERR, "Error! Events: 0x%x\n", $events);
 			// Fetch errors from the SSL error stack
 			while ($err = $bev->sslError()) {
 				fprintf(STDERR, "Bufferevent error %s.\n", $err);
@@ -120,7 +122,7 @@ class MySslEchoServer {
 		$ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, array (
  			EventSslContext::OPT_LOCAL_CERT  => $local_cert,
  			EventSslContext::OPT_LOCAL_PK    => $local_pk,
- 			//EventSslContext::OPT_PASSPHRASE  => "echo server",
+ 			EventSslContext::OPT_PASSPHRASE  => "test",
  			EventSslContext::OPT_VERIFY_PEER => true,
  			EventSslContext::OPT_ALLOW_SELF_SIGNED => true,
 		));

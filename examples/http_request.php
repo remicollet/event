@@ -21,7 +21,7 @@ function _request_handler($req, $base) {
 			}
 		}
 	}
-	
+
 	$base->exit(NULL);
 }
 
