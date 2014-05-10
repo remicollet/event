@@ -35,7 +35,7 @@
   <date>2014-05-10</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.10.0</release>
+    <release>1.10.1</release>
     <api>1.9.0</api>
   </version>
   <stability>
@@ -44,9 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Issue #3: Segmentation fault on EventHttpRequest->free() (Bitbucket's tracker).
-    Add: EventHttpConnection::__construct() now optionally accepts EventSslContext argument (issue #5).
-    Add: EventHttp::__construct() now accepts EventSslContext object as argument.
+    Deleted a troublesome phpt test
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -135,7 +133,6 @@
         <file role="test" name="20-bevent-error.phpt"/>
         <file role="test" name="21-bevent-sslfilter-error.phpt"/>
         <file role="test" name="21-bevent-sslsocket-error.phpt"/>
-        <file role="test" name="issue-3.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -173,6 +170,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 1.10.1 -->
+    <release>
+      <version>
+        <release>1.10.1</release>
+        <api>1.9.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Deleted a troublesome phpt test
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.10.0 -->
     <release>
       <version>
