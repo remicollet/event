@@ -889,6 +889,11 @@ PHP_METHOD(EventBufferEvent, read)
 		return;
 	}
 
+	if (size < 0) {
+		/*php_error_docref(NULL TSRMLS_CC, E_WARNING, "Size must be positive");*/
+		return;
+	}
+
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
