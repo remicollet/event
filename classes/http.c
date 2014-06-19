@@ -132,6 +132,7 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
 	http_req->ptr      = req;
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
+	Z_ADDREF_P(arg_req);
 	args[0] = &arg_req;
 
 	if (arg_data) {

@@ -46,6 +46,7 @@
   <notes><![CDATA[
     Fix: EventBufferEvent::read() accepted negative values
     Fix: TSRM context was not set in EventHttp::__construct (János Fekete)
+    Fix: refcounter in EventHttp's default callback (János Fekete)
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -185,6 +186,7 @@
       <notes><![CDATA[
     Fix: EventBufferEvent::read() accepted negative values
     Fix: TSRM context was not set in EventHttp::__construct (János Fekete)
+    Fix: refcounter in EventHttp's default callback (János Fekete)
   ]]></notes>
     </release>
     <!--}}}-->
