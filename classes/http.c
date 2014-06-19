@@ -244,6 +244,7 @@ PHP_METHOD(EventHttp, __construct)
 	http->data    = NULL;
 	http->cb_head = NULL;
 
+	TSRMLS_SET_CTX(http->thread_ctx);
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
 	if (zctx) {
