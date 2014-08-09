@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2014-06-20</date>
+  <date>2014-08-10</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.10.2</release>
+    <release>1.10.3</release>
     <api>1.9.0</api>
   </version>
   <stability>
@@ -44,9 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fix: EventBufferEvent::read() accepted negative values
-    Fix: TSRM context was not set in EventHttp::__construct (János Fekete)
-    Fix: refcounter in EventHttp's default callback (János Fekete)
+    Issue #8: pecl install failed due to the REST API issues with Unicode
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -172,6 +170,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ Current version -->
+    <release>
+      <version>
+        <release>1.10.3</release>
+        <api>1.9.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Issue #8: pecl install failed due to the REST API issues with Unicode
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 1.10.2 -->
     <release>
       <version>
@@ -185,8 +199,8 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
     Fix: EventBufferEvent::read() accepted negative values
-    Fix: TSRM context was not set in EventHttp::__construct (János Fekete)
-    Fix: refcounter in EventHttp's default callback (János Fekete)
+    Fix: TSRM context was not set in EventHttp::__construct (J. Fekete)
+    Fix: refcounter in EventHttp's default callback (J. Fekete)
   ]]></notes>
     </release>
     <!--}}}-->
