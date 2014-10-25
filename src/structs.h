@@ -76,6 +76,7 @@ typedef struct _php_event_bevent_t {
 	zval                  *data;        /* User custom data                               */
 	zval                  *input;       /* Input buffer */
 	zval                  *output;      /* Output buffer */
+	zval                  *base;
 
     /* fci and fcc members represent userspace callbacks */
 	zend_fcall_info       *fci_read;
@@ -137,6 +138,7 @@ struct _php_event_http_cb_t {
 	zval                  *data;   /* User custom data passed to callback */
 	zend_fcall_info       *fci;
 	zend_fcall_info_cache *fcc;
+	zval *base;
 
 	PHP_EVENT_COMMON_THREAD_CTX
 };
@@ -173,7 +175,7 @@ typedef struct _php_event_http_conn_t {
 	/* Callback for connection close */
 	zend_fcall_info       *fci_closecb;
 	zend_fcall_info_cache *fcc_closecb;
-	
+
 	PHP_EVENT_COMMON_THREAD_CTX
 } php_event_http_conn_t;
 

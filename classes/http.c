@@ -24,7 +24,7 @@
 
 /* {{{ _new_http_cb
  * Allocate memory for new callback structure for the next HTTP server's URI */
-static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zarg, const zend_fcall_info *fci, const zend_fcall_info_cache *fcc TSRMLS_DC)
+static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zbase, zval *zarg, const zend_fcall_info *fci, const zend_fcall_info_cache *fcc TSRMLS_DC)
 {
 	php_event_http_cb_t *cb = emalloc(sizeof(php_event_http_cb_t));
 
@@ -32,6 +32,9 @@ static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zarg, const ze
 		Z_ADDREF_P(zarg);
 	}
 	cb->data = zarg;
+
+	cb->base = zbase;
+	Z_ADDREF_P(zbase);
 
 	PHP_EVENT_COPY_FCALL_INFO(cb->fci, cb->fcc, fci, fcc);
 
@@ -47,6 +50,7 @@ static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zarg, const ze
 static void _http_callback(struct evhttp_request *req, void *arg)
 {
 	php_event_http_cb_t *cb = (php_event_http_cb_t *) arg;
+	php_event_base_t *b;
 	php_event_http_req_t *http_req;
 	zend_fcall_info       *pfci;
 	zend_fcall_info_cache *pfcc;
@@ -92,8 +96,17 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
 		zval_ptr_dtor(&retval_ptr);
 	} else {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"An error occurred while invoking the http request callback");
+		if (EG(exception)) {
+			PHP_EVENT_ASSERT(cb->base);
+			PHP_EVENT_FETCH_BASE(b, cb->base);
+			event_base_loopbreak(b->base);
+
+			zval_ptr_dtor(&arg_req);
+			zval_ptr_dtor(&arg_data);
+		} else {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"An error occurred while invoking the http request callback");
+		}
 	}
 
 	zval_ptr_dtor(&arg_req);
@@ -112,6 +125,7 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	zval  *arg_req;
 	zval **args[2];
 	zval  *retval_ptr = NULL;
+	php_event_base_t *b;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(http);
@@ -150,8 +164,17 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
 		zval_ptr_dtor(&retval_ptr);
 	} else {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"An error occurred while invoking the http request callback");
+		if (EG(exception)) {
+			PHP_EVENT_ASSERT(http && http->base);
+			PHP_EVENT_FETCH_BASE(b, http->base);
+			event_base_loopbreak(b->base);
+
+			zval_ptr_dtor(&arg_req);
+			zval_ptr_dtor(&arg_data);
+		} else {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"An error occurred while invoking the http request callback");
+		}
 	}
 
 	zval_ptr_dtor(&arg_req);
@@ -189,6 +212,10 @@ void _php_event_free_http_cb(php_event_http_cb_t *cb)
 	if (cb->data) {
 		zval_ptr_dtor(&cb->data);
 		cb->data = NULL;
+	}
+	if (cb->base) {
+		zval_ptr_dtor(&cb->base);
+		cb->base = NULL;
 	}
 
 	PHP_EVENT_FREE_FCALL_INFO(cb->fci, cb->fcc);
@@ -342,7 +369,7 @@ PHP_METHOD(EventHttp, setCallback)
 
 	PHP_EVENT_FETCH_HTTP(http, zhttp);
 
-	cb = _new_http_cb(zarg, &fci, &fcc TSRMLS_CC);
+	cb = _new_http_cb(http->base, zarg, &fci, &fcc TSRMLS_CC);
 	PHP_EVENT_ASSERT(cb);
 
 	res = evhttp_set_cb(http->ptr, path, _http_callback, (void *) cb);

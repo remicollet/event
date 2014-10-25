@@ -42,6 +42,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 	zval  *arg_self;
 	zval **args[2];
 	zval  *retval_ptr = NULL;
+	php_event_base_t *b;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(bev);
@@ -49,6 +50,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 	PHP_EVENT_ASSERT(bevent == bev->bevent);
 	PHP_EVENT_ASSERT(pfci && pfcc);
 	PHP_EVENT_ASSERT(bev->self);
+	PHP_EVENT_ASSERT(bev->base);
 
 	arg_data = bev->data;
 
@@ -83,15 +85,22 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 		pfci->param_count	 = 2;
 		pfci->no_separation  = 1;
 
-        if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS
-                && retval_ptr) {
-            zval_ptr_dtor(&retval_ptr);
-        } else {
-            php_error_docref(NULL TSRMLS_CC, E_WARNING,
-                    "An error occurred while invoking the callback");
+		if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+			zval_ptr_dtor(&retval_ptr);
+		} else {
+			if (EG(exception)) {
+				PHP_EVENT_ASSERT(bev->base);
+				PHP_EVENT_FETCH_BASE(b, bev->base);
+				event_base_loopbreak(b->base);
+
+				zval_ptr_dtor(&arg_data);
+			} else {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING,
+						"An error occurred while invoking the callback");
+			}
         }
 
-        zval_ptr_dtor(&arg_data);
+		zval_ptr_dtor(&arg_data);
 
 #ifdef HAVE_EVENT_PTHREADS_LIB
 		if (bevent) {
@@ -132,13 +141,14 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	zval  *arg_self;
 	zval **args[3];
 	zval  *retval_ptr = NULL;
+	php_event_base_t *b;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(pfci && pfcc);
 	PHP_EVENT_ASSERT(bevent);
 	PHP_EVENT_ASSERT(bev->bevent == bevent);
 	PHP_EVENT_ASSERT(bev->self);
-
+	PHP_EVENT_ASSERT(bev->base);
 
 	arg_data = bev->data;
 
@@ -178,16 +188,24 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 		pfci->param_count	 = 3;
 		pfci->no_separation  = 1;
 
-        if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS
-                && retval_ptr) {
-            zval_ptr_dtor(&retval_ptr);
-        } else {
-            php_error_docref(NULL TSRMLS_CC, E_WARNING,
-                    "An error occurred while invoking the callback");
-        }
+		if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+			zval_ptr_dtor(&retval_ptr);
+		} else {
+			if (EG(exception)) {
+				PHP_EVENT_ASSERT(bev->base);
+				PHP_EVENT_FETCH_BASE(b, bev->base);
+				event_base_loopbreak(b->base);
 
-        zval_ptr_dtor(&arg_events);
-        zval_ptr_dtor(&arg_data);
+				zval_ptr_dtor(&arg_events);
+				zval_ptr_dtor(&arg_data);
+			} else {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING,
+						"An error occurred while invoking the callback");
+			}
+		}
+
+		zval_ptr_dtor(&arg_events);
+		zval_ptr_dtor(&arg_data);
 
 		PHP_EVENT_ASSERT(bevent);
 #ifdef HAVE_EVENT_PTHREADS_LIB
@@ -297,6 +315,9 @@ PHP_METHOD(EventBufferEvent, __construct)
 	bev->self = zself;
 	Z_ADDREF_P(zself);
 
+	bev->base = zbase;
+	Z_ADDREF_P(zbase);
+
 	bev->input = bev->output = NULL;
 
 	if (ZEND_FCI_INITIALIZED(fci_read)) {
@@ -363,6 +384,10 @@ PHP_METHOD(EventBufferEvent, free)
 		if (bev->self) {
 			zval_ptr_dtor(&bev->self);
 			bev->self = NULL;
+		}
+		if (bev->base) {
+			zval_ptr_dtor(&bev->base);
+			bev->base = NULL;
 		}
 	}
 }
@@ -1058,6 +1083,9 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 
 	bev->self = return_value;
 	Z_ADDREF_P(return_value);
+
+	bev->base = zbase;
+	Z_ADDREF_P(zbase);
 }
 /* }}} */
 
@@ -1134,6 +1162,9 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 
 	bev->self = return_value;
 	Z_ADDREF_P(return_value);
+
+	bev->base = zbase;
+	Z_ADDREF_P(zbase);
 }
 /* }}} */
 

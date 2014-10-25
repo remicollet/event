@@ -18,6 +18,7 @@
 #include "src/common.h"
 #include "src/util.h"
 #include "src/priv.h"
+#include "zend_exceptions.h"
 
 /* {{{ proto EventBase EventBase::__construct([EventConfig cfg = null]); */
 PHP_METHOD(EventBase, __construct)
@@ -122,6 +123,12 @@ PHP_METHOD(EventBase, loop)
 	} else if (event_base_loop(b->base, flags) == -1) {
 		RETURN_FALSE;
 	}
+
+	if (EG(exception)) {
+		zend_throw_exception_object(EG(exception) TSRMLS_CC);
+	}
+	/* Since 2.1.2-alpha we can call event_base_loopcontinue(b->base);*/
+
 	RETVAL_TRUE;
 }
 /* }}} */
@@ -143,6 +150,11 @@ PHP_METHOD(EventBase, dispatch)
 	if (event_base_dispatch(b->base) == -1) {
 		RETURN_FALSE;
 	}
+
+	if (EG(exception)) {
+		zend_throw_exception_object(EG(exception) TSRMLS_CC);
+	}
+
 	RETVAL_TRUE;
 }
 /* }}} */
