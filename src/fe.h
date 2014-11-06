@@ -64,6 +64,7 @@ PHP_METHOD(EventConfig, setMaxDispatchInterval);
 
 PHP_METHOD(EventBufferEvent, __construct);
 PHP_METHOD(EventBufferEvent, free);
+PHP_METHOD(EventBufferEvent, close);
 PHP_METHOD(EventBufferEvent, createPair);
 PHP_METHOD(EventBufferEvent, connect);
 PHP_METHOD(EventBufferEvent, connectHost);

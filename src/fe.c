@@ -554,6 +554,7 @@ const zend_function_entry php_event_config_ce_functions[] = {/* {{{ */
 const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBufferEvent, __construct,       arginfo_bufferevent__construct,    ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
 	PHP_ME(EventBufferEvent, free,              arginfo_event__void,               ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, close,             arginfo_event__void,               ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, connect,           arginfo_bufferevent_connect,       ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, connectHost,       arginfo_bufferevent_connecthost,   ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, getDnsErrorString, arginfo_event__void,               ZEND_ACC_PUBLIC)

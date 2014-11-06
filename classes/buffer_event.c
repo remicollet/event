@@ -393,6 +393,28 @@ PHP_METHOD(EventBufferEvent, free)
 }
 /* }}} */
 
+/* {{{ proto bool EventBufferEvent::close(void); */
+PHP_METHOD(EventBufferEvent, close)
+{
+	zval               *zbevent = getThis();
+	php_event_bevent_t *bev;
+	evutil_socket_t     fd;
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+
+	if (bev->bevent) {
+		fd = bufferevent_getfd(bev->bevent);
+		if (fd != -1) {
+			if (evutil_closesocket(fd) != -1) {
+				RETURN_TRUE;
+			}
+		}
+	}
+
+	RETURN_FALSE;
+}
+/* }}} */
+
 /* {{{ proto array EventBufferEvent::createPair(EventBase base[, int options = 0]);
  *
  * options is one of EVENT_BEV_OPT_* constants, or 0.
