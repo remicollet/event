@@ -527,6 +527,7 @@ const zend_function_entry php_event_base_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBase, gotExit,            arginfo_event__void,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, getTimeOfDayCached, arginfo_event__void,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, reInit,             arginfo_event__void,              ZEND_ACC_PUBLIC)
+	PHP_ME(EventBase, free,               arginfo_event__void,              ZEND_ACC_PUBLIC)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 	PHP_ME(EventBase, updateCacheTime, arginfo_event__void, ZEND_ACC_PUBLIC)
 #endif
