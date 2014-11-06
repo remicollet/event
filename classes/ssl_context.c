@@ -91,11 +91,11 @@ static int passwd_callback(char *buf, int num, int verify, void *data)
 
 /* {{{ set_ca */
 static zend_always_inline void set_ca(SSL_CTX *ctx, const char *cafile, const char *capath TSRMLS_DC) {
-    if (!SSL_CTX_load_verify_locations(ctx, cafile, capath)) {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING,
-        		"Unable to set verify locations `%s' `%s'",
-        		cafile, capath);
-    }
+	if (!SSL_CTX_load_verify_locations(ctx, cafile, capath)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Unable to set verify locations `%s' `%s'",
+				cafile, capath);
+	}
 }
 /* }}} */
 
@@ -103,8 +103,8 @@ static zend_always_inline void set_ca(SSL_CTX *ctx, const char *cafile, const ch
 static zend_always_inline void set_ciphers(SSL_CTX *ctx, const char *cipher_list TSRMLS_DC)
 {
 	if (SSL_CTX_set_cipher_list(ctx, cipher_list) != 1) {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING,
-            	"Failed setting cipher list: `%s'", cipher_list);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Failed setting cipher list: `%s'", cipher_list);
 	}
 }
 /* }}} */
@@ -112,22 +112,22 @@ static zend_always_inline void set_ciphers(SSL_CTX *ctx, const char *cipher_list
 /* {{{ _php_event_ssl_ctx_set_private_key */
 int _php_event_ssl_ctx_set_private_key(SSL_CTX *ctx, const char *private_key TSRMLS_DC)
 {
-    if (private_key) {
-        char resolved_path_buff_pk[MAXPATHLEN];
+	if (private_key) {
+		char resolved_path_buff_pk[MAXPATHLEN];
 
-        if (VCWD_REALPATH(private_key, resolved_path_buff_pk)) {
-            if (SSL_CTX_use_PrivateKey_file(ctx, resolved_path_buff_pk, SSL_FILETYPE_PEM) != 1) {
-                php_error_docref(NULL TSRMLS_CC, E_WARNING,
-                    	"Unable to set private key file `%s'",
-                    	resolved_path_buff_pk);
-                return -1;
-            }
+		if (VCWD_REALPATH(private_key, resolved_path_buff_pk)) {
+			if (SSL_CTX_use_PrivateKey_file(ctx, resolved_path_buff_pk, SSL_FILETYPE_PEM) != 1) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING,
+						"Unable to set private key file `%s'",
+						resolved_path_buff_pk);
+				return -1;
+			}
 
-    		return 0;
-        }
-    }
+			return 0;
+		}
+	}
 
-    return -1;
+	return -1;
 }
 /* }}} */
 
@@ -136,28 +136,28 @@ int _php_event_ssl_ctx_set_local_cert(SSL_CTX *ctx, const char *certfile, const 
 {
 	char resolved_path_buff[MAXPATHLEN];
 
-    if (VCWD_REALPATH(certfile, resolved_path_buff)) {
-        if (SSL_CTX_use_certificate_chain_file(ctx, resolved_path_buff) != 1) {
-            php_error_docref(NULL TSRMLS_CC, E_WARNING,
-            		"SSL_CTX_use_certificate_chain_file failed, file: `%s'", certfile);
-            return -1;
-        }
+	if (VCWD_REALPATH(certfile, resolved_path_buff)) {
+		if (SSL_CTX_use_certificate_chain_file(ctx, resolved_path_buff) != 1) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"SSL_CTX_use_certificate_chain_file failed, file: `%s'", certfile);
+			return -1;
+		}
 
-        if (private_key) {
-        	if (_php_event_ssl_ctx_set_private_key(ctx, private_key TSRMLS_CC)) {
-        		return -1;
-        	}
-        } else {
-            if (SSL_CTX_use_PrivateKey_file(ctx, resolved_path_buff, SSL_FILETYPE_PEM) != 1) {
-                php_error_docref(NULL TSRMLS_CC, E_WARNING,
-                		"Unable to set private key file `%s'",
-                		resolved_path_buff);
-                return -1;
-            }
-        }
-    }
+		if (private_key) {
+			if (_php_event_ssl_ctx_set_private_key(ctx, private_key TSRMLS_CC)) {
+				return -1;
+			}
+		} else {
+			if (SSL_CTX_use_PrivateKey_file(ctx, resolved_path_buff, SSL_FILETYPE_PEM) != 1) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING,
+						"Unable to set private key file `%s'",
+						resolved_path_buff);
+				return -1;
+			}
+		}
+	}
 
-    return 0;
+	return 0;
 }
 /* }}} */
 
@@ -208,8 +208,8 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 				break;
 			case PHP_EVENT_OPT_PASSPHRASE:
 				convert_to_string_ex(ppzval);
-        		SSL_CTX_set_default_passwd_cb_userdata(ctx, ht);
-        		SSL_CTX_set_default_passwd_cb(ctx, passwd_callback);
+				SSL_CTX_set_default_passwd_cb_userdata(ctx, ht);
+				SSL_CTX_set_default_passwd_cb(ctx, passwd_callback);
 				break;
 			case PHP_EVENT_OPT_CA_FILE:
 				convert_to_string_ex(ppzval);
@@ -218,6 +218,48 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 			case PHP_EVENT_OPT_CA_PATH:
 				convert_to_string_ex(ppzval);
 				capath = Z_STRVAL_PP(ppzval);
+				break;
+			case PHP_EVENT_OPT_NO_SSLv2:
+				if (zval_is_true(*ppzval)) {
+					SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+				} else {
+					SSL_CTX_clear_options(ctx, SSL_OP_NO_SSLv2);
+				}
+				break;
+			case PHP_EVENT_OPT_NO_SSLv3:
+				if (zval_is_true(*ppzval)) {
+					SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
+				} else {
+					SSL_CTX_clear_options(ctx, SSL_OP_NO_SSLv3);
+				}
+				break;
+			case PHP_EVENT_OPT_NO_TLSv1:
+				if (zval_is_true(*ppzval)) {
+					SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
+				} else {
+					SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1);
+				}
+				break;
+			case PHP_EVENT_OPT_NO_TLSv1_1:
+				if (zval_is_true(*ppzval)) {
+					SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
+				} else {
+					SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1_1);
+				}
+				break;
+			case PHP_EVENT_OPT_NO_TLSv1_2:
+				if (zval_is_true(*ppzval)) {
+					SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_2);
+				} else {
+					SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1_2);
+				}
+				break;
+			case PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE:
+				if (zval_is_true(*ppzval)) {
+					SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+				} else {
+					SSL_CTX_clear_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+				}
 				break;
 			case PHP_EVENT_OPT_ALLOW_SELF_SIGNED:
 				/* Skip */
@@ -260,7 +302,7 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 	SSL_METHOD *method;
 
 	switch (in_method) {
-    	case PHP_EVENT_SSLv2_CLIENT_METHOD:
+		case PHP_EVENT_SSLv2_CLIENT_METHOD:
 
 #ifdef OPENSSL_NO_SSL2
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
@@ -268,39 +310,51 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 					"OpenSSL library PHP is linked against");
 			return NULL;
 #else
-    		method = (SSL_METHOD *) SSLv2_client_method();
+			method = (SSL_METHOD *) SSLv2_client_method();
 			break;
 #endif
-    	case PHP_EVENT_SSLv3_CLIENT_METHOD:
-    		method = (SSL_METHOD *) SSLv3_client_method();
+		case PHP_EVENT_SSLv3_CLIENT_METHOD:
+			method = (SSL_METHOD *) SSLv3_client_method();
 			break;
-    	case PHP_EVENT_SSLv23_CLIENT_METHOD:
-    		method = (SSL_METHOD *) SSLv23_client_method();
+		case PHP_EVENT_SSLv23_CLIENT_METHOD:
+			method = (SSL_METHOD *) SSLv23_client_method();
 			break;
-    	case PHP_EVENT_TLS_CLIENT_METHOD:
-    		method = (SSL_METHOD *) TLSv1_client_method();
+		case PHP_EVENT_TLS_CLIENT_METHOD:
+			method = (SSL_METHOD *) TLSv1_client_method();
 			break;
-    	case PHP_EVENT_SSLv2_SERVER_METHOD:
+		case PHP_EVENT_SSLv2_SERVER_METHOD:
 #ifdef OPENSSL_NO_SSL2
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
 					"SSLv2 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
 #else
-    		method = (SSL_METHOD *) SSLv2_server_method();
+			method = (SSL_METHOD *) SSLv2_server_method();
 			break;
 #endif
-    	case PHP_EVENT_SSLv3_SERVER_METHOD:
-    		method = (SSL_METHOD *) SSLv3_server_method();
+		case PHP_EVENT_SSLv3_SERVER_METHOD:
+			method = (SSL_METHOD *) SSLv3_server_method();
 			break;
-    	case PHP_EVENT_SSLv23_SERVER_METHOD:
-    		method = (SSL_METHOD *) SSLv23_server_method();
+		case PHP_EVENT_SSLv23_SERVER_METHOD:
+			method = (SSL_METHOD *) SSLv23_server_method();
 			break;
-    	case PHP_EVENT_TLS_SERVER_METHOD:
-    		method = (SSL_METHOD *) TLSv1_server_method();
-    		break;
-    	default:
-    		return NULL;
+		case PHP_EVENT_TLS_SERVER_METHOD:
+			method = (SSL_METHOD *) TLSv1_server_method();
+			break;
+		case PHP_EVENT_TLSv11_CLIENT_METHOD:
+			method = (SSL_METHOD *) TLSv1_1_client_method();
+			break;
+		case PHP_EVENT_TLSv11_SERVER_METHOD:
+			method = (SSL_METHOD *) TLSv1_1_server_method();
+			break;
+		case PHP_EVENT_TLSv12_CLIENT_METHOD:
+			method = (SSL_METHOD *) TLSv1_2_client_method();
+			break;
+		case PHP_EVENT_TLSv12_SERVER_METHOD:
+			method = (SSL_METHOD *) TLSv1_2_server_method();
+			break;
+		default:
+			return NULL;
 	}
 
 	return method;

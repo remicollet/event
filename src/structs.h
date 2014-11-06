@@ -200,15 +200,21 @@ typedef struct {
 #ifdef HAVE_EVENT_OPENSSL_LIB
 
 enum {
-	PHP_EVENT_OPT_LOCAL_CERT        = 1,
-	PHP_EVENT_OPT_LOCAL_PK          = 2,
-	PHP_EVENT_OPT_PASSPHRASE        = 3,
-	PHP_EVENT_OPT_CA_FILE           = 4,
-	PHP_EVENT_OPT_CA_PATH           = 5,
-	PHP_EVENT_OPT_ALLOW_SELF_SIGNED = 6,
-	PHP_EVENT_OPT_VERIFY_PEER       = 7,
-	PHP_EVENT_OPT_VERIFY_DEPTH      = 8,
-	PHP_EVENT_OPT_CIPHERS           = 9
+	PHP_EVENT_OPT_LOCAL_CERT               = 1,
+	PHP_EVENT_OPT_LOCAL_PK                 = 2,
+	PHP_EVENT_OPT_PASSPHRASE               = 3,
+	PHP_EVENT_OPT_CA_FILE                  = 4,
+	PHP_EVENT_OPT_CA_PATH                  = 5,
+	PHP_EVENT_OPT_ALLOW_SELF_SIGNED        = 6,
+	PHP_EVENT_OPT_VERIFY_PEER              = 7,
+	PHP_EVENT_OPT_VERIFY_DEPTH             = 8,
+	PHP_EVENT_OPT_CIPHERS                  = 9,
+	PHP_EVENT_OPT_NO_SSLv2                 = 10,
+	PHP_EVENT_OPT_NO_SSLv3                 = 11,
+	PHP_EVENT_OPT_NO_TLSv1                 = 12,
+	PHP_EVENT_OPT_NO_TLSv1_1               = 13,
+	PHP_EVENT_OPT_NO_TLSv1_2               = 14,
+	PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE = 15
 };
 
 enum {
@@ -219,7 +225,11 @@ enum {
     PHP_EVENT_SSLv2_SERVER_METHOD  = 5,
     PHP_EVENT_SSLv3_SERVER_METHOD  = 6,
     PHP_EVENT_SSLv23_SERVER_METHOD = 7,
-    PHP_EVENT_TLS_SERVER_METHOD    = 8
+    PHP_EVENT_TLS_SERVER_METHOD    = 8,
+    PHP_EVENT_TLSv11_CLIENT_METHOD = 9,
+    PHP_EVENT_TLSv11_SERVER_METHOD = 10,
+    PHP_EVENT_TLSv12_CLIENT_METHOD = 11,
+    PHP_EVENT_TLSv12_SERVER_METHOD = 12
 };
 
 typedef struct _php_event_ssl_context_t {

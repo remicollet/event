@@ -48,6 +48,18 @@
     Now the event loop will break and re-throw the exception.
     Add: EventBase::free method
     Add: EventBufferEvent::close method
+    Add: EventSslContext options:
+      - OPT_NO_SSLv2
+      - OPT_NO_SSLv3
+      - OPT_NO_TLSv1
+      - OPT_NO_TLSv1_1
+      - OPT_NO_TLSv1_2
+      - OPT_CIPHER_SERVER_PREFERENCE
+      - TLSv11_CLIENT_METHOD
+      - TLSv11_SERVER_METHOD
+      - TLSv12_CLIENT_METHOD
+      - TLSv12_SERVER_METHOD
+    (Thanks to Mathieu CARBONNEAUX @ bitbucket.org)
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -189,6 +201,18 @@
     Now the event loop will break and re-throw the exception.
     Add: EventBase::free method
     Add: EventBufferEvent::close method
+    Add: EventSslContext options:
+      - OPT_NO_SSLv2
+      - OPT_NO_SSLv3
+      - OPT_NO_TLSv1
+      - OPT_NO_TLSv1_1
+      - OPT_NO_TLSv1_2
+      - OPT_CIPHER_SERVER_PREFERENCE
+      - TLSv11_CLIENT_METHOD
+      - TLSv11_SERVER_METHOD
+      - TLSv12_CLIENT_METHOD
+      - TLSv12_SERVER_METHOD
+    (Thanks to Mathieu CARBONNEAUX @ bitbucket.org)
   ]]></notes>
     </release>
     <!--}}}-->
