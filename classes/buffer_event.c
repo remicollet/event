@@ -1242,6 +1242,116 @@ PHP_METHOD(EventBufferEvent, sslRenegotiate)
 	bufferevent_ssl_renegotiate(bev->bevent);
 }
 /* }}} */
+
+/* {{{ proto string EventBufferEvent::sslGetCipherInfo(void);
+ *
+ * Returns the current Cipher of the connexion as
+ * SSL_get_current_cipher/SSL_CIPHER_description do. Otherwise FALSE. */
+PHP_METHOD(EventBufferEvent, sslGetCipherInfo)
+{
+	zval               *zbevent = getThis();
+	php_event_bevent_t *bev;
+	struct ssl_st      *ssl;
+	char               *desc;
+	const SSL_CIPHER   *cipher;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
+
+	ssl = bufferevent_openssl_get_ssl(bev->bevent);
+	if (ssl) {
+		cipher = SSL_get_current_cipher(ssl);
+		if (cipher) {
+			desc = SSL_CIPHER_description(cipher, NULL, 128);
+			RETVAL_STRING(desc, 1);
+			OPENSSL_free(desc);
+			return;
+		}
+	}
+
+	RETVAL_FALSE;
+}
+/* }}} */
+
+/* {{{ proto string EventBufferEvent::sslGetCipherName(void);
+ *
+ * Returns the current Cipher Name of the connection as SSL_get_cipher_name does.
+ * returns FALSE, if there is no more error to return. */
+PHP_METHOD(EventBufferEvent, sslGetCipherName)
+{
+	zval               *zbevent = getThis();
+	php_event_bevent_t *bev;
+	struct ssl_st      *ssl;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
+
+	ssl = bufferevent_openssl_get_ssl(bev->bevent);
+	if (ssl) {
+		RETURN_STRING(SSL_get_cipher_name(ssl), 1);
+	}
+	RETVAL_FALSE;
+}
+/* }}} */
+
+/* {{{ proto string EventBufferEvent::sslGetCipherVersion(void);
+ *
+ * Returns the current cipher version of the connection as SSL_get_cipher_version does.
+ * returns FALSE, if there is no more error to return. */
+PHP_METHOD(EventBufferEvent, sslGetCipherVersion)
+{
+	zval               *zbevent  = getThis();
+	php_event_bevent_t *bev;
+	struct ssl_st      *ssl;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
+
+	ssl = bufferevent_openssl_get_ssl(bev->bevent);
+	if (ssl) {
+		RETURN_STRING(SSL_get_cipher_version(ssl), 1);
+	}
+	RETVAL_FALSE;
+}
+/* }}} */
+
+/* {{{ proto string EventBufferEvent::sslGetProtocol(void);
+ *
+ * Returns the current Protocol of the connection as SSL_get_version does,
+ * otherwise FALSE. */
+PHP_METHOD(EventBufferEvent, sslGetProtocol)
+{
+	zval               *zbevent = getThis();
+	php_event_bevent_t *bev;
+	struct ssl_st      *ssl;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	_ret_if_invalid_bevent_ptr(bev);
+
+	ssl = bufferevent_openssl_get_ssl(bev->bevent);
+	if (ssl) {
+		RETURN_STRING(SSL_get_version(ssl), 1);
+	}
+	RETVAL_FALSE;
+}
+/* }}} */
+
 #endif /* HAVE_EVENT_OPENSSL_LIB }}} */
 
 /*

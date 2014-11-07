@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2014-11-06</date>
+  <date>2014-11-07</date>
   <!--{{{ Current version -->
   <version>
     <release>1.11.0</release>
@@ -47,7 +47,12 @@
     Fix: exceptions thrown from EventHttp and EventBufferEvent userspace callbacks were not passed through back to user.
     Now the event loop will break and re-throw the exception.
     Add: EventBase::free method
-    Add: EventBufferEvent::close method
+    Add: EventBufferEvent methods:
+      - close
+      - sslGetCipherInfo
+      - sslGetCipherName
+      - sslGetCipherVersion
+      - sslGetProtocol
     Add: EventSslContext options:
       - OPT_NO_SSLv2
       - OPT_NO_SSLv3
@@ -200,7 +205,12 @@
     Fix: exceptions thrown from EventHttp and EventBufferEvent userspace callbacks were not passed through back to user.
     Now the event loop will break and re-throw the exception.
     Add: EventBase::free method
-    Add: EventBufferEvent::close method
+    Add: EventBufferEvent methods:
+      - close
+      - sslGetCipherInfo
+      - sslGetCipherName
+      - sslGetCipherVersion
+      - sslGetProtocol
     Add: EventSslContext options:
       - OPT_NO_SSLv2
       - OPT_NO_SSLv3
