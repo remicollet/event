@@ -87,6 +87,10 @@ PHP_METHOD(EventBufferEvent, sslFilter);
 PHP_METHOD(EventBufferEvent, sslSocket);
 PHP_METHOD(EventBufferEvent, sslError);
 PHP_METHOD(EventBufferEvent, sslRenegotiate);
+PHP_METHOD(EventBufferEvent, sslGetCipherInfo);
+PHP_METHOD(EventBufferEvent, sslGetCipherName);
+PHP_METHOD(EventBufferEvent, sslGetCipherVersion);
+PHP_METHOD(EventBufferEvent, sslGetProtocol);
 #endif
 
 PHP_METHOD(EventBuffer, __construct);
