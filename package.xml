@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2014-11-07</date>
+  <date>2014-11-10</date>
   <!--{{{ Current version -->
   <version>
     <release>1.11.0</release>
@@ -65,6 +65,8 @@
       - TLSv12_CLIENT_METHOD
       - TLSv12_SERVER_METHOD
     (Thanks to Mathieu CARBONNEAUX @ bitbucket.org)
+    Issue #13: EventBufferEvent::__construct filed to accept a persistent
+    socket client(STREAM_CLIENT_PERSISTENT)
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -223,6 +225,8 @@
       - TLSv12_CLIENT_METHOD
       - TLSv12_SERVER_METHOD
     (Thanks to Mathieu CARBONNEAUX @ bitbucket.org)
+    Issue #13: EventBufferEvent::__construct filed to accept a persistent
+    socket client(STREAM_CLIENT_PERSISTENT)
   ]]></notes>
     </release>
     <!--}}}-->

@@ -28,13 +28,15 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 {
 	php_socket_t  file_desc = -1;
 	php_stream   *stream;
-#ifdef PHP_EVENT_SOCKETS_SUPPORT 
+#ifdef PHP_EVENT_SOCKETS_SUPPORT
 	php_socket   *php_sock;
 #endif
 
 	if (Z_TYPE_PP(ppfd) == IS_RESOURCE) {
 		/* PHP stream or PHP socket resource  */
-		if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, ppfd, -1, NULL, php_file_le_stream())) {
+		if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, ppfd, -1, NULL, php_file_le_stream())
+				|| ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, ppfd, -1, NULL, php_file_le_pstream()))
+		{
 			php_stream_from_zval_no_verify(stream, ppfd);
 
 			if (stream == NULL) {
