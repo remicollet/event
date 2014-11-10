@@ -65,7 +65,7 @@
       - TLSv12_CLIENT_METHOD
       - TLSv12_SERVER_METHOD
     (Thanks to Mathieu CARBONNEAUX @ bitbucket.org)
-    Issue #13: EventBufferEvent::__construct filed to accept a persistent
+    Issue #13: EventBufferEvent::__construct failed to accept a persistent
     socket client(STREAM_CLIENT_PERSISTENT)
   ]]></notes>
   <!--}}}-->
@@ -225,7 +225,7 @@
       - TLSv12_CLIENT_METHOD
       - TLSv12_SERVER_METHOD
     (Thanks to Mathieu CARBONNEAUX @ bitbucket.org)
-    Issue #13: EventBufferEvent::__construct filed to accept a persistent
+    Issue #13: EventBufferEvent::__construct failed to accept a persistent
     socket client(STREAM_CLIENT_PERSISTENT)
   ]]></notes>
     </release>
