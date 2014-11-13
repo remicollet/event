@@ -240,6 +240,7 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 					SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1);
 				}
 				break;
+#ifdef SSL_OP_NO_TLSv1_1
 			case PHP_EVENT_OPT_NO_TLSv1_1:
 				if (zval_is_true(*ppzval)) {
 					SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
@@ -247,6 +248,8 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 					SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1_1);
 				}
 				break;
+#endif
+#ifdef SSL_OP_NO_TLSv1_2
 			case PHP_EVENT_OPT_NO_TLSv1_2:
 				if (zval_is_true(*ppzval)) {
 					SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_2);
@@ -254,6 +257,7 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 					SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1_2);
 				}
 				break;
+#endif
 			case PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE:
 				if (zval_is_true(*ppzval)) {
 					SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
@@ -342,16 +346,44 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 			method = (SSL_METHOD *) TLSv1_server_method();
 			break;
 		case PHP_EVENT_TLSv11_CLIENT_METHOD:
+#ifdef SSL_OP_NO_TLSv1_1
 			method = (SSL_METHOD *) TLSv1_1_client_method();
+#else
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"TLSv1_1 support is not compiled into the "
+					"OpenSSL library PHP is linked against");
+			return NULL;
+#endif
 			break;
 		case PHP_EVENT_TLSv11_SERVER_METHOD:
+#ifdef SSL_OP_NO_TLSv1_1
 			method = (SSL_METHOD *) TLSv1_1_server_method();
+#else
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"TLSv1_1 support is not compiled into the "
+					"OpenSSL library PHP is linked against");
+			return NULL;
+#endif
 			break;
 		case PHP_EVENT_TLSv12_CLIENT_METHOD:
+#ifdef SSL_OP_NO_TLSv1_2
 			method = (SSL_METHOD *) TLSv1_2_client_method();
+#else
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"TLSv1_2 support is not compiled into the "
+					"OpenSSL library PHP is linked against");
+			return NULL;
+#endif
 			break;
 		case PHP_EVENT_TLSv12_SERVER_METHOD:
+#ifdef SSL_OP_NO_TLSv1_2
 			method = (SSL_METHOD *) TLSv1_2_server_method();
+#else
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"TLSv1_2 support is not compiled into the "
+					"OpenSSL library PHP is linked against");
+			return NULL;
+#endif
 			break;
 		default:
 			return NULL;
