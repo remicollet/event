@@ -77,8 +77,10 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
 	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
 	http_req->ptr      = req;
+#if 0
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
 	Z_ADDREF_P(arg_req);
+#endif
 	args[0] = &arg_req;
 
 	if (arg_data) {
@@ -145,8 +147,10 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
 	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
 	http_req->ptr      = req;
+#if 0
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
 	Z_ADDREF_P(arg_req);
+#endif
 	args[0] = &arg_req;
 
 	if (arg_data) {
