@@ -444,6 +444,9 @@ PHP_METHOD(EventSslContext, __construct)
 
 	SSL_CTX_set_options(ectx->ctx, options);
 	set_ssl_ctx_options(ectx->ctx, ectx->ht TSRMLS_CC);
+
+	/* Issue #20 */
+	SSL_CTX_set_session_id_context(ectx->ctx, (unsigned char *)(void *)ectx->ctx, sizeof(ectx->ctx));
 }
 /* }}} */
 
