@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2014-11-20</date>
+  <date>2015-09-15</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.11.2</release>
+    <release>1.11.3</release>
     <api>1.10.0</api>
   </version>
   <stability>
@@ -44,9 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Issue #6: memory leaks in EventHttp callbacks.
-    EventBufferEvent object returned by EventHttpRequest::getBufferEvent() should be freed explicitly,
-    if the method is called from a userspace callback.
+    Issue #20: SSL_GET_PREV_SESSION:session id context uninitialized
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -171,7 +169,23 @@
     <configureoption default="no" name="with-openssl-dir" prompt="openssl installation prefix"/>
   </extsrcrelease>
   <!--{{{ changelog-->
+  <!--{{{ 1.11.3 -->
   <changelog>
+    <release>
+      <version>
+        <release>1.11.3</release>
+        <api>1.10.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Issue #20: SSL_GET_PREV_SESSION:session id context uninitialized
+  ]]></notes>
+      <!--}}}-->
+    </release>
     <!--{{{ 1.11.2 -->
     <release>
       <version>
