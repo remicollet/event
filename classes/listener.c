@@ -117,9 +117,7 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 
 	/* Call user function having proto:
 	 * void cb (EventListener $listener, resource $fd, array $address, mixed $data);
-	 * $address = array ("IP-address", *server* port)
-	 * Note, address contains the server port(not the one user passed to ex.
-	 * evconnlistener_new_bind()!
+	 * $address = array ("IP-address", port)
 	 */
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
