@@ -25,7 +25,7 @@
 {                                                    \
     PHP_EVENT_ASSERT(l && l->listener);              \
     if (!l->listener) {                              \
-        php_error_docref(NULL TSRMLS_CC, E_WARNING,  \
+        php_error_docref(NULL, E_WARNING,  \
                 "EventListener is not initialized"); \
         RETURN_FALSE;                                \
     }                                                \
@@ -176,10 +176,10 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
         pfci->param_count    = 4;
         pfci->no_separation  = 1;
 
-        if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+        if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
             zval_ptr_dtor(&retval_ptr);
         } else {
-            php_error_docref(NULL TSRMLS_CC, E_WARNING,
+            php_error_docref(NULL, E_WARNING,
                     "An error occurred while invoking the callback");
         }
 
@@ -230,10 +230,10 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
         pfci->param_count    = 2;
         pfci->no_separation  = 1;
 
-        if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+        if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
             zval_ptr_dtor(&retval_ptr);
         } else {
-            php_error_docref(NULL TSRMLS_CC, E_WARNING,
+            php_error_docref(NULL, E_WARNING,
                     "An error occurred while invoking the callback");
         }
 
@@ -269,7 +269,7 @@ PHP_METHOD(EventListener, __construct)
 	long                    backlog;
 	struct evconnlistener  *listener;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ofz!llZ",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ofz!llZ",
 				&zbase, php_event_base_ce,
 				&fci, &fcc, &zdata, &flags, &backlog, &ppztarget) == FAILURE) {
 		return;
@@ -297,7 +297,7 @@ PHP_METHOD(EventListener, __construct)
 		} else
 #endif
 			if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget),
-						Z_STRLEN_PP(ppztarget), (struct sockaddr *) &ss, &ss_len TSRMLS_CC) != SUCCESS) {
+						Z_STRLEN_PP(ppztarget), (struct sockaddr *) &ss, &ss_len) != SUCCESS) {
 				ZVAL_NULL(zself);
 				return;
 			}
@@ -311,7 +311,7 @@ PHP_METHOD(EventListener, __construct)
 
 		/* php_event_zval_to_fd reports error
 	 	 * in case if it is not a valid socket resource */
-		fd = php_event_zval_to_fd(ppztarget TSRMLS_CC);
+		fd = php_event_zval_to_fd(ppztarget);
 		if (fd < 0) {
 			ZVAL_NULL(zself);
 			return;
@@ -407,7 +407,7 @@ PHP_METHOD(EventListener, setCallback)
 	zend_fcall_info_cache  fcc       = empty_fcall_info_cache;
 	zval                  *zarg      = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "f!|z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f!|z!",
 				&fci, &fcc, &zarg) == FAILURE) {
 		return;
 	}
@@ -447,7 +447,7 @@ PHP_METHOD(EventListener, setErrorCallback)
 	zend_fcall_info        fci;
 	zend_fcall_info_cache  fcc;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "f",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f",
 				&fci, &fcc) == FAILURE) {
 		return;
 	}
@@ -510,7 +510,7 @@ PHP_METHOD(EventListener, getSocketName)
 	zval                  *zport     = NULL;
 	evutil_socket_t        fd;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z",
 				&zaddress, &zport) == FAILURE) {
 		return;
 	}
@@ -523,7 +523,7 @@ PHP_METHOD(EventListener, getSocketName)
 		RETURN_FALSE;
 	}
 
-	if (_php_event_getsockname(fd, &zaddress, &zport TSRMLS_CC) == FAILURE) {
+	if (_php_event_getsockname(fd, &zaddress, &zport) == FAILURE) {
 		RETURN_FALSE;
 	}
 	RETVAL_TRUE;

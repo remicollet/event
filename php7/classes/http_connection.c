@@ -65,10 +65,10 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	pfci->param_count	 = 2;
 	pfci->no_separation  = 1;
 
-    if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+    if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
         zval_ptr_dtor(&retval_ptr);
     } else {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING,
+        php_error_docref(NULL, E_WARNING,
                 "An error occurred while invoking the http connection close callback");
     }
 
@@ -104,14 +104,14 @@ PHP_METHOD(EventHttpConnection, __construct)
 	long                     options;
 	SSL                     *ssl;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OO!sl|O!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OO!sl|O!",
 				&zbase, php_event_base_ce, &zdns_base, php_event_dns_base_ce,
 				&address, &address_len, &port,
 				&zctx, php_event_ssl_context_ce) == FAILURE) {
 		return;
 	}
 #else /* < Libevent-2.1.0-alpha */
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OO!sl",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OO!sl",
 				&zbase, php_event_base_ce, &zdns_base, php_event_dns_base_ce,
 				&address, &address_len, &port) == FAILURE) {
 		return;
@@ -135,7 +135,7 @@ PHP_METHOD(EventHttpConnection, __construct)
 
 		ssl = SSL_new(ectx->ctx);
 		if (!ssl) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to create SSL handle");
+			php_error_docref(NULL, E_WARNING, "Failed to create SSL handle");
 			return;
 		}
 		/* Attach ectx to ssl for callbacks */
@@ -149,7 +149,7 @@ PHP_METHOD(EventHttpConnection, __construct)
 
 		bevent = bufferevent_openssl_socket_new(b->base, -1, ssl, BUFFEREVENT_SSL_CONNECTING, options);
 		if (!bevent) {
-			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Failed to allocate bufferevent filter");
+			php_error_docref(NULL, E_ERROR, "Failed to allocate bufferevent filter");
 			return;
 		}
 	}
@@ -225,7 +225,7 @@ PHP_METHOD(EventHttpConnection, getPeer)
 	char *address;
 	unsigned short port;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zz",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz",
 				&zaddress, &zport) == FAILURE) {
 		return;
 	}
@@ -253,7 +253,7 @@ PHP_METHOD(EventHttpConnection, setLocalAddress)
 	char                  *address;
 	int                    address_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&address, &address_len) == FAILURE) {
 		return;
 	}
@@ -272,7 +272,7 @@ PHP_METHOD(EventHttpConnection, setLocalPort)
 	php_event_http_conn_t *evcon;
 	long                   port;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&port) == FAILURE) {
 		return;
 	}
@@ -291,7 +291,7 @@ PHP_METHOD(EventHttpConnection, setTimeout)
 	php_event_http_conn_t *evcon;
 	long                   timeout;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&timeout) == FAILURE) {
 		return;
 	}
@@ -310,7 +310,7 @@ PHP_METHOD(EventHttpConnection, setMaxHeadersSize)
 	php_event_http_conn_t *evcon;
 	long                   max_size;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&max_size) == FAILURE) {
 		return;
 	}
@@ -329,7 +329,7 @@ PHP_METHOD(EventHttpConnection, setMaxBodySize)
 	php_event_http_conn_t *evcon;
 	long                   max_size;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&max_size) == FAILURE) {
 		return;
 	}
@@ -348,7 +348,7 @@ PHP_METHOD(EventHttpConnection, setRetries)
 	php_event_http_conn_t *evcon;
 	long                   retries;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&retries) == FAILURE) {
 		return;
 	}
@@ -373,14 +373,14 @@ PHP_METHOD(EventHttpConnection, makeRequest)
 	char                  *uri;
 	int                    uri_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ols",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ols",
 				&zreq, php_event_http_req_ce, &type, &uri, &uri_len) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_HTTP_REQ(http_req, zreq);
 	if (!http_req->ptr) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"Unconfigured HTTP request object passed");
 		return;
 	}
@@ -404,7 +404,7 @@ PHP_METHOD(EventHttpConnection, setCloseCallback)
 	zend_fcall_info_cache  fcc    = empty_fcall_info_cache;
 	zval                  *zarg   = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "f|z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f|z",
 				&fci, &fcc, &zarg) == FAILURE) {
 		return;
 	}

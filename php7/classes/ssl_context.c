@@ -90,9 +90,9 @@ static int passwd_callback(char *buf, int num, int verify, void *data)
 /* }}} */
 
 /* {{{ set_ca */
-static zend_always_inline void set_ca(SSL_CTX *ctx, const char *cafile, const char *capath TSRMLS_DC) {
+static zend_always_inline void set_ca(SSL_CTX *ctx, const char *cafile, const char *capath) {
 	if (!SSL_CTX_load_verify_locations(ctx, cafile, capath)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"Unable to set verify locations `%s' `%s'",
 				cafile, capath);
 	}
@@ -100,24 +100,24 @@ static zend_always_inline void set_ca(SSL_CTX *ctx, const char *cafile, const ch
 /* }}} */
 
 /* {{{ set_ciphers */
-static zend_always_inline void set_ciphers(SSL_CTX *ctx, const char *cipher_list TSRMLS_DC)
+static zend_always_inline void set_ciphers(SSL_CTX *ctx, const char *cipher_list)
 {
 	if (SSL_CTX_set_cipher_list(ctx, cipher_list) != 1) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"Failed setting cipher list: `%s'", cipher_list);
 	}
 }
 /* }}} */
 
 /* {{{ _php_event_ssl_ctx_set_private_key */
-int _php_event_ssl_ctx_set_private_key(SSL_CTX *ctx, const char *private_key TSRMLS_DC)
+int _php_event_ssl_ctx_set_private_key(SSL_CTX *ctx, const char *private_key)
 {
 	if (private_key) {
 		char resolved_path_buff_pk[MAXPATHLEN];
 
 		if (VCWD_REALPATH(private_key, resolved_path_buff_pk)) {
 			if (SSL_CTX_use_PrivateKey_file(ctx, resolved_path_buff_pk, SSL_FILETYPE_PEM) != 1) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				php_error_docref(NULL, E_WARNING,
 						"Unable to set private key file `%s'",
 						resolved_path_buff_pk);
 				return -1;
@@ -132,24 +132,24 @@ int _php_event_ssl_ctx_set_private_key(SSL_CTX *ctx, const char *private_key TSR
 /* }}} */
 
 /* {{{ _php_event_ssl_ctx_set_local_cert */
-int _php_event_ssl_ctx_set_local_cert(SSL_CTX *ctx, const char *certfile, const char *private_key TSRMLS_DC)
+int _php_event_ssl_ctx_set_local_cert(SSL_CTX *ctx, const char *certfile, const char *private_key)
 {
 	char resolved_path_buff[MAXPATHLEN];
 
 	if (VCWD_REALPATH(certfile, resolved_path_buff)) {
 		if (SSL_CTX_use_certificate_chain_file(ctx, resolved_path_buff) != 1) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"SSL_CTX_use_certificate_chain_file failed, file: `%s'", certfile);
 			return -1;
 		}
 
 		if (private_key) {
-			if (_php_event_ssl_ctx_set_private_key(ctx, private_key TSRMLS_CC)) {
+			if (_php_event_ssl_ctx_set_private_key(ctx, private_key)) {
 				return -1;
 			}
 		} else {
 			if (SSL_CTX_use_PrivateKey_file(ctx, resolved_path_buff, SSL_FILETYPE_PEM) != 1) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				php_error_docref(NULL, E_WARNING,
 						"Unable to set private key file `%s'",
 						resolved_path_buff);
 				return -1;
@@ -162,7 +162,7 @@ int _php_event_ssl_ctx_set_local_cert(SSL_CTX *ctx, const char *certfile, const 
 /* }}} */
 
 /* {{{ set_ssl_ctx_options */
-static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
+static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 {
 	HashPosition  pos         = 0;
 	zend_bool     got_ciphers = 0;
@@ -181,7 +181,7 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 		type = zend_hash_get_current_key_ex(ht, &key, &keylen,
 				&idx, 0, &pos);
 		if (type != HASH_KEY_IS_LONG) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"Invalid option `%s'", key);
 			continue;
 		}
@@ -197,9 +197,9 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 
 				if (zend_hash_index_find(ht, PHP_EVENT_OPT_LOCAL_PK,
 						(void **) &ppz_private_key) == SUCCESS) {
-					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), Z_STRVAL_PP(ppz_private_key) TSRMLS_CC);
+					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), Z_STRVAL_PP(ppz_private_key));
 				} else {
-					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), NULL TSRMLS_CC);
+					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), NULL);
 				}
 				break;
 			}
@@ -282,26 +282,26 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht TSRMLS_DC)
 			case PHP_EVENT_OPT_CIPHERS:
 				got_ciphers = 1;
 				convert_to_string_ex(ppzval);
-				set_ciphers(ctx, Z_STRVAL_PP(ppzval) TSRMLS_CC);
+				set_ciphers(ctx, Z_STRVAL_PP(ppzval));
 				break;
 			default:
-				php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				php_error_docref(NULL, E_WARNING,
 						"Unknown option %ld", idx);
 		}
 	}
 
 	if (got_ciphers == 0) {
-		set_ciphers(ctx, "DEFAULT" TSRMLS_CC);
+		set_ciphers(ctx, "DEFAULT");
 	}
 
 	if (cafile || capath) {
-		set_ca(ctx, cafile, capath TSRMLS_CC);
+		set_ca(ctx, cafile, capath);
 	}
 }
 /* }}} */
 
 /* {{{ get_ssl_method */
-static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
+static zend_always_inline SSL_METHOD *get_ssl_method(long in_method)
 {
 	SSL_METHOD *method;
 
@@ -309,7 +309,7 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 		case PHP_EVENT_SSLv2_CLIENT_METHOD:
 
 #ifdef OPENSSL_NO_SSL2
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"SSLv2 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
@@ -328,7 +328,7 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 			break;
 		case PHP_EVENT_SSLv2_SERVER_METHOD:
 #ifdef OPENSSL_NO_SSL2
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"SSLv2 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
@@ -349,7 +349,7 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 #ifdef SSL_OP_NO_TLSv1_1
 			method = (SSL_METHOD *) TLSv1_1_client_method();
 #else
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"TLSv1_1 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
@@ -359,7 +359,7 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 #ifdef SSL_OP_NO_TLSv1_1
 			method = (SSL_METHOD *) TLSv1_1_server_method();
 #else
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"TLSv1_1 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
@@ -369,7 +369,7 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 #ifdef SSL_OP_NO_TLSv1_2
 			method = (SSL_METHOD *) TLSv1_2_client_method();
 #else
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"TLSv1_2 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
@@ -379,7 +379,7 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 #ifdef SSL_OP_NO_TLSv1_2
 			method = (SSL_METHOD *) TLSv1_2_server_method();
 #else
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"TLSv1_2 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
@@ -410,21 +410,21 @@ PHP_METHOD(EventSslContext, __construct)
 	SSL_CTX                 *ctx;
 	long                     options    = SSL_OP_ALL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lh",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "lh",
 				&in_method, &ht_options) == FAILURE) {
 		return;
 	}
 
-	method = get_ssl_method(in_method TSRMLS_CC);
+	method = get_ssl_method(in_method);
 	if (method == NULL) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 			"Invalid method passed: %ld", in_method);
 		return;
 	}
 
 	ctx = SSL_CTX_new(method);
 	if (ctx == NULL) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"Creation of a new SSL_CTX object failed");
 		return;
 	}
@@ -434,7 +434,7 @@ PHP_METHOD(EventSslContext, __construct)
 
 	ALLOC_HASHTABLE(ectx->ht);
 	if (zend_hash_init_ex(ectx->ht, zend_hash_num_elements(ht_options), NULL, ZVAL_PTR_DTOR, 0, 0) == FAILURE) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"Failed to allocate hashtable for options");
 		FREE_HASHTABLE(ectx->ht);
 		return;
@@ -443,7 +443,7 @@ PHP_METHOD(EventSslContext, __construct)
 			(void *) NULL, sizeof(zval *));
 
 	SSL_CTX_set_options(ectx->ctx, options);
-	set_ssl_ctx_options(ectx->ctx, ectx->ht TSRMLS_CC);
+	set_ssl_ctx_options(ectx->ctx, ectx->ht);
 
 	/* Issue #20 */
 	SSL_CTX_set_session_id_context(ectx->ctx, (unsigned char *)(void *)ectx->ctx, sizeof(ectx->ctx));

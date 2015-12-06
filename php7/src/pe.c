@@ -94,7 +94,7 @@ static zval **get_ssl_option(const HashTable *ht, ulong idx)
 
 
 /* {{{ event_pending_prop_read */
-static int event_pending_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_pending_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_t *e = (php_event_t *) obj;
 
@@ -109,7 +109,7 @@ static int event_pending_prop_read(php_event_abstract_object_t *obj, zval **retv
 
 
 /* {{{ event_data_prop_get_ptr_ptr */
-static zval **event_data_prop_get_ptr_ptr(php_event_abstract_object_t *obj TSRMLS_DC)
+static zval **event_data_prop_get_ptr_ptr(php_event_abstract_object_t *obj)
 {
 	php_event_t *e = (php_event_t *) obj;
 
@@ -122,7 +122,7 @@ static zval **event_data_prop_get_ptr_ptr(php_event_abstract_object_t *obj TSRML
 /* }}} */
 
 /* {{{ event_data_prop_read  */
-static int event_data_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_data_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_t *e = (php_event_t *) obj;
 
@@ -135,7 +135,7 @@ static int event_data_prop_read(php_event_abstract_object_t *obj, zval **retval 
 /* }}} */
 
 /* {{{ event_data_prop_write */
-static int event_data_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+static int event_data_prop_write(php_event_abstract_object_t *obj, zval *value)
 {
 	php_event_t *e = (php_event_t *) obj;
 
@@ -149,7 +149,7 @@ static int event_data_prop_write(php_event_abstract_object_t *obj, zval *value T
 
 
 /* {{{ event_buffer_length_prop_read */
-static int event_buffer_length_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_buffer_length_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_buffer_t *b = (php_event_buffer_t *) obj;
 
@@ -167,7 +167,7 @@ static int event_buffer_length_prop_read(php_event_abstract_object_t *obj, zval 
 /* }}} */
 
 /* {{{ event_buffer_contiguous_space_prop_read */
-static int event_buffer_contiguous_space_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_buffer_contiguous_space_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_buffer_t *b = (php_event_buffer_t *) obj;
 
@@ -182,7 +182,7 @@ static int event_buffer_contiguous_space_prop_read(php_event_abstract_object_t *
 
 #ifdef HAVE_EVENT_EXTRA_LIB
 /* {{{ event_listener_fd_prop_read */
-static int event_listener_fd_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_listener_fd_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_listener_t *l = (php_event_listener_t *) obj;
 	evutil_socket_t fd;
@@ -208,7 +208,7 @@ static int event_listener_fd_prop_read(php_event_abstract_object_t *obj, zval **
 #endif
 
 /* {{{ event_bevent_priority_prop_write*/
-static int event_bevent_priority_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+static int event_bevent_priority_prop_write(php_event_abstract_object_t *obj, zval *value)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 	long priority           = Z_LVAL_P(value);
@@ -221,7 +221,7 @@ static int event_bevent_priority_prop_write(php_event_abstract_object_t *obj, zv
 /* }}} */
 
 /* {{{ event_bevent_priority_prop_read */
-static int event_bevent_priority_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_bevent_priority_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	ALLOC_INIT_ZVAL(*retval);
 	return SUCCESS;
@@ -229,7 +229,7 @@ static int event_bevent_priority_prop_read(php_event_abstract_object_t *obj, zva
 /* }}} */
 
 /* {{{ event_bevent_fd_prop_read */
-static int event_bevent_fd_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_bevent_fd_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_bevent_t *b = (php_event_bevent_t *) obj;
 	evutil_socket_t fd;
@@ -257,7 +257,7 @@ static int event_bevent_fd_prop_read(php_event_abstract_object_t *obj, zval **re
 /* }}} */
 
 /* {{{ event_bevent_input_prop_read */
-static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 
@@ -286,7 +286,7 @@ static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval *
 /* }}} */
 
 /* {{{ event_bevent_output_prop_read */
-static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 
@@ -316,7 +316,7 @@ static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval 
 
 
 /* {{{ event_bevent_input_prop_ptr_ptr */
-static zval **event_bevent_input_prop_ptr_ptr(php_event_abstract_object_t *obj TSRMLS_DC)
+static zval **event_bevent_input_prop_ptr_ptr(php_event_abstract_object_t *obj)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 
@@ -325,7 +325,7 @@ static zval **event_bevent_input_prop_ptr_ptr(php_event_abstract_object_t *obj T
 /* }}} */
 
 /* {{{ event_bevent_output_prop_ptr_ptr */
-static zval **event_bevent_output_prop_ptr_ptr(php_event_abstract_object_t *obj TSRMLS_DC)
+static zval **event_bevent_output_prop_ptr_ptr(php_event_abstract_object_t *obj)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
 
@@ -336,7 +336,7 @@ static zval **event_bevent_output_prop_ptr_ptr(php_event_abstract_object_t *obj 
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 /* {{{ event_bevent_allow_ssl_dirty_shutdown_prop_write*/
-static int event_bevent_allow_ssl_dirty_shutdown_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+static int event_bevent_allow_ssl_dirty_shutdown_prop_write(php_event_abstract_object_t *obj, zval *value)
 {
 	php_event_bevent_t *bev      = (php_event_bevent_t *) obj;
 	int allow_ssl_dirty_shutdown = (int) Z_BVAL_P(value);
@@ -347,7 +347,7 @@ static int event_bevent_allow_ssl_dirty_shutdown_prop_write(php_event_abstract_o
 /* }}} */
 
 /* {{{ event_bevent_allow_ssl_dirty_shutdown_prop_read */
-static int event_bevent_allow_ssl_dirty_shutdown_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_bevent_allow_ssl_dirty_shutdown_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *)obj;
 
@@ -362,13 +362,13 @@ static int event_bevent_allow_ssl_dirty_shutdown_prop_read(php_event_abstract_ob
 #include "classes/ssl_context.h"
 
 /* {{{ event_ssl_context_local_cert_prop_write*/
-static int event_ssl_context_local_cert_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+static int event_ssl_context_local_cert_prop_write(php_event_abstract_object_t *obj, zval *value)
 {
 	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) obj;
 	zval **val                    = get_ssl_option(ectx->ht, PHP_EVENT_OPT_LOCAL_PK);
 	char *private_key             = val ? Z_STRVAL_PP(val) : NULL;
 
-	if (_php_event_ssl_ctx_set_local_cert(ectx->ctx, Z_STRVAL_P(value), private_key TSRMLS_CC)) {
+	if (_php_event_ssl_ctx_set_local_cert(ectx->ctx, Z_STRVAL_P(value), private_key)) {
 		return FAILURE;
 	}
 
@@ -377,7 +377,7 @@ static int event_ssl_context_local_cert_prop_write(php_event_abstract_object_t *
 /* }}} */
 
 /* {{{ event_ssl_context_local_cert_prop_read */
-static int event_ssl_context_local_cert_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_ssl_context_local_cert_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) obj;
 	zval **val                    = get_ssl_option(ectx->ht, PHP_EVENT_OPT_LOCAL_CERT);
@@ -394,11 +394,11 @@ static int event_ssl_context_local_cert_prop_read(php_event_abstract_object_t *o
 /* }}} */
 
 /* {{{ event_ssl_context_local_pk_prop_write */
-static int event_ssl_context_local_pk_prop_write(php_event_abstract_object_t *obj, zval *value TSRMLS_DC)
+static int event_ssl_context_local_pk_prop_write(php_event_abstract_object_t *obj, zval *value)
 {
 	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) obj;
 
-	if (_php_event_ssl_ctx_set_private_key(ectx->ctx, Z_STRVAL_P(value) TSRMLS_CC)) {
+	if (_php_event_ssl_ctx_set_private_key(ectx->ctx, Z_STRVAL_P(value))) {
 		return FAILURE;
 	}
 
@@ -407,7 +407,7 @@ static int event_ssl_context_local_pk_prop_write(php_event_abstract_object_t *ob
 /* }}} */
 
 /* {{{ event_ssl_context_local_pk_prop_read */
-static int event_ssl_context_local_pk_prop_read(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int event_ssl_context_local_pk_prop_read(php_event_abstract_object_t *obj, zval **retval)
 {
 	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) obj;
 	zval **val                    = get_ssl_option(ectx->ht, PHP_EVENT_OPT_LOCAL_PK);

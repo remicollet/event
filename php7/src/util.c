@@ -40,7 +40,7 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 			php_stream_from_zval_no_verify(stream, ppfd);
 
 			if (stream == NULL) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed obtaining fd");
+				php_error_docref(NULL, E_WARNING, "Failed obtaining fd");
 				return -1;
 			}
 
@@ -70,7 +70,7 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 				if (php_sock->error) {
 					if (!php_sock->blocking && php_sock->error == EINPROGRESS) {
 #ifdef PHP_EVENT_DEBUG
-						php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Operation in progress");
+						php_error_docref(NULL, E_NOTICE, "Operation in progress");
 #endif
 					} else
 						return -1;
@@ -78,11 +78,11 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 
 				return php_sock->bsd_socket;
 			} else {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				php_error_docref(NULL, E_WARNING,
 						"either valid PHP stream or valid PHP socket resource expected");
 			}
 #else
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"valid PHP stream resource expected");
 #endif
 			return -1;
@@ -91,12 +91,12 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 		/* Numeric fd */
 		file_desc = Z_LVAL_PP(ppfd);
 		if (file_desc < 0) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid file descriptor passed");
+			php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
 			return -1;
 		}
 	} else {
 		/* Invalid fd */
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid file descriptor passed");
+		php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
 		return -1;
 	}
 
@@ -106,7 +106,7 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 #else
 	if (file_desc == INVALID_SOCKET) {
 #endif
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fcntl: invalid file descriptor passed");
+		php_error_docref(NULL, E_WARNING, "fcntl: invalid file descriptor passed");
 		return -1;
 	}
 
@@ -123,7 +123,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 	long                  port       = -1;
 
 	if (getsockname(fd, sa, &sa_len)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"Unable to retreive socket name, errno: %d", errno);
 		return FAILURE;
 	}
@@ -180,7 +180,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 			break;
 #endif
 		default:
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"Unsupported address family: %d", sa->sa_family);
 			return FAILURE;
 	}

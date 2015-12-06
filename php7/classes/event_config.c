@@ -47,7 +47,7 @@ PHP_METHOD(EventConfig, avoidMethod)
 	int                 method_len;
 	php_event_config_t *cfg;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&method, &method_len) == FAILURE) {
 		return;
 	}
@@ -70,7 +70,7 @@ PHP_METHOD(EventConfig, requireFeatures)
 	long                feature;
 	php_event_config_t *cfg;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&feature) == FAILURE) {
 		return;
 	}
@@ -98,7 +98,7 @@ PHP_METHOD(EventConfig, setMaxDispatchInterval)
 	long                   min_priority;
 	php_event_config_t    *cfg;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "dll",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "dll",
 				&max_interval, &max_callbacks, &min_priority) == FAILURE) {
 		return;
 	}

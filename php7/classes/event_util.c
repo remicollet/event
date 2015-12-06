@@ -26,13 +26,13 @@ PHP_METHOD(EventUtil, getLastSocketErrno)
 {
 	zval **ppzfd = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|Z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|Z!",
 				&ppzfd) == FAILURE) {
 		return;
 	}
 
 	if (ppzfd) {
-		evutil_socket_t fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);
+		evutil_socket_t fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
 
 		if (fd < 0) {
 			RETURN_FALSE;
@@ -52,13 +52,13 @@ PHP_METHOD(EventUtil, getLastSocketError)
 {
 	zval **ppzfd = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|Z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|Z!",
 				&ppzfd) == FAILURE) {
 		return;
 	}
 
 	if (ppzfd) {
-		evutil_socket_t fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);
+		evutil_socket_t fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
 
 		if (fd < 0) {
 			RETURN_FALSE;
@@ -97,17 +97,17 @@ PHP_METHOD(EventUtil, getSocketName)
 	zval             *zport    = NULL;
 	evutil_socket_t   fd;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Zz|z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Zz|z",
 				&ppzfd, &zaddress, &zport) == FAILURE) {
 		return;
 	}
 
-	fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);
+	fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
 	if (fd < 0) {
 		RETURN_FALSE;
 	}
 
-	if (_php_event_getsockname(fd, &zaddress, &zport TSRMLS_CC) == FAILURE) {
+	if (_php_event_getsockname(fd, &zaddress, &zport) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -133,12 +133,12 @@ PHP_METHOD(EventUtil, setSocketOption)
 	zval            **sec      , **usec;
 	evutil_socket_t   fd;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ZllZ",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ZllZ",
 				&ppzfd, &level, &optname, &zoptval) == FAILURE) {
 		return;
 	}
 
-	fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
+	fd = php_event_zval_to_fd(ppzfd);
 	if (fd == -1) {
 		RETURN_FALSE;
 	}
@@ -154,11 +154,11 @@ PHP_METHOD(EventUtil, setSocketOption)
 			opt_ht = HASH_OF(*zoptval);
 
 			if (zend_hash_find(opt_ht, l_onoff_key, sizeof(l_onoff_key), (void **) &l_onoff) == FAILURE) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "no key \"%s\" passed in optval", l_onoff_key);
+				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", l_onoff_key);
 				RETURN_FALSE;
 			}
 			if (zend_hash_find(opt_ht, l_linger_key, sizeof(l_linger_key), (void **) &l_linger) == FAILURE) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "no key \"%s\" passed in optval", l_linger_key);
+				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", l_linger_key);
 				RETURN_FALSE;
 			}
 
@@ -182,11 +182,11 @@ PHP_METHOD(EventUtil, setSocketOption)
 			opt_ht = HASH_OF(*zoptval);
 
 			if (zend_hash_find(opt_ht, sec_key, sizeof(sec_key), (void **) &sec) == FAILURE) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "no key \"%s\" passed in optval", sec_key);
+				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", sec_key);
 				RETURN_FALSE;
 			}
 			if (zend_hash_find(opt_ht, usec_key, sizeof(usec_key), (void **) &usec) == FAILURE) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "no key \"%s\" passed in optval", usec_key);
+				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", usec_key);
 				RETURN_FALSE;
 			}
 
@@ -213,7 +213,7 @@ PHP_METHOD(EventUtil, setSocketOption)
 	retval = setsockopt(fd, level, optname, opt_ptr, optlen);
 	if (retval != 0) {
 		if (retval != -2) { /* error, but message already emitted */
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"Unable to set socket option, errno: %d", errno);
 		}
 
@@ -228,12 +228,12 @@ PHP_METHOD(EventUtil, setSocketOption)
  *    Gets numeric file descriptor of a socket. */
 PHP_METHOD(EventUtil, getSocketFd) {
 	zval **ppzfd = NULL;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z",
 				&ppzfd) == FAILURE) {
 		return;
 	}
 
-	RETVAL_LONG(ppzfd ? php_event_zval_to_fd(ppzfd TSRMLS_CC) : -1);
+	RETVAL_LONG(ppzfd ? php_event_zval_to_fd(ppzfd) : -1);
 }
 /* }}} */
 

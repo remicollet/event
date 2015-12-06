@@ -27,7 +27,7 @@ PHP_METHOD(EventBase, __construct)
 	php_event_config_t *cfg;
 	zval               *zcfg = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|O!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|O!",
 				&zcfg, php_event_config_ce) == FAILURE) {
 		return;
 	}
@@ -105,7 +105,7 @@ PHP_METHOD(EventBase, priorityInit)
 	long              n_priorities;
 	php_event_base_t *b;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&n_priorities) == FAILURE) {
 		return;
 	}
@@ -127,7 +127,7 @@ PHP_METHOD(EventBase, loop)
 	long              flags = -1;
 	php_event_base_t *b;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|l",
 				&flags) == FAILURE) {
 		return;
 	}
@@ -144,7 +144,7 @@ PHP_METHOD(EventBase, loop)
 	}
 
 	if (EG(exception)) {
-		zend_throw_exception_object(EG(exception) TSRMLS_CC);
+		zend_throw_exception_object(EG(exception));
 	}
 	/* Since 2.1.2-alpha we can call event_base_loopcontinue(b->base);*/
 
@@ -171,7 +171,7 @@ PHP_METHOD(EventBase, dispatch)
 	}
 
 	if (EG(exception)) {
-		zend_throw_exception_object(EG(exception) TSRMLS_CC);
+		zend_throw_exception_object(EG(exception));
 	}
 
 	RETVAL_TRUE;
@@ -187,7 +187,7 @@ PHP_METHOD(EventBase, exit)
 	double            timeout = -1;
 	int               res;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|d",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|d",
 				&timeout) == FAILURE) {
 		return;
 	}
@@ -239,7 +239,7 @@ PHP_METHOD(EventBase, set)
 	zval             *zevent;
 	php_event_t      *e;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
 				&zevent, php_event_ce) == FAILURE) {
 		return;
 	}
@@ -247,7 +247,7 @@ PHP_METHOD(EventBase, set)
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
 	if (php_event_is_pending(e->event)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Can't modify pending event");
+		php_error_docref(NULL, E_WARNING, "Can't modify pending event");
 		RETURN_FALSE;
 	}
 

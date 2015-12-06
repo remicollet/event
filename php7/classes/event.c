@@ -73,11 +73,11 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 		pfci->param_count	 = 1;
 		pfci->no_separation  = 1;
 
-        if (zend_call_function(pfci, e->fcc TSRMLS_CC) == SUCCESS
+        if (zend_call_function(pfci, e->fcc) == SUCCESS
                 && retval_ptr) {
             zval_ptr_dtor(&retval_ptr);
         } else {
-            php_error_docref(NULL TSRMLS_CC, E_WARNING,
+            php_error_docref(NULL, E_WARNING,
                     "An error occurred while invoking the callback");
         }
 
@@ -136,11 +136,11 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
         pfci->param_count    = 3;
         pfci->no_separation  = 1;
 
-        if (zend_call_function(pfci, e->fcc TSRMLS_CC) == SUCCESS
+        if (zend_call_function(pfci, e->fcc) == SUCCESS
                 && retval_ptr) {
             zval_ptr_dtor(&retval_ptr);
         } else {
-            php_error_docref(NULL TSRMLS_CC, E_WARNING,
+            php_error_docref(NULL, E_WARNING,
                     "An error occurred while invoking the callback");
         }
 
@@ -190,11 +190,11 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 		pfci->param_count	 = 2;
 		pfci->no_separation  = 1;
 
-        if (zend_call_function(pfci, e->fcc TSRMLS_CC) == SUCCESS
+        if (zend_call_function(pfci, e->fcc) == SUCCESS
                 && retval_ptr) {
             zval_ptr_dtor(&retval_ptr);
         } else {
-            php_error_docref(NULL TSRMLS_CC, E_WARNING,
+            php_error_docref(NULL, E_WARNING,
                     "An error occurred while invoking the callback");
         }
 
@@ -223,7 +223,7 @@ PHP_METHOD(Event, __construct)
 	php_event_t            *e;
 	struct event           *event;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OZlf|z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OZlf|z",
 				&zbase, php_event_base_ce, &ppzfd, &what, &fci, &fcc, &arg) == FAILURE) {
 		return;
 	}
@@ -231,7 +231,7 @@ PHP_METHOD(Event, __construct)
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
 	if (what & ~(EV_TIMEOUT | EV_READ | EV_WRITE | EV_SIGNAL | EV_PERSIST | EV_ET)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid mask");
+		php_error_docref(NULL, E_WARNING, "Invalid mask");
 		ZVAL_NULL(zself);
 		return;
 	}
@@ -239,14 +239,14 @@ PHP_METHOD(Event, __construct)
 	if (what & EV_SIGNAL) {
 		fd = zval_to_signum(ppzfd);
 		if (fd == -1) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid signal passed");
+			php_error_docref(NULL, E_WARNING, "Invalid signal passed");
 			ZVAL_NULL(zself);
 			return;
 		}
 	} else if (what & EV_TIMEOUT) {
 		fd = -1;
 	} else {
-		fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);
+		fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
 		if (fd < 0) {
 			ZVAL_NULL(zself);
 			return;
@@ -257,11 +257,11 @@ PHP_METHOD(Event, __construct)
 
 	/* TODO: check if a signum bound to different event bases */
 
-	e = (php_event_t *) zend_object_store_get_object(zself TSRMLS_CC);
+	e = (php_event_t *) zend_object_store_get_object(zself);
 
 	event = event_new(b->base, fd, what, event_cb, (void *) e);
 	if (!event) {
-		php_error_docref(NULL TSRMLS_CC, E_ERROR, "event_new failed");
+		php_error_docref(NULL, E_ERROR, "event_new failed");
 		ZVAL_NULL(zself);
 		return;
 	}
@@ -325,7 +325,7 @@ PHP_METHOD(Event, set)
 	zend_fcall_info_cache   fcc     = empty_fcall_info_cache;
 	zval                   *arg     = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "OZ!|lfz!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OZ!|lfz!",
 				&zbase, php_event_base_ce, &ppzfd,
 				&what, &fci, &fcc, &arg) == FAILURE) {
 		return;
@@ -335,17 +335,17 @@ PHP_METHOD(Event, set)
 
 	if (what != -1) {
 		if (what & ~(EV_TIMEOUT | EV_READ | EV_WRITE | EV_SIGNAL | EV_PERSIST | EV_ET)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid events mask");
+			php_error_docref(NULL, E_WARNING, "Invalid events mask");
 			RETURN_FALSE;
 		}
 
 		if (what & EV_SIGNAL) {
 			if (zval_to_signum(ppzfd) == -1) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid signal passed");
+				php_error_docref(NULL, E_WARNING, "Invalid signal passed");
 				RETURN_FALSE;
 			}
 		} else {
-			fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);
+			fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
 			if (fd < 0) {
 				RETURN_FALSE;
 			}
@@ -355,7 +355,7 @@ PHP_METHOD(Event, set)
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
 	if (php_event_is_pending(e->event)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Can't modify pending event");
+		php_error_docref(NULL, E_WARNING, "Can't modify pending event");
 		RETURN_FALSE;
 	}
 
@@ -437,7 +437,7 @@ PHP_METHOD(Event, add)
 	double       timeout = -1;
 	int          res;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|d",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|d",
 				&timeout) == FAILURE) {
 		return;
 	}
@@ -454,7 +454,7 @@ PHP_METHOD(Event, add)
 	}
 
 	if (res) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed adding event");
+		php_error_docref(NULL, E_WARNING, "Failed adding event");
 		RETURN_FALSE;
 	}
 	RETVAL_TRUE;
@@ -475,7 +475,7 @@ PHP_METHOD(Event, del)
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
 	if (e->event == NULL || event_del(e->event)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed deletting event");
+		php_error_docref(NULL, E_WARNING, "Failed deletting event");
 		RETURN_FALSE;
 	}
 	RETVAL_TRUE;
@@ -498,7 +498,7 @@ PHP_METHOD(Event, removeTimer)
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
 	if (event_remove_timer(e->event)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed deletting event");
+		php_error_docref(NULL, E_WARNING, "Failed deletting event");
 		RETURN_FALSE;
 	}
 	RETVAL_TRUE;
@@ -514,7 +514,7 @@ PHP_METHOD(Event, setPriority)
 	php_event_t *e;
 	long         priority;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&priority) == FAILURE) {
 		return;
 	}
@@ -522,7 +522,7 @@ PHP_METHOD(Event, setPriority)
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
 	if (event_priority_set(e->event, priority)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to set event priority: %ld", priority);
+		php_error_docref(NULL, E_WARNING, "Unable to set event priority: %ld", priority);
 		RETURN_FALSE;
 	}
 	RETVAL_TRUE;
@@ -537,7 +537,7 @@ PHP_METHOD(Event, pending)
 	php_event_t *e;
 	long         flags;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&flags) == FAILURE) {
 		return;
 	}
@@ -564,7 +564,7 @@ PHP_METHOD(Event, timer)
 	php_event_t           *e;
 	struct event          *event;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Of|z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Of|z",
 				&zbase, php_event_base_ce, &fci, &fcc, &arg) == FAILURE) {
 		return;
 	}
@@ -609,7 +609,7 @@ PHP_METHOD(Event, setTimer)
 	zend_fcall_info_cache  fcc    = empty_fcall_info_cache;
 	zval                  *arg    = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Of|z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Of|z!",
 				&zbase, php_event_base_ce,
 				&fci, &fcc, &arg) == FAILURE) {
 		return;
@@ -620,7 +620,7 @@ PHP_METHOD(Event, setTimer)
 	PHP_EVENT_FETCH_EVENT(e, zevent);
 
 	if (evtimer_pending(e->event, NULL)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Can't modify pending timer");
+		php_error_docref(NULL, E_WARNING, "Can't modify pending timer");
 		RETURN_FALSE;
 		return;
 	}
@@ -666,7 +666,7 @@ PHP_METHOD(Event, signal)
 	struct event          *event;
 
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Olf|z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Olf|z",
 				&zbase, php_event_base_ce, &signum, &fci, &fcc, &arg) == FAILURE) {
 		return;
 	}
@@ -674,7 +674,7 @@ PHP_METHOD(Event, signal)
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
 	if (signum < 0 || signum >= NSIG) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid signal passed");
+		php_error_docref(NULL, E_WARNING, "Invalid signal passed");
 		RETURN_FALSE;
 	}
 

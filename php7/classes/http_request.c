@@ -26,7 +26,7 @@
 #define _check_http_req_ptr(http_req)               \
 {                                                   \
     if (!http_req->ptr) {                           \
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, \
+        php_error_docref(NULL, E_WARNING, \
                 "Invalid HTTP request object");     \
         RETURN_FALSE;                               \
     }                                               \
@@ -37,7 +37,7 @@
 #define _check_http_req_type(type)                                            \
 {                                                                             \
     if (type & ~(PHP_EVENT_REQ_HEADER_INPUT | PHP_EVENT_REQ_HEADER_OUTPUT)) { \
-        php_error_docref(NULL TSRMLS_CC, E_WARNING,                           \
+        php_error_docref(NULL, E_WARNING,                           \
                 "Invalid HTTP request type passed: %ld", type);               \
         RETURN_FALSE;                                                         \
     }                                                                         \
@@ -110,10 +110,10 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)*/
 	/*evhttp_request_own(http_req->ptr);*/
 
-	if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+	if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
 		zval_ptr_dtor(&retval_ptr);
 	} else {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"An error occurred while invoking the http request callback");
 	}
 
@@ -136,7 +136,7 @@ PHP_METHOD(EventHttpRequest, __construct)
 	struct evhttp_request *req;
 
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "f|z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f|z",
 				&fci, &fcc, &zarg) == FAILURE) {
 		return;
 	}
@@ -488,7 +488,7 @@ PHP_METHOD(EventHttpRequest, sendError)
 	char                 *reason = NULL;
 	int                   reason_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|s!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l|s!",
 				&error, &reason, &reason_len) == FAILURE) {
 		return;
 	}
@@ -514,7 +514,7 @@ PHP_METHOD(EventHttpRequest, sendReply)
 	zval                 *zbuf = NULL;
 	php_event_buffer_t   *b;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls|O!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ls|O!",
 				&code, &reason, &reason_len,
 				&zbuf, php_event_buffer_ce) == FAILURE) {
 		return;
@@ -544,7 +544,7 @@ PHP_METHOD(EventHttpRequest, sendReplyChunk)
 	zval                 *zbuf;
 	php_event_buffer_t   *b;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
 				&zbuf, php_event_buffer_ce) == FAILURE) {
 		return;
 	}
@@ -599,7 +599,7 @@ PHP_METHOD(EventHttpRequest, sendReplyStart)
 	char                 *reason;
 	int                   reason_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ls",
 				&code, &reason, &reason_len) == FAILURE) {
 		return;
 	}
@@ -655,7 +655,7 @@ PHP_METHOD(EventHttpRequest, addHeader)
 	struct evkeyvalq     *headers;
 	long                  type;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssl",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ssl",
 				&key, &key_len, &value, &value_len, &type) == FAILURE) {
 		return;
 	}
@@ -709,7 +709,7 @@ PHP_METHOD(EventHttpRequest, removeHeader)
 	struct evkeyvalq     *headers;
 	long                  type;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sl",
 				&key, &key_len, &type) == FAILURE) {
 		return;
 	}
@@ -743,7 +743,7 @@ PHP_METHOD(EventHttpRequest, findHeader)
 	long                  type;
 	const char *val;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sl",
 				&key, &key_len, &type) == FAILURE) {
 		return;
 	}

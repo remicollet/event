@@ -35,7 +35,7 @@ PHP_METHOD(EventDnsBase, __construct)
 	php_event_dns_base_t *dnsb;
 	zend_bool             initialize;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ob",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ob",
 				&zbase, php_event_base_ce, &initialize) == FAILURE) {
 		return;
 	}
@@ -62,14 +62,14 @@ PHP_METHOD(EventDnsBase, parseResolvConf)
 	int                   filename_len;
 	int                   ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ls",
 				&flags, &filename, &filename_len) == FAILURE) {
 		return;
 	}
 
 	if (flags & ~(DNS_OPTION_NAMESERVERS | DNS_OPTION_SEARCH | DNS_OPTION_MISC
 				| DNS_OPTIONS_ALL)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"Invalid flags");
 		RETURN_FALSE;
 	}
@@ -102,7 +102,7 @@ PHP_METHOD(EventDnsBase, parseResolvConf)
 				break;
 		}
 
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", err);
+		php_error_docref(NULL, E_WARNING, "%s", err);
 	}
 
 	RETVAL_TRUE;
@@ -121,7 +121,7 @@ PHP_METHOD(EventDnsBase, addNameserverIp)
 	char                 *ip;
 	int                   ip_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&ip, &ip_len) == FAILURE) {
 		return;
 	}
@@ -146,7 +146,7 @@ PHP_METHOD(EventDnsBase, loadHosts)
 	char                 *hosts;
 	int                   hosts_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&hosts, &hosts_len) == FAILURE) {
 		return;
 	}
@@ -189,7 +189,7 @@ PHP_METHOD(EventDnsBase, addSearch)
 	char                 *domain;
 	int                   domain_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&domain, &domain_len) == FAILURE) {
 		return;
 	}
@@ -208,7 +208,7 @@ PHP_METHOD(EventDnsBase, setSearchNdots)
 	zval                 *zdns_base = getThis();
 	long                  ndots;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&ndots) == FAILURE) {
 		return;
 	}
@@ -230,7 +230,7 @@ PHP_METHOD(EventDnsBase, setOption)
 	char                 *value;
 	int                   value_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ss",
 				&option, &option_len, &value, &value_len) == FAILURE) {
 		return;
 	}

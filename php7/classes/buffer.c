@@ -20,14 +20,14 @@
 #include "src/priv.h"
 
 /* {{{ _get_pos */
-static int _get_pos(struct evbuffer_ptr *out_ptr, const long pos, struct evbuffer *buf TSRMLS_DC)
+static int _get_pos(struct evbuffer_ptr *out_ptr, const long pos, struct evbuffer *buf)
 {
 	if (pos < 0) {
 		return FAILURE;
 	}
 
 	if (evbuffer_ptr_set(buf, out_ptr, pos, EVBUFFER_PTR_SET) == -1) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"Failed to set position to %ld", pos);
 		return FAILURE;
 	}
@@ -60,7 +60,7 @@ PHP_METHOD(EventBuffer, freeze)
 	php_event_buffer_t *b;
 	zend_bool           at_front;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "b",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "b",
 				&at_front) == FAILURE) {
 		return;
 	}
@@ -83,7 +83,7 @@ PHP_METHOD(EventBuffer, unfreeze)
 	php_event_buffer_t *b;
 	zend_bool           at_front;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "b",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "b",
 				&at_front) == FAILURE) {
 		return;
 	}
@@ -99,7 +99,7 @@ PHP_METHOD(EventBuffer, unfreeze)
 /* }}} */
 
 /* {{{ proto void EventBuffer::lock(void);
- * Acquire the lock on an evbuffer. 
+ * Acquire the lock on an evbuffer.
  * Has no effect if locking was not enabled with evbuffer_enable_locking.
  */
 PHP_METHOD(EventBuffer, lock)
@@ -157,7 +157,7 @@ PHP_METHOD(EventBuffer, enableLocking)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::add(string data); 
+/* {{{ proto bool EventBuffer::add(string data);
  *
  * Append data to the end of an event buffer.
  */
@@ -167,7 +167,7 @@ PHP_METHOD(EventBuffer, add)
 	zval                *zbuf    = getThis();
 	zval               **ppzdata;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z",
 				&ppzdata) == FAILURE) {
 		return;
 	}
@@ -198,7 +198,7 @@ PHP_METHOD(EventBuffer, read)
 	long                ret;
 	char               *data;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&max_bytes) == FAILURE) {
 		return;
 	}
@@ -218,7 +218,7 @@ PHP_METHOD(EventBuffer, read)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::addBuffer(EventBuffer buf); 
+/* {{{ proto bool EventBuffer::addBuffer(EventBuffer buf);
  * Move all data from the buffer provided in buf parameter to the current instance of EventBuffer.
  * This is a destructive add. The data from one buffer moves into the other buffer. However, no unnecessary memory copies occur.
  */
@@ -229,7 +229,7 @@ PHP_METHOD(EventBuffer, addBuffer)
 	zval               *zbuf_dst = getThis();
 	zval               *zbuf_src;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
 				&zbuf_src, php_event_buffer_ce) == FAILURE) {
 		return;
 	}
@@ -245,7 +245,7 @@ PHP_METHOD(EventBuffer, addBuffer)
 }
 /* }}} */
 
-/* {{{ proto int EventBuffer::appendFrom(EventBuffer buf, int len); 
+/* {{{ proto int EventBuffer::appendFrom(EventBuffer buf, int len);
  * Moves exactly len bytes from buf to the end of current instance of EventBuffer
  */
 PHP_METHOD(EventBuffer, appendFrom)
@@ -256,7 +256,7 @@ PHP_METHOD(EventBuffer, appendFrom)
 	zval               *zbuf_src;
 	long                len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Ol",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ol",
 				&zbuf_src, php_event_buffer_ce, &len) == FAILURE) {
 		return;
 	}
@@ -268,7 +268,7 @@ PHP_METHOD(EventBuffer, appendFrom)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::expand(int len); 
+/* {{{ proto bool EventBuffer::expand(int len);
  * Alters the last chunk of memory in the buffer, or adds a new chunk, such that the buffer is now large enough to contain datlen bytes without any further allocations.
  */
 PHP_METHOD(EventBuffer, expand)
@@ -277,7 +277,7 @@ PHP_METHOD(EventBuffer, expand)
 	zval               *zbuf = getThis();
 	long                len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&len) == FAILURE) {
 		return;
 	}
@@ -292,7 +292,7 @@ PHP_METHOD(EventBuffer, expand)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::prepend(string data); 
+/* {{{ proto bool EventBuffer::prepend(string data);
  *
  * Prepend data to the front of the event buffer.
  */
@@ -302,7 +302,7 @@ PHP_METHOD(EventBuffer, prepend)
 	zval                *zbuf    = getThis();
 	zval               **ppzdata;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z",
 				&ppzdata) == FAILURE) {
 		return;
 	}
@@ -319,7 +319,7 @@ PHP_METHOD(EventBuffer, prepend)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::prependBuffer(EventBuffer buf); 
+/* {{{ proto bool EventBuffer::prependBuffer(EventBuffer buf);
  * Behaves as EventBuffer::addBuffer, except that it moves data to the front of the buffer.
  */
 PHP_METHOD(EventBuffer, prependBuffer)
@@ -329,7 +329,7 @@ PHP_METHOD(EventBuffer, prependBuffer)
 	zval               *zbuf_dst = getThis();
 	zval               *zbuf_src;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
 				&zbuf_src, php_event_buffer_ce) == FAILURE) {
 		return;
 	}
@@ -356,7 +356,7 @@ PHP_METHOD(EventBuffer, drain)
 	php_event_buffer_t *b;
 	long                len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&len) == FAILURE) {
 		return;
 	}
@@ -388,7 +388,7 @@ PHP_METHOD(EventBuffer, copyout)
 	long                ret;
 	char               *data;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zl",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zl",
 				&zdata, &max_bytes) == FAILURE) {
 		return;
 	}
@@ -431,7 +431,7 @@ PHP_METHOD(EventBuffer, readLine)
 	char               *res;
 	size_t              len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&eol_style) == FAILURE) {
 		return;
 	}
@@ -473,7 +473,7 @@ PHP_METHOD(EventBuffer, search)
 	struct evbuffer_ptr ptr_start, ptr_end, ptr_res;
 
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|ll",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s|ll",
 				&what, &what_len,
 				&start_pos,
 				&end_pos) == FAILURE) {
@@ -482,13 +482,13 @@ PHP_METHOD(EventBuffer, search)
 
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
-	if (start_pos != -1 
-			&& _get_pos(&ptr_start, start_pos, b->buf TSRMLS_CC) == FAILURE) {
+	if (start_pos != -1
+			&& _get_pos(&ptr_start, start_pos, b->buf) == FAILURE) {
 		start_pos = -1;
 	}
 	if (end_pos != -1 &&
 		 	(end_pos > evbuffer_get_length(b->buf)
-			 || _get_pos(&ptr_end, end_pos, b->buf TSRMLS_CC) == FAILURE)) {
+			 || _get_pos(&ptr_end, end_pos, b->buf) == FAILURE)) {
 		end_pos = -1;
 	}
 
@@ -521,15 +521,15 @@ PHP_METHOD(EventBuffer, searchEol)
 
 	struct evbuffer_ptr ptr_start, ptr_res;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ll",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|ll",
 				&start_pos, &eol_style) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
-	if (start_pos != -1 
-			&& _get_pos(&ptr_start, start_pos, b->buf TSRMLS_CC) == FAILURE) {
+	if (start_pos != -1
+			&& _get_pos(&ptr_start, start_pos, b->buf) == FAILURE) {
 		start_pos = -1;
 	}
 
@@ -561,7 +561,7 @@ PHP_METHOD(EventBuffer, pullup)
 	long                size;
 	unsigned char      *mem;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&size) == FAILURE) {
 		return;
 	}
@@ -594,12 +594,12 @@ PHP_METHOD(EventBuffer, write)
 	long                 res;
 	long                 howmuch = -1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z|l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z|l",
 				&ppzfd, &howmuch) == FAILURE) {
 		return;
 	}
 
-	fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
+	fd = php_event_zval_to_fd(ppzfd);
 	if (fd == -1) {
 		RETURN_FALSE;
 	}
@@ -635,12 +635,12 @@ PHP_METHOD(EventBuffer, readFrom)
 	long                 res;
 	long                 howmuch = -1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z|l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z|l",
 				&ppzfd, &howmuch) == FAILURE) {
 		return;
 	}
 
-	fd = php_event_zval_to_fd(ppzfd TSRMLS_CC);
+	fd = php_event_zval_to_fd(ppzfd);
 	if (fd == -1) {
 		RETURN_FALSE;
 	}
@@ -674,14 +674,14 @@ PHP_METHOD(EventBuffer, substr)
 	long                   n_read   = 0;
 	int                    i;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l|l",
 				&n_start, &n_length) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
-	if (_get_pos(&ptr, n_start, b->buf TSRMLS_CC) == FAILURE) {
+	if (_get_pos(&ptr, n_start, b->buf) == FAILURE) {
 		RETURN_FALSE;
 	}
 

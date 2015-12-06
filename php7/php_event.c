@@ -103,7 +103,7 @@ ZEND_GET_MODULE(event)
 
 
 /* {{{ event_generic_object_free_storage */
-static zend_always_inline void event_generic_object_free_storage(void *ptr TSRMLS_DC)
+static zend_always_inline void event_generic_object_free_storage(void *ptr)
 {
 	php_event_abstract_object_t *obj;
 
@@ -111,14 +111,14 @@ static zend_always_inline void event_generic_object_free_storage(void *ptr TSRML
 
 	obj = (php_event_abstract_object_t *) ptr;
 
-	zend_object_std_dtor(&obj->zo TSRMLS_CC);
+	zend_object_std_dtor(&obj->zo);
 
 	efree(ptr);
 }
 /* }}} */
 
 /* {{{ event_object_free_storage */
-static void event_object_free_storage(void *ptr TSRMLS_DC)
+static void event_object_free_storage(void *ptr)
 {
 	php_event_t *e = (php_event_t *) ptr;
 
@@ -144,12 +144,12 @@ static void event_object_free_storage(void *ptr TSRMLS_DC)
 
 	PHP_EVENT_FREE_FCALL_INFO(e->fci, e->fcc);
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
 /* {{{ event_base_object_free_storage */
-static void event_base_object_free_storage(void *ptr TSRMLS_DC)
+static void event_base_object_free_storage(void *ptr)
 {
 	php_event_base_t *b = (php_event_base_t *) ptr;
 
@@ -161,12 +161,12 @@ static void event_base_object_free_storage(void *ptr TSRMLS_DC)
 		b->base = NULL;
 	}
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
 /* {{{ event_config_object_free_storage*/
-static void event_config_object_free_storage(void *ptr TSRMLS_DC)
+static void event_config_object_free_storage(void *ptr)
 {
 	php_event_config_t *cfg = (php_event_config_t *) ptr;
 
@@ -176,12 +176,12 @@ static void event_config_object_free_storage(void *ptr TSRMLS_DC)
 		event_config_free(cfg->ptr);
 	}
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
 /* {{{ event_bevent_object_free_storage */
-static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
+static void event_bevent_object_free_storage(void *ptr)
 {
 	php_event_bevent_t *b = (php_event_bevent_t *) ptr;
 
@@ -222,12 +222,12 @@ static void event_bevent_object_free_storage(void *ptr TSRMLS_DC)
 		}
 	}
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
 /* {{{ event_buffer_object_free_storage */
-static void event_buffer_object_free_storage(void *ptr TSRMLS_DC)
+static void event_buffer_object_free_storage(void *ptr)
 {
 	php_event_buffer_t *b = (php_event_buffer_t *) ptr;
 
@@ -243,14 +243,14 @@ static void event_buffer_object_free_storage(void *ptr TSRMLS_DC)
 		evbuffer_free(b->buf);
 	}
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
 #ifdef HAVE_EVENT_EXTRA_LIB
 
 /* {{{ event_dns_base_object_free_storage */
-static void event_dns_base_object_free_storage(void *ptr TSRMLS_DC)
+static void event_dns_base_object_free_storage(void *ptr)
 {
 	php_event_dns_base_t *dnsb = (php_event_dns_base_t *) ptr;
 
@@ -263,12 +263,12 @@ static void event_dns_base_object_free_storage(void *ptr TSRMLS_DC)
 		evdns_base_free(dnsb->dns_base, 1);
 	}
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
 /* {{{ event_listener_object_free_storage */
-static void event_listener_object_free_storage(void *ptr TSRMLS_DC)
+static void event_listener_object_free_storage(void *ptr)
 {
 	php_event_listener_t *l = (php_event_listener_t *) ptr;
 
@@ -292,12 +292,12 @@ static void event_listener_object_free_storage(void *ptr TSRMLS_DC)
 		l->listener = NULL;
 	}
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
 /* {{{ event_http_conn_object_free_storage */
-static void event_http_conn_object_free_storage(void *ptr TSRMLS_DC)
+static void event_http_conn_object_free_storage(void *ptr)
 {
 	php_event_http_conn_t *evcon = (php_event_http_conn_t *) ptr;
 
@@ -330,12 +330,12 @@ static void event_http_conn_object_free_storage(void *ptr TSRMLS_DC)
 		evcon->conn = NULL;
 	}
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
 /* {{{ event_http_object_free_storage */
-static void event_http_object_free_storage(void *ptr TSRMLS_DC)
+static void event_http_object_free_storage(void *ptr)
 {
 	php_event_http_t *http = (php_event_http_t *) ptr;
 	php_event_http_cb_t *cb, *cb_next;
@@ -368,12 +368,12 @@ static void event_http_object_free_storage(void *ptr TSRMLS_DC)
 		http->ptr = NULL;
 	}
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
 /* {{{ event_http_req_object_free_storage */
-static void event_http_req_object_free_storage(void *ptr TSRMLS_DC)
+static void event_http_req_object_free_storage(void *ptr)
 {
 	php_event_http_req_t *http_req = (php_event_http_req_t *) ptr;
 
@@ -403,7 +403,7 @@ static void event_http_req_object_free_storage(void *ptr TSRMLS_DC)
 	}
 #endif
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 
@@ -412,7 +412,7 @@ static void event_http_req_object_free_storage(void *ptr TSRMLS_DC)
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
 /* {{{ event_ssl_context_object_free_storage */
-static void event_ssl_context_object_free_storage(void *ptr TSRMLS_DC)
+static void event_ssl_context_object_free_storage(void *ptr)
 {
 	php_event_ssl_context_t *ectx = (php_event_ssl_context_t *) ptr;
 
@@ -427,18 +427,18 @@ static void event_ssl_context_object_free_storage(void *ptr TSRMLS_DC)
 		ectx->ht = NULL;
 	}
 
-	event_generic_object_free_storage(ptr TSRMLS_CC);
+	event_generic_object_free_storage(ptr);
 }
 /* }}} */
 #endif
 
 
 /* {{{ register_object */
-static zend_always_inline zend_object_value register_object(zend_class_entry *ce, void *obj, zend_objects_store_dtor_t func_dtor, zend_objects_free_object_storage_t func_free_storage TSRMLS_DC)
+static zend_always_inline zend_object_value register_object(zend_class_entry *ce, void *obj, zend_objects_store_dtor_t func_dtor, zend_objects_free_object_storage_t func_free_storage)
 {
 	zend_object_value retval;
 
-	retval.handle   = zend_objects_store_put(obj, func_dtor, func_free_storage, NULL TSRMLS_CC);
+	retval.handle   = zend_objects_store_put(obj, func_dtor, func_free_storage, NULL);
 	retval.handlers = &object_handlers;
 
 	return retval;
@@ -448,7 +448,7 @@ static zend_always_inline zend_object_value register_object(zend_class_entry *ce
 /* {{{ object_new
  * Allocates new object with it's properties.
  * size is a size of struct implementing php_event_abstract_object_t */
-static void *object_new(zend_class_entry *ce, size_t size TSRMLS_DC)
+static void *object_new(zend_class_entry *ce, size_t size)
 {
 	php_event_abstract_object_t *obj;
 	zend_class_entry *ce_parent = ce;
@@ -462,7 +462,7 @@ static void *object_new(zend_class_entry *ce, size_t size TSRMLS_DC)
 	zend_hash_find(&classes, ce_parent->name, ce_parent->name_length + 1,
 			(void **) &obj->prop_handler);
 
-	zend_object_std_init(&obj->zo, ce TSRMLS_CC);
+	zend_object_std_init(&obj->zo, ce);
 	object_properties_init(&obj->zo, ce);
 
 	return (void *) obj;
@@ -472,86 +472,86 @@ static void *object_new(zend_class_entry *ce, size_t size TSRMLS_DC)
 
 /* {{{ event_object_create
  * Event object ctor */
-static zend_object_value event_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_object_free_storage TSRMLS_CC);
+			event_object_free_storage);
 }
 /* }}} */
 
 /* {{{ event_base_object_create
  * EventBase object ctor */
-static zend_object_value event_base_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_base_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_base_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_base_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_base_object_free_storage TSRMLS_CC);
+			event_base_object_free_storage);
 }
 /* }}} */
 
 /* {{{ event_config_object_create
  * EventConfig object ctor */
-static zend_object_value event_config_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_config_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_config_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_config_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_config_object_free_storage TSRMLS_CC);
+			event_config_object_free_storage);
 }
 /* }}} */
 
 /* {{{ event_bevent_object_create
  * EventBufferEvent object ctor */
-static zend_object_value event_bevent_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_bevent_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_bevent_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_bevent_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_bevent_object_free_storage TSRMLS_CC);
+			event_bevent_object_free_storage);
 }
 /* }}} */
 
 /* {{{ event_buffer_object_create
  * EventBuffer object ctor */
-static zend_object_value event_buffer_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_buffer_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_buffer_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_buffer_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_buffer_object_free_storage TSRMLS_CC);
+			event_buffer_object_free_storage);
 }
 /* }}} */
 
 /* {{{ event_util_object_create
  * EventUtil object ctor */
-static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_util_object_create(zend_class_entry *ce)
 {
 	php_event_abstract_object_t *obj;
 
 	/* EventUtil is a singleton. This function must never be called */
 	PHP_EVENT_ASSERT(0);
 
-	obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_abstract_object_t) TSRMLS_CC);
+	obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_abstract_object_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_generic_object_free_storage TSRMLS_CC);
+			event_generic_object_free_storage);
 }
 /* }}} */
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
 /* {{{ event_ssl_context_object_create
  * EventSslContext object ctor */
-static zend_object_value event_ssl_context_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_ssl_context_object_create(zend_class_entry *ce)
 {
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *)
-		object_new(ce, sizeof(php_event_ssl_context_t) TSRMLS_CC);
+		object_new(ce, sizeof(php_event_ssl_context_t));
 
 	return register_object(ce, (void *) obj,
 			(zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_ssl_context_object_free_storage TSRMLS_CC);
+			event_ssl_context_object_free_storage);
 }
 /* }}} */
 #endif
@@ -560,56 +560,56 @@ static zend_object_value event_ssl_context_object_create(zend_class_entry *ce TS
 
 /* {{{ event_dns_base_object_create
  * EventDnsBase object ctor */
-static zend_object_value event_dns_base_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_dns_base_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_dns_base_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_dns_base_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_dns_base_object_free_storage TSRMLS_CC);
+			event_dns_base_object_free_storage);
 }
 /* }}} */
 
 /* {{{ event_listener_object_create
  * EventListener object ctor */
-static zend_object_value event_listener_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_listener_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_listener_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_listener_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_listener_object_free_storage TSRMLS_CC);
+			event_listener_object_free_storage);
 }
 /* }}} */
 
 /* {{{ event_http_conn_object_create
  * EventHttpConnection object ctor */
-static zend_object_value event_http_conn_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_http_conn_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_conn_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_conn_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_http_conn_object_free_storage TSRMLS_CC);
+			event_http_conn_object_free_storage);
 }
 /* }}} */
 
 /* {{{ event_http_object_create
  * EventHttp object ctor */
-static zend_object_value event_http_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_http_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_http_object_free_storage TSRMLS_CC);
+			event_http_object_free_storage);
 }
 /* }}} */
 
 /* {{{ event_http_req_object_create
  * EventHttpRequest object ctor */
-static zend_object_value event_http_req_object_create(zend_class_entry *ce TSRMLS_DC)
+static zend_object_value event_http_req_object_create(zend_class_entry *ce)
 {
-	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_req_t) TSRMLS_CC);
+	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_req_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_http_req_object_free_storage TSRMLS_CC);
+			event_http_req_object_free_storage);
 }
 /* }}} */
 
@@ -622,7 +622,7 @@ static void fatal_error_cb(int err)
 {
 	TSRMLS_FETCH();
 
-	php_error_docref(NULL TSRMLS_CC, E_ERROR,
+	php_error_docref(NULL, E_ERROR,
 			"libevent detected a non-recoverable internal error, code: %d", err);
 }
 /* }}} */
@@ -658,30 +658,30 @@ static void log_cb(int severity, const char *msg)
 			error_type = E_NOTICE;
 	}
 
-	php_error_docref(NULL TSRMLS_CC, error_type, "%s", msg);
+	php_error_docref(NULL, error_type, "%s", msg);
 }
 /* }}} */
 
 
 /* {{{ read_property_default */
-static int read_property_default(php_event_abstract_object_t *obj, zval **retval TSRMLS_DC)
+static int read_property_default(php_event_abstract_object_t *obj, zval **retval)
 {
 	*retval = NULL;
-	php_error_docref(NULL TSRMLS_CC, E_ERROR, "Cannot read property");
+	php_error_docref(NULL, E_ERROR, "Cannot read property");
 	return FAILURE;
 }
 /* }}} */
 
 /* {{{ write_property_default */
-static int write_property_default(php_event_abstract_object_t *obj, zval *newval TSRMLS_DC)
+static int write_property_default(php_event_abstract_object_t *obj, zval *newval)
 {
-	php_error_docref(NULL TSRMLS_CC, E_ERROR, "Cannot write property");
+	php_error_docref(NULL, E_ERROR, "Cannot write property");
 	return FAILURE;
 }
 /* }}} */
 
 /* {{{ add_property */
-static void add_property(HashTable *h, const char *name, size_t name_len, php_event_prop_read_t read_func, php_event_prop_write_t write_func, php_event_prop_get_prop_ptr_ptr_t get_ptr_ptr_func TSRMLS_DC) {
+static void add_property(HashTable *h, const char *name, size_t name_len, php_event_prop_read_t read_func, php_event_prop_write_t write_func, php_event_prop_get_prop_ptr_ptr_t get_ptr_ptr_func) {
 	php_event_prop_handler_t p;
 
 	p.name             = (char *) name;
@@ -694,7 +694,7 @@ static void add_property(HashTable *h, const char *name, size_t name_len, php_ev
 /* }}} */
 
 /* {{{ read_property */
-static zval *read_property(zval *object, zval *member, int type, const zend_literal *key TSRMLS_DC)
+static zval *read_property(zval *object, zval *member, int type, const zend_literal *key)
 {
 	zval                         tmp_member;
 	zval                        *retval;
@@ -703,7 +703,7 @@ static zval *read_property(zval *object, zval *member, int type, const zend_lite
 	int                          ret;
 
 	ret = FAILURE;
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
+	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
 
 	if (member->type != IS_STRING) {
 		tmp_member = *member;
@@ -717,7 +717,7 @@ static zval *read_property(zval *object, zval *member, int type, const zend_lite
 	}
 
 	if (ret == SUCCESS) {
-		ret = hnd->read_func(obj, &retval TSRMLS_CC);
+		ret = hnd->read_func(obj, &retval);
 		if (ret == SUCCESS) {
 			/* ensure we're creating a temporary variable */
 			Z_SET_REFCOUNT_P(retval, 0);
@@ -726,7 +726,7 @@ static zval *read_property(zval *object, zval *member, int type, const zend_lite
 		}
 	} else {
 		zend_object_handlers * std_hnd = zend_get_std_object_handlers();
-		retval = std_hnd->read_property(object, member, type, key TSRMLS_CC);
+		retval = std_hnd->read_property(object, member, type, key);
 	}
 
 	if (member == &tmp_member) {
@@ -738,7 +738,7 @@ static zval *read_property(zval *object, zval *member, int type, const zend_lite
 /* }}} */
 
 /* {{{ write_property */
-static void write_property(zval *object, zval *member, zval *value, const zend_literal *key TSRMLS_DC)
+static void write_property(zval *object, zval *member, zval *value, const zend_literal *key)
 {
 	zval                         tmp_member;
 	php_event_abstract_object_t *obj;
@@ -753,16 +753,16 @@ static void write_property(zval *object, zval *member, zval *value, const zend_l
 	}
 
 	ret = FAILURE;
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
+	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
 
 	if (obj->prop_handler != NULL) {
 		ret = zend_hash_find((HashTable *) obj->prop_handler, Z_STRVAL_P(member), Z_STRLEN_P(member)+1, (void **) &hnd);
 	}
 	if (ret == SUCCESS) {
-		hnd->write_func(obj, value TSRMLS_CC);
+		hnd->write_func(obj, value);
 	} else {
 		zend_object_handlers * std_hnd = zend_get_std_object_handlers();
-		std_hnd->write_property(object, member, value, key TSRMLS_CC);
+		std_hnd->write_property(object, member, value, key);
 	}
 
 	if (member == &tmp_member) {
@@ -772,13 +772,13 @@ static void write_property(zval *object, zval *member, zval *value, const zend_l
 /* }}} */
 
 /* {{{ object_has_property */
-static int object_has_property(zval *object, zval *member, int has_set_exists, const zend_literal *key TSRMLS_DC)
+static int object_has_property(zval *object, zval *member, int has_set_exists, const zend_literal *key)
 {
 	php_event_abstract_object_t *obj;
 	int                          ret = 0;
 	php_event_prop_handler_t    p;
 
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
+	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
 
 
 	if (obj->prop_handler) {
@@ -789,7 +789,7 @@ static int object_has_property(zval *object, zval *member, int has_set_exists, c
 					ret = 1;
 					break;
 				case 1: {
-							zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
+							zval *value = read_property(object, member, BP_VAR_IS, key);
 							if (value != EG(uninitialized_zval_ptr)) {
 								convert_to_boolean(value);
 								ret = Z_BVAL_P(value)? 1:0;
@@ -800,7 +800,7 @@ static int object_has_property(zval *object, zval *member, int has_set_exists, c
 							break;
 						}
 				case 0:{
-						   zval *value = read_property(object, member, BP_VAR_IS, key TSRMLS_CC);
+						   zval *value = read_property(object, member, BP_VAR_IS, key);
 						   if (value != EG(uninitialized_zval_ptr)) {
 							   ret = Z_TYPE_P(value) != IS_NULL? 1:0;
 							   /* refcount is 0 */
@@ -810,11 +810,11 @@ static int object_has_property(zval *object, zval *member, int has_set_exists, c
 						   break;
 					   }
 				default:
-					   php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid value for has_set_exists");
+					   php_error_docref(NULL, E_WARNING, "Invalid value for has_set_exists");
 			}
 		} else {
 			zend_object_handlers *std_hnd = zend_get_std_object_handlers();
-			ret = std_hnd->has_property(object, member, has_set_exists, key TSRMLS_CC);
+			ret = std_hnd->has_property(object, member, has_set_exists, key);
 		}
 	}
 	return ret;
@@ -823,7 +823,7 @@ static int object_has_property(zval *object, zval *member, int has_set_exists, c
 
 #if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 3
 /* {{{ object_get_debug_info */
-static HashTable *object_get_debug_info(zval *object, int *is_temp TSRMLS_DC)
+static HashTable *object_get_debug_info(zval *object, int *is_temp)
 {
 	php_event_abstract_object_t *obj;
 	HashTable                   *retval;
@@ -831,7 +831,7 @@ static HashTable *object_get_debug_info(zval *object, int *is_temp TSRMLS_DC)
 	HashPosition                 pos;
 	php_event_prop_handler_t *entry;
 
-	obj   = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
+	obj   = (php_event_abstract_object_t *) zend_objects_get_address(object);
 	props = obj->prop_handler;
 
 	ALLOC_HASHTABLE(retval);
@@ -851,7 +851,7 @@ static HashTable *object_get_debug_info(zval *object, int *is_temp TSRMLS_DC)
 		INIT_ZVAL(member);
 		ZVAL_STRINGL(&member, entry->name, entry->name_len, 0);
 
-		value = read_property(object, &member, BP_VAR_IS, 0 TSRMLS_CC);
+		value = read_property(object, &member, BP_VAR_IS, 0);
 		if (value != EG(uninitialized_zval_ptr)) {
 			Z_ADDREF_P(value);
 			zend_hash_add(retval, entry->name, entry->name_len + 1, &value, sizeof(zval *) , NULL);
@@ -869,9 +869,9 @@ static HashTable *object_get_debug_info(zval *object, int *is_temp TSRMLS_DC)
 
 /* {{{ get_property_ptr_ptr */
 #if PHP_VERSION_ID >= 50500
-static zval **get_property_ptr_ptr(zval *object, zval *member, int type, const zend_literal *key TSRMLS_DC)
+static zval **get_property_ptr_ptr(zval *object, zval *member, int type, const zend_literal *key)
 #else
-static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_literal *key TSRMLS_DC)
+static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_literal *key)
 #endif
 {
 	php_event_abstract_object_t  *obj;
@@ -887,7 +887,7 @@ static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_litera
 		member = &tmp_member;
 	}
 
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
+	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
 
 	if (obj->prop_handler != NULL) {
 		ret = zend_hash_find(obj->prop_handler, Z_STRVAL_P(member), Z_STRLEN_P(member) + 1, (void **) &hnd);
@@ -895,12 +895,12 @@ static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_litera
 
 	if (ret == FAILURE) {
 #if PHP_VERSION_ID >= 50500
-		retval = zend_get_std_object_handlers()->get_property_ptr_ptr(object, member, type, key TSRMLS_CC);
+		retval = zend_get_std_object_handlers()->get_property_ptr_ptr(object, member, type, key);
 #else
-		retval = zend_get_std_object_handlers()->get_property_ptr_ptr(object, member, key TSRMLS_CC);
+		retval = zend_get_std_object_handlers()->get_property_ptr_ptr(object, member, key);
 #endif
 	} else if (hnd->get_ptr_ptr_func) {
-		retval = hnd->get_ptr_ptr_func(obj TSRMLS_CC);
+		retval = hnd->get_ptr_ptr_func(obj);
 	}
 
 	if (member == &tmp_member) {
@@ -915,7 +915,7 @@ static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_litera
 #if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 4
 /* {{{ get_properties
    Returns all object properties. */
-static HashTable *get_properties(zval *object TSRMLS_DC)
+static HashTable *get_properties(zval *object)
 {
 	php_event_abstract_object_t *obj;
 	php_event_prop_handler_t    *hnd;
@@ -926,10 +926,10 @@ static HashTable *get_properties(zval *object TSRMLS_DC)
 	HashPosition                 pos;
 	ulong                        num_key;
 
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object TSRMLS_CC);
+	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
 	/* Don't get obj->zo.properties; directly!
 	 * Otherwise serialization functions will cause SEGFAULTs */
-	props = zend_std_get_properties(object TSRMLS_CC);
+	props = zend_std_get_properties(object);
 
 	if (obj->prop_handler) {
 		zend_hash_internal_pointer_reset_ex(obj->prop_handler, &pos);
@@ -938,7 +938,7 @@ static HashTable *get_properties(zval *object TSRMLS_DC)
 					(void **) &hnd, &pos) == SUCCESS) {
 			zend_hash_get_current_key_ex(obj->prop_handler,
 					&key, &key_len, &num_key, 0, &pos);
-			if (!hnd->read_func || hnd->read_func(obj, &val TSRMLS_CC) != SUCCESS) {
+			if (!hnd->read_func || hnd->read_func(obj, &val) != SUCCESS) {
 				val = EG(uninitialized_zval_ptr);
 				Z_ADDREF_P(val);
 			}
@@ -952,11 +952,11 @@ static HashTable *get_properties(zval *object TSRMLS_DC)
 /* }}} */
 #endif
 
-static HashTable *get_gc(zval *object, zval ***table, int *n TSRMLS_DC)
+static HashTable *get_gc(zval *object, zval ***table, int *n)
 {
 	*table = NULL;
 	*n = 0;
-	return zend_std_get_properties(object TSRMLS_CC);
+	return zend_std_get_properties(object);
 }
 
 
@@ -967,7 +967,7 @@ static HashTable *get_gc(zval *object, zval ***table, int *n TSRMLS_DC)
 		add_property((a), (b)[i].name, (b)[i].name_length,                             \
 				(php_event_prop_read_t)(b)[i].read_func,                               \
 				(php_event_prop_write_t)(b)[i].write_func,                             \
-				(php_event_prop_get_prop_ptr_ptr_t)(b)[i].get_ptr_ptr_func TSRMLS_CC); \
+				(php_event_prop_get_prop_ptr_ptr_t)(b)[i].get_ptr_ptr_func); \
 		i++;                                                                           \
 	}                                                                                  \
 }
@@ -977,13 +977,13 @@ static HashTable *get_gc(zval *object, zval ***table, int *n TSRMLS_DC)
 	int i = 0;                                                           \
 	while (b[i].name != NULL) {                                          \
 		zend_declare_property_null((a), (b)[i].name, (b)[i].name_length, \
-				ZEND_ACC_PUBLIC TSRMLS_CC);                              \
+				ZEND_ACC_PUBLIC);                              \
 		i++;                                                             \
 	}                                                                    \
 }
 
 /* {{{ register_classes */
-static zend_always_inline void register_classes(TSRMLS_D)
+static zend_always_inline void register_classes()
 {
 	zend_class_entry *ce;
 
@@ -1085,7 +1085,7 @@ static zend_always_inline void register_classes(TSRMLS_D)
 
 #define REGISTER_EVENT_CLASS_CONST_LONG(pce, const_name, value) \
 	zend_declare_class_constant_long((pce), #const_name,        \
-			sizeof(#const_name) - 1, (long) value TSRMLS_CC)
+			sizeof(#const_name) - 1, (long) value)
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
@@ -1112,7 +1112,7 @@ PHP_MINIT_FUNCTION(event)
 	object_handlers.get_gc               = get_gc;
 
 	zend_hash_init(&classes, 8, NULL, NULL, 1);
-	register_classes(TSRMLS_C);
+	register_classes();
 
 	/* Loop flags */
 	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, LOOP_ONCE,     EVLOOP_ONCE);
@@ -1305,7 +1305,7 @@ PHP_MINIT_FUNCTION(event)
 	evthread_use_windows_threads();
 # else
 	if (evthread_use_pthreads()) {
-		php_error_docref(NULL TSRMLS_CC, E_ERROR,
+		php_error_docref(NULL, E_ERROR,
 				"evthread_use_pthreads failed, submit a bug");
 	}
 # endif

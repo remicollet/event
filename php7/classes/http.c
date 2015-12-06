@@ -24,7 +24,7 @@
 
 /* {{{ _new_http_cb
  * Allocate memory for new callback structure for the next HTTP server's URI */
-static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zbase, zval *zarg, const zend_fcall_info *fci, const zend_fcall_info_cache *fcc TSRMLS_DC)
+static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zbase, zval *zarg, const zend_fcall_info *fci, const zend_fcall_info_cache *fcc)
 {
 	php_event_http_cb_t *cb = emalloc(sizeof(php_event_http_cb_t));
 
@@ -95,7 +95,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	pfci->param_count	 = 2;
 	pfci->no_separation  = 1;
 
-	if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+	if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
 		zval_ptr_dtor(&retval_ptr);
 	} else {
 		if (EG(exception)) {
@@ -106,7 +106,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 			zval_ptr_dtor(&arg_req);
 			zval_ptr_dtor(&arg_data);
 		} else {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"An error occurred while invoking the http request callback");
 		}
 	}
@@ -165,7 +165,7 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	pfci->param_count	 = 2;
 	pfci->no_separation  = 1;
 
-	if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+	if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
 		zval_ptr_dtor(&retval_ptr);
 	} else {
 		if (EG(exception)) {
@@ -176,7 +176,7 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 			zval_ptr_dtor(&arg_req);
 			zval_ptr_dtor(&arg_data);
 		} else {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			php_error_docref(NULL, E_WARNING,
 					"An error occurred while invoking the http request callback");
 		}
 	}
@@ -242,13 +242,13 @@ PHP_METHOD(EventHttp, __construct)
 	php_event_ssl_context_t *ectx;
 	zval                    *zctx = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O|O!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O|O!",
 				&zbase, php_event_base_ce,
 				&zctx, php_event_ssl_context_ce) == FAILURE) {
 		return;
 	}
 #else
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O",
 				&zbase, php_event_base_ce) == FAILURE) {
 		return;
 	}
@@ -262,7 +262,7 @@ PHP_METHOD(EventHttp, __construct)
 
 	http_ptr = evhttp_new(b->base);
 	if (!http_ptr) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"Failed to allocate space for new HTTP server(evhttp_new)");
 		return;
 	}
@@ -300,12 +300,12 @@ PHP_METHOD(EventHttp, accept)
 	zval             **ppzfd;
 	evutil_socket_t    fd;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "Z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z",
 				&ppzfd) == FAILURE) {
 		return;
 	}
 
-	fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd TSRMLS_CC);
+	fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
 	if (fd < 0) {
 		RETURN_FALSE;
 	}
@@ -333,7 +333,7 @@ PHP_METHOD(EventHttp, bind)
 	int               address_len;
 	long              port;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sl",
 				&address, &address_len, &port) == FAILURE) {
 		return;
 	}
@@ -366,14 +366,14 @@ PHP_METHOD(EventHttp, setCallback)
 	php_event_http_cb_t   *cb;
 	php_event_http_cb_t   *cb_head;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sf|z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sf|z!",
 				&path, &path_len, &fci, &fcc, &zarg) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_FETCH_HTTP(http, zhttp);
 
-	cb = _new_http_cb(http->base, zarg, &fci, &fcc TSRMLS_CC);
+	cb = _new_http_cb(http->base, zarg, &fci, &fcc);
 	PHP_EVENT_ASSERT(cb);
 
 	res = evhttp_set_cb(http->ptr, path, _http_callback, (void *) cb);
@@ -385,7 +385,7 @@ PHP_METHOD(EventHttp, setCallback)
 	if (res == -1) { // the callback existed already
 		_php_event_free_http_cb(cb);
 
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+		php_error_docref(NULL, E_WARNING,
 				"The callback already exists");
 		RETURN_FALSE;
 	}
@@ -409,7 +409,7 @@ PHP_METHOD(EventHttp, setDefaultCallback)
 	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
 	zval                  *zarg     = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "f|z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f|z!",
 				&fci, &fcc, &zarg) == FAILURE) {
 		return;
 	}
@@ -446,7 +446,7 @@ PHP_METHOD(EventHttp, setAllowedMethods)
 	php_event_http_t *http;
 	long              methods;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&methods) == FAILURE) {
 		return;
 	}
@@ -465,7 +465,7 @@ PHP_METHOD(EventHttp, setMaxBodySize)
 	php_event_http_t *http;
 	long              value;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&value) == FAILURE) {
 		return;
 	}
@@ -484,7 +484,7 @@ PHP_METHOD(EventHttp, setMaxHeadersSize)
 	php_event_http_t *http;
 	long              value;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&value) == FAILURE) {
 		return;
 	}
@@ -504,7 +504,7 @@ PHP_METHOD(EventHttp, setTimeout)
 	php_event_http_t *http;
 	long              value;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&value) == FAILURE) {
 		return;
 	}
@@ -525,7 +525,7 @@ PHP_METHOD(EventHttp, addServerAlias)
 	char             *alias;
 	int               alias_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&alias, &alias_len) == FAILURE) {
 		return;
 	}
@@ -549,7 +549,7 @@ PHP_METHOD(EventHttp, removeServerAlias)
 	char             *alias;
 	int               alias_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&alias, &alias_len) == FAILURE) {
 		return;
 	}

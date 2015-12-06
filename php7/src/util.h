@@ -18,8 +18,8 @@
 #ifndef PHP_EVENT_UTIL_H
 #define PHP_EVENT_UTIL_H
 
-php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC);
-int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport TSRMLS_DC);
+php_socket_t php_event_zval_to_fd(zval **ppfd);
+int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport);
 
 #define php_event_is_pending(e) \
 	event_pending((e), EV_READ | EV_WRITE | EV_SIGNAL | EV_TIMEOUT, NULL)
@@ -28,7 +28,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 {                                                                     \
 	zend_class_entry tmp_ce;                                          \
 	INIT_CLASS_ENTRY(tmp_ce, name, ce_functions);                     \
-	ce = zend_register_internal_class(&tmp_ce TSRMLS_CC);             \
+	ce = zend_register_internal_class(&tmp_ce);             \
 	ce->create_object = create_func;                                  \
 }
 
@@ -41,40 +41,40 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 	} while (0)
 
 #define PHP_EVENT_FETCH_EVENT(e, ze) \
-	e = (php_event_t *) zend_object_store_get_object(ze TSRMLS_CC)
+	e = (php_event_t *) zend_object_store_get_object(ze)
 
 #define PHP_EVENT_FETCH_BASE(base, zbase) \
-	base = (php_event_base_t *) zend_object_store_get_object(zbase TSRMLS_CC)
+	base = (php_event_base_t *) zend_object_store_get_object(zbase)
 
 #define PHP_EVENT_FETCH_CONFIG(cfg, zcfg) \
-	cfg = (php_event_config_t *) zend_object_store_get_object(zcfg TSRMLS_CC)
+	cfg = (php_event_config_t *) zend_object_store_get_object(zcfg)
 
 #define PHP_EVENT_FETCH_BEVENT(b, zb) \
-	b = (php_event_bevent_t *) zend_object_store_get_object(zb TSRMLS_CC)
+	b = (php_event_bevent_t *) zend_object_store_get_object(zb)
 
 #define PHP_EVENT_FETCH_BUFFER(b, zb) \
-	b = (php_event_buffer_t *) zend_object_store_get_object(zb TSRMLS_CC)
+	b = (php_event_buffer_t *) zend_object_store_get_object(zb)
 
 #define PHP_EVENT_FETCH_DNS_BASE(b, zb) \
-	b = (php_event_dns_base_t *) zend_object_store_get_object(zb TSRMLS_CC)
+	b = (php_event_dns_base_t *) zend_object_store_get_object(zb)
 
 #define PHP_EVENT_FETCH_LISTENER(b, zb) \
-	b = (php_event_listener_t *) zend_object_store_get_object(zb TSRMLS_CC)
+	b = (php_event_listener_t *) zend_object_store_get_object(zb)
 
 #define PHP_EVENT_FETCH_HTTP_CONN(b, zb) \
-	b = (php_event_http_conn_t *) zend_object_store_get_object(zb TSRMLS_CC)
+	b = (php_event_http_conn_t *) zend_object_store_get_object(zb)
 
 #define PHP_EVENT_FETCH_HTTP(b, zb) \
-	b = (php_event_http_t *) zend_object_store_get_object(zb TSRMLS_CC)
+	b = (php_event_http_t *) zend_object_store_get_object(zb)
 
 #define PHP_EVENT_FETCH_HTTP_REQ(b, zb) \
-	b = (php_event_http_req_t *) zend_object_store_get_object(zb TSRMLS_CC)
+	b = (php_event_http_req_t *) zend_object_store_get_object(zb)
 
 #define PHP_EVENT_FETCH_BUFFER_POS(p, zp) \
-	p = (php_event_buffer_pos_t *) zend_object_store_get_object(zp TSRMLS_CC)
+	p = (php_event_buffer_pos_t *) zend_object_store_get_object(zp)
 
 #define PHP_EVENT_FETCH_SSL_CONTEXT(p, zp) \
-	p = (php_event_ssl_context_t *) zend_object_store_get_object(zp TSRMLS_CC)
+	p = (php_event_ssl_context_t *) zend_object_store_get_object(zp)
 
 #define PHP_EVENT_TIMEVAL_SET(tv, t)                 \
 	do {                                             \
@@ -85,7 +85,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 #define PHP_EVENT_TIMEVAL_TO_DOUBLE(tv) (tv.tv_sec + tv.tv_usec * 1e-6)
 
 #define PHP_EVENT_SOCKETS_REQUIRED_NORET                                       \
-	php_error_docref(NULL TSRMLS_CC, E_ERROR, "`sockets' extension required. " \
+	php_error_docref(NULL, E_ERROR, "`sockets' extension required. " \
 			"If you have `sockets' installed, rebuild `event' extension")
 
 #define PHP_EVENT_SOCKETS_REQUIRED_RET    \
@@ -97,7 +97,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 #define PHP_EVENT_REQUIRE_BASE_BY_REF(zbase)                  \
 	do {                                                      \
 		if (!Z_ISREF_P((zbase)) || Z_REFCOUNT_P(zbase) < 2) { \
-			php_error_docref(NULL TSRMLS_CC, E_ERROR,         \
+			php_error_docref(NULL, E_ERROR,         \
 					"EventBase must be passed by reference"); \
 		}                                                     \
 	} while (0)
