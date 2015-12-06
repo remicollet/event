@@ -44,45 +44,32 @@ if test "$PHP_EVENT_CORE" != "no"; then
   OLD_LIBS=$LIBS
 
   dnl {{{ Check for PHP version
+  AC_MSG_CHECKING(PHP version)
+  if test -d $abs_srcdir/php7; then
+    dnl # only for PECL, not for PHP
+    export OLD_CPPFLAGS="$CPPFLAGS"
+    export CPPFLAGS="$CPPFLAGS $INCLUDES"
+    AC_TRY_COMPILE([#include <php_version.h>], [
+    #if PHP_MAJOR_VERSION > 5
+    # error PHP > 5
+    #endif
+    ], [
+      PHP_EVENT_SUBDIR=php5
+      AC_MSG_RESULT([PHP 5.x])
+    ], [
+      PHP_EVENT_SUBDIR=php7
+      AC_MSG_RESULT([PHP 7.x])
+    ])
+    export CPPFLAGS="$OLD_CPPFLAGS"
 
-  dnl The following fails sometimes. See bug #65319
-  dnl
-  dnl export OLD_CPPFLAGS="$CPPFLAGS"
-  dnl export CPPFLAGS="$CPPFLAGS $INCLUDES -DHAVE_EV"
-  dnl AC_MSG_CHECKING(PHP version)
-  dnl AC_TRY_COMPILE([#include <php_version.h>], [
-  dnl #if PHP_VERSION_ID < 50400
-  dnl # error  this extension requires at least PHP version 5.4.0
-  dnl #endif
-  dnl ],
-  dnl [AC_MSG_RESULT(ok)],
-  dnl [AC_MSG_ERROR([need at least PHP 5.4.0])])
-  dnl export CPPFLAGS="$OLD_CPPFLAGS"
-  dnl
-
-  AC_MSG_CHECKING(whether Event supports the current PHP version)
-  tmp_php_version=$PHP_VERSION
-  if test -z "$tmp_php_version"; then
-    if test -z "$PHP_CONFIG"; then
-      AC_MSG_ERROR([php-config not found])
-    fi
-    PHP_EVENT_VERSION_ORIG=`$PHP_CONFIG --version`;
+    PHP_ADD_BUILD_DIR($abs_builddir/$PHP_EVENT_SUBDIR, 1)
+    PHP_ADD_INCLUDE([$ext_srcdir/$PHP_EVENT_SUBDIR])
   else
-    PHP_EVENT_VERSION_ORIG=$tmp_php_version
-  fi
-
-  if test -z $PHP_EVENT_VERSION_ORIG; then
-    AC_MSG_ERROR([failed to detect PHP version, please file a bug])
-  fi
-
-  PHP_EVENT_VERSION_MASK=`echo ${PHP_EVENT_VERSION_ORIG} | $AWK 'BEGIN { FS = "."; } { printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
-  if test $PHP_EVENT_VERSION_MASK -lt 5004000; then
-    AC_MSG_ERROR([need at least PHP 5.4.0])
-  else
-    AC_MSG_RESULT([ok])
+    AC_MSG_ERROR([unknown source])
+    PHP_EVENT_SUBDIR="."
   fi
   dnl }}}
-  
+
   dnl {{{ --enable-event-debug
   if test "$PHP_EVENT_DEBUG" != "no"; then
     CFLAGS="$CFLAGS -Wall -g -ggdb -O0"
@@ -96,22 +83,22 @@ if test "$PHP_EVENT_CORE" != "no"; then
   AC_MSG_CHECKING([for include/event2/event.h])
   EVENT_DIR=
   for i in "$PHP_EVENT_CORE" "$PHP_EVENT_LIBEVENT_DIR" /usr/local /usr /opt /opt/local; do
-	  if test -f "$i/include/event2/event.h"; then
-		  EVENT_DIR=$i
-		  break
-	  fi
+    if test -f "$i/include/event2/event.h"; then
+      EVENT_DIR=$i
+      break
+    fi
   done
 
   if test "x$EVENT_DIR" = "x"; then
     AC_MSG_RESULT([not found])
     AC_MSG_ERROR([Please reinstall the event library, or provide the installation prefix via --with-event-libevent-dir option])
   fi
-	AC_MSG_RESULT([found in $EVENT_DIR])
+  AC_MSG_RESULT([found in $EVENT_DIR])
 
-	PHP_ADD_INCLUDE($EVENT_DIR/include)
+  PHP_ADD_INCLUDE($EVENT_DIR/include)
   dnl }}}
 
-	dnl {{{ Check if it's at least libevent 2.0.2-alpha
+  dnl {{{ Check if it's at least libevent 2.0.2-alpha
   export OLD_CPPFLAGS="$CPPFLAGS"
   export CPPFLAGS="$CPPFLAGS $INCLUDES -DHAVE_EV"
   AC_MSG_CHECKING(for libevent version)
@@ -124,7 +111,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
   [AC_MSG_ERROR([need at least libevent 2.0.2-alpha])])
   export CPPFLAGS="$OLD_CPPFLAGS"
   dnl }}}
-	
+
   if test -d $EVENT_DIR/$PHP_LIBDIR/event2; then
     dnl FreeBSD
     EVENT_LIBS="-L$EVENT_DIR/$PHP_LIBDIR -L$EVENT_DIR/$PHP_LIBDIR/event2"
@@ -137,40 +124,40 @@ if test "$PHP_EVENT_CORE" != "no"; then
   LIBS="$LIBS -levent_core"
 
   dnl {{{ event_core
-	AC_CHECK_LIB(event_core, event_free, [
-	  PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
-	], [
+  AC_CHECK_LIB(event_core, event_free, [
+    PHP_ADD_LIBRARY_WITH_PATH(event_core, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
+  ], [
     AC_MSG_ERROR([event_free not found in event_core library, or the library is not installed])
-	])
+  ])
 
-  event_src="php_event.c \
-    src/util.c \
-    src/fe.c \
-    src/pe.c \
-    classes/event.c \
-    classes/base.c \
-    classes/event_config.c \
-    classes/buffer_event.c \
-    classes/buffer.c \
-    classes/event_util.c"
+  event_src="$PHP_EVENT_SUBDIR/php_event.c \
+    $PHP_EVENT_SUBDIR/src/util.c \
+    $PHP_EVENT_SUBDIR/src/fe.c \
+    $PHP_EVENT_SUBDIR/src/pe.c \
+    $PHP_EVENT_SUBDIR/classes/event.c \
+    $PHP_EVENT_SUBDIR/classes/base.c \
+    $PHP_EVENT_SUBDIR/classes/event_config.c \
+    $PHP_EVENT_SUBDIR/classes/buffer_event.c \
+    $PHP_EVENT_SUBDIR/classes/buffer.c \
+    $PHP_EVENT_SUBDIR/classes/event_util.c"
   dnl }}}
 
   dnl {{{ --with-event-pthreads
   if test "$PHP_EVENT_PTHREADS" != "no"; then
-	  AC_CHECK_LIB(event_pthreads, evthread_use_pthreads, [
-	    PHP_ADD_LIBRARY_WITH_PATH(event_pthreads, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
+    AC_CHECK_LIB(event_pthreads, evthread_use_pthreads, [
+      PHP_ADD_LIBRARY_WITH_PATH(event_pthreads, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
       LDFLAGS="$LDFLAGS -lpthread -levent_pthreads"
       AC_DEFINE(HAVE_EVENT_PTHREADS_LIB, 1, [ ])
-	  ], [
+    ], [
       AC_MSG_ERROR([evthread_use_pthreads not found in event_pthreads library, or the library is not installed])
-	  ])
+    ])
   fi
   dnl }}}
 
   dnl {{{ --with-event-extra
   if test "$PHP_EVENT_EXTRA" != "no"; then
     AC_CHECK_LIB(event_extra, evdns_base_free, [
-	    PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
+      PHP_ADD_LIBRARY_WITH_PATH(event_extra, $EVENT_LIBDIR, EVENT_SHARED_LIBADD)
       LDFLAGS="$LDFLAGS -levent_extra"
       AC_DEFINE(HAVE_EVENT_EXTRA_LIB, 1, [ ])
     ], [
@@ -178,14 +165,14 @@ if test "$PHP_EVENT_CORE" != "no"; then
     ])
 
     event_src="$event_src \
-      classes/dns.c \
-      classes/listener.c \
-      classes/http.c \
-      classes/http_request.c \
-      classes/http_connection.c"
+      $PHP_EVENT_SUBDIR/classes/dns.c \
+      $PHP_EVENT_SUBDIR/classes/listener.c \
+      $PHP_EVENT_SUBDIR/classes/http.c \
+      $PHP_EVENT_SUBDIR/classes/http_request.c \
+      $PHP_EVENT_SUBDIR/classes/http_connection.c"
   fi
   dnl }}}
-  
+
   dnl {{{ --with-event-openssl
   if test "$PHP_EVENT_OPENSSL" != "no"; then
     test -z "$PHP_OPENSSL" && PHP_OPENSSL=no
@@ -204,16 +191,16 @@ if test "$PHP_EVENT_CORE" != "no"; then
       AC_MSG_ERROR([bufferevent_openssl_get_ssl not found in event_openssl library, or the library is not installed])
     ])
 
-    event_src="$event_src classes/ssl_context.c"
+    event_src="$event_src $PHP_EVENT_SUBDIR/classes/ssl_context.c"
   fi
   dnl }}}
- 
-  PHP_NEW_EXTENSION(event, $event_src, $ext_shared,,$CFLAGS)
-  PHP_ADD_BUILD_DIR($ext_builddir/src)
-  PHP_ADD_BUILD_DIR($ext_builddir/classes)
-  PHP_ADD_INCLUDE($ext_builddir/src)
-  PHP_ADD_INCLUDE($ext_builddir/classes)
-  PHP_ADD_INCLUDE($ext_builddir)
+
+  PHP_NEW_EXTENSION(event, $event_src, $ext_shared,,$CFLAGS -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+  PHP_ADD_BUILD_DIR($ext_builddir/$PHP_EVENT_SUBDIR/src)
+  PHP_ADD_BUILD_DIR($ext_builddir/$PHP_EVENT_SUBDIR/classes)
+  PHP_ADD_INCLUDE($ext_builddir/$PHP_EVENT_SUBDIR/src)
+  PHP_ADD_INCLUDE($ext_builddir/$PHP_EVENT_SUBDIR/classes)
+  PHP_ADD_INCLUDE($ext_builddir/$PHP_EVENT_SUBDIR)
   PHP_SUBST(EVENT_SHARED_LIBADD)
 
   LDFLAGS=$OLD_LDFLAGS
@@ -233,7 +220,6 @@ if test "$PHP_EVENT_CORE" != "no"; then
     dnl Hack for distroes installing sockets separately
     AC_DEFINE(HAVE_SOCKETS, 1, [Whether sockets extension is enabled])
   fi
-
 
   PHP_ADD_MAKEFILE_FRAGMENT
 fi

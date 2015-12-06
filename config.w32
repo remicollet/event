@@ -8,13 +8,24 @@ ARG_WITH("event", "for event support", "no");
 
 if (PHP_EVENT != "no") {
 
+	var dll = get_define("PHPDLL");
+	var old_conf_dir = configure_module_dirname;
+	/* XXX override configure_module_dirname, define the basic extension, then set it back*/
+	if (null != dll.match(/^php5/)) {
+		configure_module_dirname = configure_module_dirname + "\\php5";
+	} else if (null != dll.match(/^php7/)) {
+		configure_module_dirname = configure_module_dirname + "\\php7";
+	} else {
+		ERROR("Cannot match any known PHP version with '" + dll + "'");
+	}
+
 	/* XXX separate for options */
 	if (CHECK_HEADER_ADD_INCLUDE("event2/event.h", "CFLAGS_EVENT", PHP_PHP_BUILD + "\\include;" + PHP_EVENT) &&
 		CHECK_LIB("libevent.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
 		CHECK_LIB("libevent_core.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
 		CHECK_LIB("libevent_extras.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
-		CHECK_HEADER_ADD_INCLUDE("pthread.h", "CFLAGS_EVENT", PHP_EVENT + ";" + configure_module_dirname) &&
-		CHECK_HEADER_ADD_INCLUDE("sched.h", "CFLAGS_EVENT", PHP_EVENT + ";" + configure_module_dirname) &&
+		CHECK_HEADER_ADD_INCLUDE("pthread.h", "CFLAGS_EVENT", PHP_EVENT + ";" + old_conf_dir) &&
+		CHECK_HEADER_ADD_INCLUDE("sched.h", "CFLAGS_EVENT", PHP_EVENT + ";" + old_conf_dir) &&
 		CHECK_LIB("pthreadVC2.lib", "event", PHP_EVENT) &&
 		/* CHECK_HEADER_ADD_INCLUDE("openssl/ssl.h", "CFLAGS_EVENT") &&
 		CHECK_LIB("ssleay32.lib", "event", PHP_EVENT) &&
@@ -31,8 +42,8 @@ if (PHP_EVENT != "no") {
 		ADD_FLAG("CFLAGS_EVENT", "/D _EVENT_HAVE_OPENSSL=1"); */
 		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_EXTRA_LIB=1");
 
-		EXTENSION("event", "php_event.c", "true");
-
+		EXTENSION("event", "php_event.c", true,
+				  "/I \"" + configure_module_dirname + "\" /DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
 
 		ADD_SOURCES(configure_module_dirname + "\\src", "util.c fe.c pe.c", "event");
 		ADD_SOURCES(configure_module_dirname + "\\classes", " \
@@ -46,11 +57,10 @@ if (PHP_EVENT != "no") {
 			listener.c \
 			http.c \
 			http_request.c \
-			http_connection.c", 
+			http_connection.c",
 			"event");
 			//ssl_context.c
 	} else {
 		WARNING("event not enabled, libraries or headers not found");
 	}
 }
-

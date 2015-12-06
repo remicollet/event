@@ -32,19 +32,19 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2015-09-15</date>
+  <date>2015-12-06</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.11.3</release>
+    <release>2.0.0RC1</release>
     <api>1.10.0</api>
   </version>
   <stability>
-    <release>stable</release>
+    <release>beta</release>
     <api>stable</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Issue #20: SSL_GET_PREV_SESSION:session id context uninitialized
+    Added PHP7 support
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -56,23 +56,65 @@
       <file role="doc" name="README.md"/>
       <file role="src" name="config.m4"/>
       <file role="src" name="config.w32"/>
-      <file role="src" name="php_event.c"/>
-      <file role="src" name="php_event.h"/>
-      <dir name="classes">
-        <file role="src" name="base.c"/>
-        <file role="src" name="buffer.c"/>
-        <file role="src" name="buffer_event.c"/>
-        <file role="src" name="dns.c"/>
-        <file role="src" name="event.c"/>
-        <file role="src" name="event_config.c"/>
-        <file role="src" name="event_util.c"/>
-        <file role="src" name="http.c"/>
-        <file role="src" name="http.h"/>
-        <file role="src" name="http_connection.c"/>
-        <file role="src" name="http_request.c"/>
-        <file role="src" name="listener.c"/>
-        <file role="src" name="ssl_context.h"/>
-        <file role="src" name="ssl_context.c"/>
+      <dir name="php5">
+        <file role="src" name="php_event.c"/>
+        <file role="src" name="php_event.h"/>
+        <dir name="classes">
+          <file role="src" name="base.c"/>
+          <file role="src" name="buffer.c"/>
+          <file role="src" name="buffer_event.c"/>
+          <file role="src" name="dns.c"/>
+          <file role="src" name="event.c"/>
+          <file role="src" name="event_config.c"/>
+          <file role="src" name="event_util.c"/>
+          <file role="src" name="http.c"/>
+          <file role="src" name="http.h"/>
+          <file role="src" name="http_connection.c"/>
+          <file role="src" name="http_request.c"/>
+          <file role="src" name="listener.c"/>
+          <file role="src" name="ssl_context.h"/>
+          <file role="src" name="ssl_context.c"/>
+        </dir>
+        <dir name="src">
+          <file role="src" name="common.h"/>
+          <file role="src" name="fe.c"/>
+          <file role="src" name="fe.h"/>
+          <file role="src" name="pe.c"/>
+          <file role="src" name="priv.h"/>
+          <file role="src" name="structs.h"/>
+          <file role="src" name="util.c"/>
+          <file role="src" name="util.h"/>
+        </dir>
+      </dir>
+      <dir name="php7">
+        <file role="src" name="php_event.c"/>
+        <file role="src" name="php_event.h"/>
+        <dir name="classes">
+          <file role="src" name="base.c"/>
+          <file role="src" name="buffer.c"/>
+          <file role="src" name="buffer_event.c"/>
+          <file role="src" name="dns.c"/>
+          <file role="src" name="event.c"/>
+          <file role="src" name="event_config.c"/>
+          <file role="src" name="event_util.c"/>
+          <file role="src" name="http.c"/>
+          <file role="src" name="http.h"/>
+          <file role="src" name="http_connection.c"/>
+          <file role="src" name="http_request.c"/>
+          <file role="src" name="listener.c"/>
+          <file role="src" name="ssl_context.h"/>
+          <file role="src" name="ssl_context.c"/>
+        </dir>
+        <dir name="src">
+          <file role="src" name="common.h"/>
+          <file role="src" name="fe.c"/>
+          <file role="src" name="fe.h"/>
+          <file role="src" name="pe.c"/>
+          <file role="src" name="priv.h"/>
+          <file role="src" name="structs.h"/>
+          <file role="src" name="util.c"/>
+          <file role="src" name="util.h"/>
+        </dir>
       </dir>
       <dir name="examples">
         <file role="doc" name="buffer_proxy.php"/>
@@ -98,16 +140,6 @@
         <file role="doc" name="ssl-connection.php"/>
         <file role="doc" name="timer.php"/>
         <file role="doc" name="uppercase_proxy.php"/>
-      </dir>
-      <dir name="src">
-        <file role="src" name="common.h"/>
-        <file role="src" name="fe.c"/>
-        <file role="src" name="fe.h"/>
-        <file role="src" name="pe.c"/>
-        <file role="src" name="priv.h"/>
-        <file role="src" name="structs.h"/>
-        <file role="src" name="util.c"/>
-        <file role="src" name="util.h"/>
       </dir>
       <dir name="tests">
         <file role="test" name="01-load.phpt"/>
@@ -169,8 +201,22 @@
     <configureoption default="no" name="with-openssl-dir" prompt="openssl installation prefix"/>
   </extsrcrelease>
   <!--{{{ changelog-->
-  <!--{{{ 1.11.3 -->
   <changelog>
+    <!--{{{ 2.0.0RC1 -->
+    <version>
+      <release>2.0.0RC1</release>
+      <api>1.10.0</api>
+    </version>
+    <stability>
+      <release>beta</release>
+      <api>stable</api>
+    </stability>
+    <license uri="http://www.php.net/license">PHP</license>
+    <notes><![CDATA[
+    Added PHP7 support
+  ]]></notes>
+    <!--}}}-->
+    <!--{{{ 1.11.3 -->
     <release>
       <version>
         <release>1.11.3</release>
