@@ -589,17 +589,17 @@ PHP_METHOD(EventBuffer, write)
 {
 	zval                *zbuf  = getThis();
 	php_event_buffer_t  *b;
-	zval               **ppzfd;
+	zval                *pzfd;
 	evutil_socket_t      fd;
 	long                 res;
 	long                 howmuch = -1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z|l",
-				&ppzfd, &howmuch) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|l",
+				&pzfd, &howmuch) == FAILURE) {
 		return;
 	}
 
-	fd = php_event_zval_to_fd(ppzfd);
+	fd = php_event_zval_to_fd(pzfd);
 	if (fd == -1) {
 		RETURN_FALSE;
 	}
@@ -630,17 +630,17 @@ PHP_METHOD(EventBuffer, readFrom)
 {
 	zval                *zbuf = getThis();
 	php_event_buffer_t  *b;
-	zval               **ppzfd;
+	zval                *pzfd;
 	evutil_socket_t      fd;
 	long                 res;
 	long                 howmuch = -1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z|l",
-				&ppzfd, &howmuch) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|l",
+				&pzfd, &howmuch) == FAILURE) {
 		return;
 	}
 
-	fd = php_event_zval_to_fd(ppzfd);
+	fd = php_event_zval_to_fd(pzfd);
 	if (fd == -1) {
 		RETURN_FALSE;
 	}

@@ -24,15 +24,14 @@
  * Returns the most recent socket error number(errno). */
 PHP_METHOD(EventUtil, getLastSocketErrno)
 {
-	zval **ppzfd = NULL;
+	zval *pzfd = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|Z!",
-				&ppzfd) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z!", &pzfd) == FAILURE) {
 		return;
 	}
 
-	if (ppzfd) {
-		evutil_socket_t fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
+	if (pzfd) {
+		evutil_socket_t fd = (evutil_socket_t)php_event_zval_to_fd(pzfd);
 
 		if (fd < 0) {
 			RETURN_FALSE;
@@ -50,15 +49,14 @@ PHP_METHOD(EventUtil, getLastSocketErrno)
  * Returns the most recent socket error */
 PHP_METHOD(EventUtil, getLastSocketError)
 {
-	zval **ppzfd = NULL;
+	zval *pzfd = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|Z!",
-				&ppzfd) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z!", &pzfd) == FAILURE) {
 		return;
 	}
 
-	if (ppzfd) {
-		evutil_socket_t fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
+	if (pzfd) {
+		evutil_socket_t fd = (evutil_socket_t)php_event_zval_to_fd(pzfd);
 
 		if (fd < 0) {
 			RETURN_FALSE;
@@ -92,17 +90,17 @@ PHP_METHOD(EventUtil, sslRandPoll)
  * Returns &true; on success. Otherwise &false;.*/
 PHP_METHOD(EventUtil, getSocketName)
 {
-	zval            **ppzfd;
-	zval             *zaddress;
-	zval             *zport    = NULL;
-	evutil_socket_t   fd;
+	zval            *pzfd;
+	zval            *zaddress;
+	zval            *zport    = NULL;
+	evutil_socket_t  fd;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Zz|z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz|z",
 				&ppzfd, &zaddress, &zport) == FAILURE) {
 		return;
 	}
 
-	fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
+	fd = (evutil_socket_t)php_event_zval_to_fd(pzfd);
 	if (fd < 0) {
 		RETURN_FALSE;
 	}
@@ -119,7 +117,7 @@ PHP_METHOD(EventUtil, getSocketName)
    Sets socket options for the socket */
 PHP_METHOD(EventUtil, setSocketOption)
 {
-	zval            **ppzfd    , **zoptval;
+	zval             *pzfd    , *zoptval;
 	struct linger     lv;
 	int               ov;
 	int               optlen;
@@ -133,12 +131,12 @@ PHP_METHOD(EventUtil, setSocketOption)
 	zval            **sec      , **usec;
 	evutil_socket_t   fd;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ZllZ",
-				&ppzfd, &level, &optname, &zoptval) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zllz",
+				&pzfd, &level, &optname, &zoptval) == FAILURE) {
 		return;
 	}
 
-	fd = php_event_zval_to_fd(ppzfd);
+	fd = php_event_zval_to_fd(pzfd);
 	if (fd == -1) {
 		RETURN_FALSE;
 	}
@@ -151,7 +149,7 @@ PHP_METHOD(EventUtil, setSocketOption)
 			const char l_linger_key[] = "l_linger";
 
 			convert_to_array_ex(zoptval);
-			opt_ht = HASH_OF(*zoptval);
+			opt_ht = HASH_OF(zoptval);
 
 			if (zend_hash_find(opt_ht, l_onoff_key, sizeof(l_onoff_key), (void **) &l_onoff) == FAILURE) {
 				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", l_onoff_key);
@@ -179,7 +177,7 @@ PHP_METHOD(EventUtil, setSocketOption)
 			const char usec_key[] = "usec";
 
 			convert_to_array_ex(zoptval);
-			opt_ht = HASH_OF(*zoptval);
+			opt_ht = HASH_OF(zoptval);
 
 			if (zend_hash_find(opt_ht, sec_key, sizeof(sec_key), (void **) &sec) == FAILURE) {
 				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", sec_key);
@@ -203,7 +201,7 @@ PHP_METHOD(EventUtil, setSocketOption)
 
 		default:
 			convert_to_long_ex(zoptval);
-			ov = Z_LVAL_PP(zoptval);
+			ov = Z_LVAL_P(zoptval);
 
 			optlen = sizeof(ov);
 			opt_ptr = &ov;
@@ -227,13 +225,13 @@ PHP_METHOD(EventUtil, setSocketOption)
 /* {{{ proto bool EventUtil::getSocketFd(mixed socket)
  *    Gets numeric file descriptor of a socket. */
 PHP_METHOD(EventUtil, getSocketFd) {
-	zval **ppzfd = NULL;
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z",
-				&ppzfd) == FAILURE) {
+	zval *pzfd = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &pzfd) == FAILURE) {
 		return;
 	}
 
-	RETVAL_LONG(ppzfd ? php_event_zval_to_fd(ppzfd) : -1);
+	RETVAL_LONG(pzfd ? php_event_zval_to_fd(pzfd) : -1);
 }
 /* }}} */
 

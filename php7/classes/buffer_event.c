@@ -247,7 +247,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 	zval                   *zself     = getThis();
 	zval                   *zbase;
 	php_event_base_t       *base;
-	zval                  **ppzfd     = NULL;
+	zval                   *pzfd     = NULL;
 	evutil_socket_t         fd;
 	long                    options   = 0;
 	php_event_bevent_t     *bev;
@@ -263,8 +263,8 @@ PHP_METHOD(EventBufferEvent, __construct)
 	bufferevent_data_cb     write_cb;
 	bufferevent_event_cb    event_cb;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O|Z!lf!f!f!z!",
-				&zbase, php_event_base_ce, &ppzfd, &options,
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O|z!lf!f!f!z!",
+				&zbase, php_event_base_ce, &pzfd, &options,
 				&fci_read, &fcc_read,
 				&fci_write, &fcc_write,
 				&fci_event, &fcc_event,
@@ -274,11 +274,11 @@ PHP_METHOD(EventBufferEvent, __construct)
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
-	if (ppzfd) {
+	if (pzfd) {
 		/* php_event_zval_to_fd reports error
 	 	 * in case if it is not a valid socket resource */
-		/*fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);*/
-		fd = php_event_zval_to_fd(ppzfd);
+		/*fd = (evutil_socket_t) php_event_zval_to_fd(pzfd);*/
+		fd = php_event_zval_to_fd(pzfd);
 
 		if (fd < 0) {
 			return;
@@ -1119,7 +1119,7 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	php_event_base_t         *base;
 	zval                     *zctx;
 	php_event_ssl_context_t  *ectx;
-	zval                    **ppzfd;
+	zval                     *pzfd;
 	evutil_socket_t           fd;
 	long                      state;
 	long                      options = 0;
@@ -1127,9 +1127,9 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	struct bufferevent       *bevent;
 	SSL                      *ssl;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OZOl|l",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OzOl|l",
 				&zbase, php_event_base_ce,
-				&ppzfd,
+				&pzfd,
 				&zctx, php_event_ssl_context_ce,
 				&state, &options) == FAILURE) {
 		return;
@@ -1149,11 +1149,11 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
 	PHP_EVENT_FETCH_BEVENT(bev, return_value);
 
-	if (Z_TYPE_PP(ppzfd) == IS_NULL) {
+	if (Z_TYPE_P(pzfd) == IS_NULL) {
 		/* User decided to set fd later via connect or connectHost etc.*/
 		fd = -1;
 	} else {
-		fd = php_event_zval_to_fd(ppzfd);
+		fd = php_event_zval_to_fd(pzfd);
 		if (fd < 0) {
 			RETURN_FALSE;
 		}

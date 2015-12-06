@@ -18,7 +18,7 @@
 #ifndef PHP_EVENT_UTIL_H
 #define PHP_EVENT_UTIL_H
 
-php_socket_t php_event_zval_to_fd(zval **ppfd);
+php_socket_t php_event_zval_to_fd(zval *pfd);
 int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport);
 
 #define php_event_is_pending(e) \

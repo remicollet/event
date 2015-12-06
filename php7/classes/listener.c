@@ -264,14 +264,14 @@ PHP_METHOD(EventListener, __construct)
 	zend_fcall_info_cache   fcc       = empty_fcall_info_cache;
 	php_event_listener_t   *l;
 	zval                   *zdata     = NULL;
-	zval                  **ppztarget;
+	zval                   *pztarget;
 	long                    flags;
 	long                    backlog;
 	struct evconnlistener  *listener;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ofz!llZ",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ofz!llz",
 				&zbase, php_event_base_ce,
-				&fci, &fcc, &zdata, &flags, &backlog, &ppztarget) == FAILURE) {
+				&fci, &fcc, &zdata, &flags, &backlog, &pztarget) == FAILURE) {
 		return;
 	}
 
@@ -279,25 +279,25 @@ PHP_METHOD(EventListener, __construct)
 
 	PHP_EVENT_FETCH_BASE(base, zbase);
 
-	if (Z_TYPE_PP(ppztarget) == IS_STRING) {
+	if (Z_TYPE_P(pztarget) == IS_STRING) {
 		struct sockaddr_storage ss;
 		socklen_t ss_len = sizeof(ss);
 		memset(&ss, 0, sizeof(ss));
 
 #ifdef AF_UNIX
-		if (strncasecmp(Z_STRVAL_PP(ppztarget), PHP_EVENT_SUN_PREFIX,
+		if (strncasecmp(Z_STRVAL_P(pztarget), PHP_EVENT_SUN_PREFIX,
 					sizeof(PHP_EVENT_SUN_PREFIX) - 1) == 0) {
 			struct sockaddr_un *s_un;
 
 			s_un             = (struct sockaddr_un *) &ss;
 			s_un->sun_family = AF_UNIX;
 
-			strcpy(s_un->sun_path, Z_STRVAL_PP(ppztarget) + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
+			strcpy(s_un->sun_path, Z_STRVAL_P(pztarget) + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
 			ss_len = sizeof(struct sockaddr_un);
 		} else
 #endif
-			if (php_network_parse_network_address_with_port(Z_STRVAL_PP(ppztarget),
-						Z_STRLEN_PP(ppztarget), (struct sockaddr *) &ss, &ss_len) != SUCCESS) {
+			if (php_network_parse_network_address_with_port(Z_STRVAL_P(pztarget),
+						Z_STRLEN_P(pztarget), (struct sockaddr *) &ss, &ss_len) != SUCCESS) {
 				ZVAL_NULL(zself);
 				return;
 			}
@@ -306,12 +306,12 @@ PHP_METHOD(EventListener, __construct)
 
 		listener = evconnlistener_new_bind(base->base, _php_event_listener_cb,
 				(void *) l, flags, backlog, (struct sockaddr *) &ss, ss_len);
-	} else { /* ppztarget is not string */
+	} else { /* pztarget is not string */
 		evutil_socket_t fd = -1;
 
 		/* php_event_zval_to_fd reports error
 	 	 * in case if it is not a valid socket resource */
-		fd = php_event_zval_to_fd(ppztarget);
+		fd = php_event_zval_to_fd(pztarget);
 		if (fd < 0) {
 			ZVAL_NULL(zself);
 			return;

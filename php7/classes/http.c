@@ -297,15 +297,14 @@ PHP_METHOD(EventHttp, accept)
 {
 	php_event_http_t  *http;
 	zval              *zhttp = getThis();
-	zval             **ppzfd;
+	zval              *pzfd;
 	evutil_socket_t    fd;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z",
-				&ppzfd) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &pzfd) == FAILURE) {
 		return;
 	}
 
-	fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
+	fd = (evutil_socket_t)php_event_zval_to_fd(pzfd);
 	if (fd < 0) {
 		RETURN_FALSE;
 	}

@@ -22,13 +22,13 @@
 /* {{{ Private */
 
 /* {{{ zval_to_signum */
-static zend_always_inline evutil_socket_t zval_to_signum(zval **ppzfd)
+static zend_always_inline evutil_socket_t zval_to_signum(zval *pzfd)
 {
 	evutil_socket_t fd;
 
-	convert_to_long_ex(ppzfd);
+	convert_to_long_ex(pzfd);
 
-	fd = Z_LVAL_PP(ppzfd);
+	fd = Z_LVAL_P(pzfd);
 
 	if (fd < 0 || fd >= NSIG) {
 		return -1;
@@ -214,7 +214,7 @@ PHP_METHOD(Event, __construct)
 	zval                   *zself = getThis();
 	zval                   *zbase;
 	php_event_base_t       *b;
-	zval                  **ppzfd;
+	zval                   *pzfd;
 	evutil_socket_t         fd;
 	long                    what;
 	zend_fcall_info         fci   = empty_fcall_info;
@@ -223,8 +223,8 @@ PHP_METHOD(Event, __construct)
 	php_event_t            *e;
 	struct event           *event;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OZlf|z",
-				&zbase, php_event_base_ce, &ppzfd, &what, &fci, &fcc, &arg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ozlf|z",
+				&zbase, php_event_base_ce, &pzfd, &what, &fci, &fcc, &arg) == FAILURE) {
 		return;
 	}
 
@@ -237,7 +237,7 @@ PHP_METHOD(Event, __construct)
 	}
 
 	if (what & EV_SIGNAL) {
-		fd = zval_to_signum(ppzfd);
+		fd = zval_to_signum(pzfd);
 		if (fd == -1) {
 			php_error_docref(NULL, E_WARNING, "Invalid signal passed");
 			ZVAL_NULL(zself);
@@ -246,7 +246,7 @@ PHP_METHOD(Event, __construct)
 	} else if (what & EV_TIMEOUT) {
 		fd = -1;
 	} else {
-		fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
+		fd = (evutil_socket_t) php_event_zval_to_fd(pzfd);
 		if (fd < 0) {
 			ZVAL_NULL(zself);
 			return;
@@ -280,9 +280,8 @@ PHP_METHOD(Event, __construct)
 	if (what & EV_SIGNAL) {
 		e->stream_id = -1; /* stdin fd = 0 */
 	} else {
-		/* lval of ppzfd is the resource ID */
-		e->stream_id = Z_LVAL_PP(ppzfd);
-		zend_list_addref(Z_LVAL_PP(ppzfd));
+		e->stream_id = Z_RES_P(pzfd)->handle;
+		Z_ADDREF_P(pzfd);
 	}
 }
 /* }}} */
@@ -318,15 +317,15 @@ PHP_METHOD(Event, set)
 	php_event_base_t       *b;
 	zval                   *zevent  = getThis();
 	php_event_t            *e;
-	zval                  **ppzfd   = NULL;
+	zval                   *pzfd   = NULL;
 	evutil_socket_t         fd = -1;
 	long                    what    = -1;
 	zend_fcall_info         fci     = empty_fcall_info;
 	zend_fcall_info_cache   fcc     = empty_fcall_info_cache;
 	zval                   *arg     = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OZ!|lfz!",
-				&zbase, php_event_base_ce, &ppzfd,
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Oz!|lfz!",
+				&zbase, php_event_base_ce, &pzfd,
 				&what, &fci, &fcc, &arg) == FAILURE) {
 		return;
 	}
@@ -340,12 +339,12 @@ PHP_METHOD(Event, set)
 		}
 
 		if (what & EV_SIGNAL) {
-			if (zval_to_signum(ppzfd) == -1) {
+			if (zval_to_signum(pzfd) == -1) {
 				php_error_docref(NULL, E_WARNING, "Invalid signal passed");
 				RETURN_FALSE;
 			}
 		} else {
-			fd = (evutil_socket_t) php_event_zval_to_fd(ppzfd);
+			fd = (evutil_socket_t)php_event_zval_to_fd(pzfd);
 			if (fd < 0) {
 				RETURN_FALSE;
 			}
@@ -363,15 +362,15 @@ PHP_METHOD(Event, set)
 
 	/* TODO: check if a signum bound to different event bases */
 
-	if (ppzfd) {
+	if (pzfd) {
 		if (what != -1 && what & EV_SIGNAL) {
 			e->stream_id = -1; /* stdin fd = 0 */
 		} else {
-			if (e->stream_id != Z_LVAL_PP(ppzfd)) {
+			if (e->stream_id != Z_RES_P(pzfd)->handle) {
+				/* XXX zend_list_delete(Z_RES_P(zv)); */
 				zend_list_delete(e->stream_id);
-				/* lval of ppzfd is the resource ID */
-				e->stream_id = Z_LVAL_PP(ppzfd);
-				zend_list_addref(Z_LVAL_PP(ppzfd));
+				e->stream_id = Z_RES_P(pzfd);
+				Z_ADDREF_P(pzfd);
 			}
 		}
 	}
@@ -390,7 +389,7 @@ PHP_METHOD(Event, set)
 	}
 
 	event_get_assignment(e->event, &b->base,
-			(ppzfd ? NULL : &fd),
+			(pzfd ? NULL : &fd),
 			(short *) (what == -1 ? &what : NULL),
 			NULL /* ignore old callback */ ,
 			NULL /* ignore old callback argument */);
