@@ -132,10 +132,12 @@ static void event_object_free_storage(void *ptr)
 		e->event = NULL;
 	}
 
-	if (e->stream_id >= 0) { /* stdin fd == 0 */
-		zend_list_delete(e->stream_id);
-		e->stream_id = -1;
+#if 0
+	if (e->stream_res) { /* stdin fd == 0 */
+		/* In php5 we had decremented resource reference counter */
+		e->stream_res = NULL;
 	}
+#endif
 
 	if (e->data) {
 		zval_ptr_dtor(&e->data);

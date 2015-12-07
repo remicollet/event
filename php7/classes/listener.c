@@ -123,9 +123,6 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		args[0] = &l->self;
 
-		/* Convert the socket created by libevent to PHP stream
-	 	 * and save it's resource ID in l->stream_id */
-
 		/* Always create new resource, since every new connection creates new fd.
 		 * We are in the accept-connection callback now. */
 		/*

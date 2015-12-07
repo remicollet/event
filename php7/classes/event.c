@@ -90,63 +90,50 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 static void event_cb(evutil_socket_t fd, short what, void *arg)
 {
 	php_event_t *e = (php_event_t *) arg;
-	zend_fcall_info     *pfci;
-	zval                *arg_data;
-	zval                *arg_fd;
-	zval                *arg_what;
-	zval               **args[3];
-	zval                *retval_ptr = NULL;
+	zend_fcall_info *pfci;
+	zval             args[3];
+	zval            *retval  = NULL;
 	PHP_EVENT_TSRM_DECL
 
 	PHP_EVENT_ASSERT(e);
 	PHP_EVENT_ASSERT(e->fci && e->fcc);
 
-	pfci       = e->fci;
-	arg_data   = e->data;
+	pfci = e->fci;
 
 	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback arguments */
-		MAKE_STD_ZVAL(arg_fd);
 		if (what & EV_SIGNAL) {
-			ZVAL_LONG(arg_fd, fd);
-		} else if (e->stream_id >= 0) {
-			ZVAL_RESOURCE(arg_fd, e->stream_id);
-			zend_list_addref(e->stream_id);
+			ZVAL_LONG(&args[0], fd);
+		} else if (e->stream_res) {
+			ZVAL_RES(&args[0], e->stream_res);
+			Z_TRY_ADDREF(args[0]);
 		} else {
-			ZVAL_NULL(arg_fd);
+			ZVAL_NULL(&args[0]);
 		}
-		args[0] = &arg_fd;
 
-		MAKE_STD_ZVAL(arg_what);
-		args[1] = &arg_what;
-		ZVAL_LONG(arg_what, what);
+		ZVAL_LONG(&args[1], what);
 
-		if (arg_data) {
-			Z_ADDREF_P(arg_data);
-		} else {
-			ALLOC_INIT_ZVAL(arg_data);
-		}
 		args[2] = &arg_data;
+		if (!Z_ISUNDEF_P(args[2])) {
+			Z_TRY_ADDREF_P(args[2]);
+		}
 
- 		/* Prepare callback */
-        pfci->params         = args;
-        pfci->retval_ptr_ptr = &retval_ptr;
-        pfci->param_count    = 3;
-        pfci->no_separation  = 1;
+		pfci->params         = args;
+		pfci->retval_ptr_ptr = &retval;
+		pfci->param_count    = 3;
+		pfci->no_separation  = 1;
 
-        if (zend_call_function(pfci, e->fcc) == SUCCESS
-                && retval_ptr) {
-            zval_ptr_dtor(&retval_ptr);
-        } else {
-            php_error_docref(NULL, E_WARNING,
-                    "An error occurred while invoking the callback");
-        }
+		if (zend_call_function(pfci, e->fcc) == SUCCESS && retval) {
+			zval_ptr_dtor(&retval);
+		} else {
+			php_error_docref(NULL, E_WARNING, "Failed to invoke callback");
+		}
 
-        zval_ptr_dtor(&arg_fd);
-        zval_ptr_dtor(&arg_what);
-        zval_ptr_dtor(&arg_data);
+		zval_ptr_dtor(&args[0]);
+		zval_ptr_dtor(&args[1]);
+		zval_ptr_dtor(&args[2]);
 	}
 }
 /* }}} */
@@ -278,10 +265,9 @@ PHP_METHOD(Event, __construct)
 	TSRMLS_SET_CTX(e->thread_ctx);
 
 	if (what & EV_SIGNAL) {
-		e->stream_id = -1; /* stdin fd = 0 */
+		e->stream_res = NULL; /* stdin fd = 0 */
 	} else {
-		e->stream_id = Z_RES_P(pzfd)->handle;
-		Z_ADDREF_P(pzfd);
+		e->stream_res = Z_RES_P(pzfd);
 	}
 }
 /* }}} */
@@ -364,14 +350,16 @@ PHP_METHOD(Event, set)
 
 	if (pzfd) {
 		if (what != -1 && what & EV_SIGNAL) {
-			e->stream_id = -1; /* stdin fd = 0 */
+			e->stream_res = NULL; /* stdin fd = 0 */
 		} else {
-			if (e->stream_id != Z_RES_P(pzfd)->handle) {
-				/* XXX zend_list_delete(Z_RES_P(zv)); */
-				zend_list_delete(e->stream_id);
-				e->stream_id = Z_RES_P(pzfd);
+#if 0
+			if (e->stream_res->handle != Z_RES_P(pzfd)->handle) {
+				e->stream_res = Z_RES_P(pzfd);
 				Z_ADDREF_P(pzfd);
 			}
+#else
+			e->stream_res = Z_RES_P(pzfd);
+#endif
 		}
 	}
 
@@ -591,7 +579,7 @@ PHP_METHOD(Event, timer)
 
 	TSRMLS_SET_CTX(e->thread_ctx);
 
-	e->stream_id = -1; /* stdin fd = 0 */
+	e->stream_res = NULL; /* stdin fd = 0 */
 }
 /* }}} */
 
@@ -642,7 +630,7 @@ PHP_METHOD(Event, setTimer)
 		Z_ADDREF_P(arg);
 	}
 
-	e->stream_id = -1; /* stdin fd = 0 */
+	e->stream_res = NULL; /* stdin fd = 0 */
 
     if (evtimer_assign(e->event, b->base, timer_cb, (void *) e)) {
     	RETURN_FALSE;
@@ -698,7 +686,7 @@ PHP_METHOD(Event, signal)
 
 	TSRMLS_SET_CTX(e->thread_ctx);
 
-	e->stream_id = -1; /* stdin fd = 0 */
+	e->stream_res = NULL; /* stdin fd = 0 */
 }
 /* }}} */
 

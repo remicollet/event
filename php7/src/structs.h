@@ -49,9 +49,10 @@ typedef struct _php_event_base_t {
 typedef struct _php_event_t {
 	PHP_EVENT_OBJECT_HEAD;
 
-	struct event          *event;       /* Pointer returned by event_new                  */
-	int                    stream_id;   /* Resource ID of the file descriptor. -1 if none */
-	zval                  *data;        /* User custom data                               */
+	struct event  *event;       /* Pointer returned by event_new     */
+	zend_resource *steam_res;   /* Resource with the file descriptor */
+	zval           data;        /* User custom data                  */
+
 	/* fci and fcc represent userspace callback */
 	zend_fcall_info       *fci;
 	zend_fcall_info_cache *fcc;
