@@ -492,7 +492,7 @@ PHP_METHOD(EventBufferEvent, connect)
 	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
-	memset(&ss, 0, sizeof(ss));
+	ZEND_SECURE_ZERO(&ss, sizeof(ss));
 
 #ifdef AF_UNIX
 	if (strncasecmp(addr, PHP_EVENT_SUN_PREFIX,

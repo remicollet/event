@@ -455,8 +455,7 @@ static void *object_new(zend_class_entry *ce, size_t size)
 	php_event_abstract_object_t *obj;
 	zend_class_entry *ce_parent = ce;
 
-	obj = emalloc(size);
-	memset(obj, 0, size);
+	obj = ecalloc(1, size);
 
 	while (ce_parent->type != ZEND_INTERNAL_CLASS && ce_parent->parent != NULL) {
 		ce_parent = ce_parent->parent;

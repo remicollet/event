@@ -279,7 +279,7 @@ PHP_METHOD(EventListener, __construct)
 	if (Z_TYPE_P(pztarget) == IS_STRING) {
 		struct sockaddr_storage ss;
 		socklen_t ss_len = sizeof(ss);
-		memset(&ss, 0, sizeof(ss));
+		ZEND_SECURE_ZERO(&ss, sizeof(ss));
 
 #ifdef AF_UNIX
 		if (strncasecmp(Z_STRVAL_P(pztarget), PHP_EVENT_SUN_PREFIX,
