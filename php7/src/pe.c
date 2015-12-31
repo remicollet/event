@@ -38,7 +38,7 @@ static inline void _prop_write_zval(zval **ppz, zval *value)
 #endif
 	if (!*ppz) {
 		/* if we assign referenced variable, we should separate it */
-		Z_ADDREF_P(value);
+		Z_TRY_ADDREF_P(value);
 		if (PZVAL_IS_REF(value)) {
 			SEPARATE_ZVAL(&value);
 		}
@@ -57,7 +57,7 @@ static inline void _prop_write_zval(zval **ppz, zval *value)
 		zval *garbage = *ppz;
 
 		/* if we assign referenced variable, we should separate it */
-		Z_ADDREF_P(value);
+		Z_TRY_ADDREF_P(value);
 		if (PZVAL_IS_REF(value)) {
 			SEPARATE_ZVAL(&value);
 		}
@@ -80,7 +80,7 @@ static inline void _prop_read_zval(zval *pz, zval **retval)
 
 
 /* {{{ get_ssl_option */
-static zval **get_ssl_option(const HashTable *ht, ulong idx)
+static zval **get_ssl_option(const HashTable *ht, zend_long idx)
 {
 	zval **val;
 
@@ -211,7 +211,7 @@ static int event_listener_fd_prop_read(php_event_abstract_object_t *obj, zval **
 static int event_bevent_priority_prop_write(php_event_abstract_object_t *obj, zval *value)
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *) obj;
-	long priority           = Z_LVAL_P(value);
+	zend_long priority      = Z_LVAL_P(value);
 
 	if (bufferevent_priority_set(bev->bevent, priority)) {
 		return FAILURE;
@@ -280,7 +280,7 @@ static int event_bevent_input_prop_read(php_event_abstract_object_t *obj, zval *
 
 	ZVAL_ZVAL(*retval, bev->input, 1, 0);
 	Z_SET_ISREF_P(*retval);
-	Z_ADDREF_P(*retval);
+	Z_TRY_ADDREF_P(*retval);
 	return SUCCESS;
 }
 /* }}} */
@@ -309,7 +309,7 @@ static int event_bevent_output_prop_read(php_event_abstract_object_t *obj, zval 
 
 	ZVAL_ZVAL(*retval, bev->output, 1, 0);
 	Z_SET_ISREF_P(*retval);
-	Z_ADDREF_P(*retval);
+	Z_TRY_ADDREF_P(*retval);
 	return SUCCESS;
 }
 /* }}} */
@@ -425,12 +425,12 @@ static int event_ssl_context_local_pk_prop_read(php_event_abstract_object_t *obj
 #endif
 
 
-const php_event_property_entry_t event_property_entries[] = {
+const Z_EVENT_X_PROP_ENTRY_T(event) event_property_entries[] = {
 	{"pending", sizeof("pending") - 1, event_pending_prop_read, NULL,                  NULL},
 	{"data",    sizeof("data")    - 1, event_data_prop_read,    event_data_prop_write, event_data_prop_get_ptr_ptr},
 	{NULL, 0, NULL, NULL, NULL}
 };
-const php_event_property_entry_t event_bevent_property_entries[] = {
+const Z_EVENT_X_PROP_ENTRY_T(bevent) event_bevent_property_entries[] = {
 	{"priority", sizeof("priority") - 1, event_bevent_priority_prop_read, event_bevent_priority_prop_write, NULL                               },
 	{"fd",       sizeof("fd")       - 1, event_bevent_fd_prop_read,       NULL,                             NULL                               },
 	{"input",    sizeof("input")    - 1, event_bevent_input_prop_read,    NULL,                             event_bevent_input_prop_ptr_ptr},
@@ -443,56 +443,22 @@ const php_event_property_entry_t event_bevent_property_entries[] = {
 #endif
 	{NULL, 0, NULL, NULL, NULL}
 };
-const php_event_property_entry_t event_buffer_property_entries[] = {
+const Z_EVENT_X_PROP_ENTRY_T(buffer) event_buffer_property_entries[] = {
 	{"length",           sizeof("length")           - 1, event_buffer_length_prop_read,           NULL, NULL},
 	{"contiguous_space", sizeof("contiguous_space") - 1, event_buffer_contiguous_space_prop_read, NULL, NULL},
 	{NULL, 0, NULL, NULL, NULL}
 };
 #ifdef HAVE_EVENT_EXTRA_LIB
-const php_event_property_entry_t event_listener_property_entries[] = {
+const Z_EVENT_X_PROP_ENTRY_T(listener) event_listener_property_entries[] = {
 	{"fd", sizeof("fd") - 1, event_listener_fd_prop_read, NULL, NULL},
 	{NULL, 0, NULL, NULL, NULL}
 };
 #endif
 #ifdef HAVE_EVENT_OPENSSL_LIB
-const php_event_property_entry_t event_ssl_context_property_entries[] = {
+const Z_EVENT_X_PROP_ENTRY_T(ssl_context) event_ssl_context_property_entries[] = {
 	{"local_cert", sizeof("local_cert") - 1, event_ssl_context_local_cert_prop_read, event_ssl_context_local_cert_prop_write, NULL},
 	{"local_pk", sizeof("local_pk") - 1, event_ssl_context_local_pk_prop_read, event_ssl_context_local_pk_prop_write, NULL},
 	{NULL, 0, NULL, NULL, NULL}
-};
-#endif
-
-const zend_property_info event_property_entry_info[] = {
-	{ZEND_ACC_PUBLIC, "pending", sizeof("pending") - 1, -1, 0, NULL, 0, NULL},
-	{ZEND_ACC_PUBLIC, "data",    sizeof("data")    - 1, -1, 0, NULL, 0, NULL},
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-const zend_property_info event_bevent_property_entry_info[] = {
-	{ZEND_ACC_PUBLIC, "priority", sizeof("priority") - 1, -1, 0, NULL, 0, NULL},
-	{ZEND_ACC_PUBLIC, "fd",       sizeof("fd")       - 1, -1, 0, NULL, 0, NULL},
-	{ZEND_ACC_PUBLIC, "input",    sizeof("input")    - 1, -1, 0, NULL, 0, NULL},
-	{ZEND_ACC_PUBLIC, "output",   sizeof("output")   - 1, -1, 0, NULL, 0, NULL},
-#if LIBEVENT_VERSION_NUMBER >= 0x02010100
-	{ZEND_ACC_PUBLIC, "allow_ssl_dirty_shutdown", sizeof("allow_ssl_dirty_shutdown") - 1, -1, 0, NULL, 0, NULL},
-#endif
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-const zend_property_info event_buffer_property_entry_info[] = {
-	{ZEND_ACC_PUBLIC, "length",           sizeof("length")           - 1, -1, 0, NULL, 0, NULL},
-	{ZEND_ACC_PUBLIC, "contiguous_space", sizeof("contiguous_space") - 1, -1, 0, NULL, 0, NULL},
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-#ifdef HAVE_EVENT_EXTRA_LIB
-const zend_property_info event_listener_property_entry_info[] = {
-	{ZEND_ACC_PUBLIC, "fd", sizeof("fd") - 1, -1, 0, NULL, 0, NULL},
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
-};
-#endif
-#ifdef HAVE_EVENT_OPENSSL_LIB
-const zend_property_info event_ssl_context_property_entry_info[] = {
-	{ZEND_ACC_PUBLIC, "local_cert", sizeof("local_cert") - 1, -1, 0, NULL, 0, NULL},
-	{ZEND_ACC_PUBLIC, "local_pk", sizeof("local_pk") - 1, -1, 0, NULL, 0, NULL},
-	{0, NULL, 0, -1, 0, NULL, 0, NULL}
 };
 #endif
 

@@ -29,12 +29,12 @@ static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zbase, zval *z
 	php_event_http_cb_t *cb = emalloc(sizeof(php_event_http_cb_t));
 
 	if (zarg) {
-		Z_ADDREF_P(zarg);
+		Z_TRY_ADDREF_P(zarg);
 	}
 	cb->data = zarg;
 
 	cb->base = zbase;
-	Z_ADDREF_P(zbase);
+	Z_TRY_ADDREF_P(zbase);
 
 	PHP_EVENT_COPY_FCALL_INFO(cb->fci, cb->fcc, fci, fcc);
 
@@ -79,12 +79,12 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	http_req->ptr      = req;
 #if 0
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
-	Z_ADDREF_P(arg_req);
+	Z_TRY_ADDREF_P(arg_req);
 #endif
 	args[0] = &arg_req;
 
 	if (arg_data) {
-		Z_ADDREF_P(arg_data);
+		Z_TRY_ADDREF_P(arg_data);
 	} else {
 		ALLOC_INIT_ZVAL(arg_data);
 	}
@@ -149,12 +149,12 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	http_req->ptr      = req;
 #if 0
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
-	Z_ADDREF_P(arg_req);
+	Z_TRY_ADDREF_P(arg_req);
 #endif
 	args[0] = &arg_req;
 
 	if (arg_data) {
-		Z_ADDREF_P(arg_data);
+		Z_TRY_ADDREF_P(arg_data);
 	} else {
 		ALLOC_INIT_ZVAL(arg_data);
 	}
@@ -269,7 +269,7 @@ PHP_METHOD(EventHttp, __construct)
 	http->ptr = http_ptr;
 
 	http->base = zbase;
-	Z_ADDREF_P(zbase);
+	Z_TRY_ADDREF_P(zbase);
 
 	http->fci     = NULL;
 	http->fcc     = NULL;
@@ -330,7 +330,7 @@ PHP_METHOD(EventHttp, bind)
 	php_event_http_t *http;
 	char             *address;
 	int               address_len;
-	long              port;
+	zend_long             port;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sl",
 				&address, &address_len, &port) == FAILURE) {
@@ -421,7 +421,7 @@ PHP_METHOD(EventHttp, setDefaultCallback)
 	PHP_EVENT_COPY_FCALL_INFO(http->fci, http->fcc, &fci, &fcc);
 
 	if (zarg) {
-		Z_ADDREF_P(zarg);
+		Z_TRY_ADDREF_P(zarg);
 	}
 	http->data = zarg;
 
@@ -443,7 +443,7 @@ PHP_METHOD(EventHttp, setAllowedMethods)
 {
 	zval             *zhttp   = getThis();
 	php_event_http_t *http;
-	long              methods;
+	zend_long             methods;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&methods) == FAILURE) {
@@ -462,7 +462,7 @@ PHP_METHOD(EventHttp, setMaxBodySize)
 {
 	zval             *zhttp   = getThis();
 	php_event_http_t *http;
-	long              value;
+	zend_long             value;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&value) == FAILURE) {
@@ -481,7 +481,7 @@ PHP_METHOD(EventHttp, setMaxHeadersSize)
 {
 	zval             *zhttp   = getThis();
 	php_event_http_t *http;
-	long              value;
+	zend_long             value;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&value) == FAILURE) {
@@ -501,7 +501,7 @@ PHP_METHOD(EventHttp, setTimeout)
 {
 	zval             *zhttp   = getThis();
 	php_event_http_t *http;
-	long              value;
+	zend_long             value;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&value) == FAILURE) {

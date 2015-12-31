@@ -123,8 +123,8 @@ PHP_METHOD(EventUtil, setSocketOption)
 	int               optlen;
 	int               retval;
 	struct timeval    tv;
-	long              level;
-	long              optname;
+	zend_long             level;
+	zend_long             optname;
 	void             *opt_ptr;
 	HashTable        *opt_ht;
 	zval            **l_onoff  , **l_linger;

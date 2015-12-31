@@ -161,7 +161,7 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 		args[2] = &arg_address;
 
 		if (arg_data) {
-			Z_ADDREF_P(arg_data);
+			Z_TRY_ADDREF_P(arg_data);
 		} else {
 			ALLOC_INIT_ZVAL(arg_data);
 		}
@@ -215,7 +215,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 		args[0] = &l->self;
 
 		if (arg_data) {
-			Z_ADDREF_P(arg_data);
+			Z_TRY_ADDREF_P(arg_data);
 		} else {
 			ALLOC_INIT_ZVAL(arg_data);
 		}
@@ -262,8 +262,8 @@ PHP_METHOD(EventListener, __construct)
 	php_event_listener_t   *l;
 	zval                   *zdata     = NULL;
 	zval                   *pztarget;
-	long                    flags;
-	long                    backlog;
+	zend_long                   flags;
+	zend_long                   backlog;
 	struct evconnlistener  *listener;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ofz!llz",
@@ -334,13 +334,13 @@ PHP_METHOD(EventListener, __construct)
 
 	if (zdata) {
 		l->data = zdata;
-		Z_ADDREF_P(zdata);
+		Z_TRY_ADDREF_P(zdata);
 	}
 
 	PHP_EVENT_COPY_FCALL_INFO(l->fci, l->fcc, &fci, &fcc);
 
 	l->self = zself;
-	Z_ADDREF_P(l->self);
+	Z_TRY_ADDREF_P(l->self);
 
 	TSRMLS_SET_CTX(l->thread_ctx);
 }
@@ -423,7 +423,7 @@ PHP_METHOD(EventListener, setCallback)
 		}
 
 		l->data = zarg;
-		Z_ADDREF_P(zarg);
+		Z_TRY_ADDREF_P(zarg);
 	}
 
 	/*
@@ -488,7 +488,7 @@ PHP_METHOD(EventListener, getBase)
 	PHP_EVENT_FETCH_BASE(b, return_value);
 	/* Don't do this. It's normal to have refcount = 1 here.
 	 * If we got bugs, we most likely free'd an internal buffer somewhere
-	 * Z_ADDREF_P(return_value);*/
+	 * Z_TRY_ADDREF_P(return_value);*/
 
 	b->base = evconnlistener_get_base(l->listener);
 	b->internal = 1;

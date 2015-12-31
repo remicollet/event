@@ -28,63 +28,102 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 {                                                                     \
 	zend_class_entry tmp_ce;                                          \
 	INIT_CLASS_ENTRY(tmp_ce, name, ce_functions);                     \
-	ce = zend_register_internal_class(&tmp_ce);             \
-	ce->create_object = create_func;                                  \
+	tmp_ce.create_object = create_func;                               \
+	ce = zend_register_internal_class(&tmp_ce);                       \
 }
 
-#define PHP_EVENT_INIT_CLASS_OBJECT(pz, pce) \
-	do {                                     \
-		Z_TYPE_P((pz)) = IS_OBJECT;          \
-		object_init_ex((pz), (pce));         \
-		Z_SET_REFCOUNT_P((pz), 1);           \
-		Z_SET_ISREF_P((pz));                 \
+#define PHP_EVENT_INIT_CLASS_OBJECT(pz, pce) object_init_ex((pz), (pce))
+
+/* php_event_x_fetch_object(zend_object *obj) */
+#define Z_EVENT_X_FETCH_OBJ_DECL(x) \
+	static zend_always_inline php_event_ ## x ## _t * php_event_ ## x ## _fetch_object(zend_object *obj) { \
+		return (EXPECTED(obj) ? (php_event_ ## x ## _t *)((char *)obj - XtOffsetOf(php_event_ ## x ## _t, zo)) : NULL); \
+	}
+
+#define Z_EVENT_X_OBJ_P(x, zv) (EXPECTED(zv) ? php_event_ # x # _fetch_object(Z_OBJ_P(zv)) : NULL)
+
+Z_EVENT_X_FETCH_OBJ_DECL(base)
+Z_EVENT_X_FETCH_OBJ_DECL(event)
+Z_EVENT_X_FETCH_OBJ_DECL(config)
+Z_EVENT_X_FETCH_OBJ_DECL(buffer)
+
+#define Z_EVENT_BASE_OBJ_P(zv)   Z_EVENT_X_OBJ_P(base,   zv)
+#define Z_EVENT_EVENT_OBJ_P(zv)  Z_EVENT_X_OBJ_P(event,  zv)
+#define Z_EVENT_CONFIG_OBJ_P(zv) Z_EVENT_X_OBJ_P(config, zv)
+#define Z_EVENT_BUFFER_OBJ_P(zv) Z_EVENT_X_OBJ_P(buffer, zv)
+#define Z_EVENT_BEVENT_OBJ_P(zv) Z_EVENT_X_OBJ_P(bevent, zv)
+
+#ifdef HAVE_EVENT_EXTRA_LIB
+Z_EVENT_X_FETCH_OBJ_DECL(dns_base)
+Z_EVENT_X_FETCH_OBJ_DECL(listener)
+Z_EVENT_X_FETCH_OBJ_DECL(http)
+Z_EVENT_X_FETCH_OBJ_DECL(http_conn)
+Z_EVENT_X_FETCH_OBJ_DECL(http_req)
+
+#define Z_EVENT_DNS_BASE_OBJ_P(zv)  Z_EVENT_X_OBJ_P(dns_base,  zv)
+#define Z_EVENT_LISTENER_OBJ_P(zv)  Z_EVENT_X_OBJ_P(listener,  zv)
+#define Z_EVENT_HTTP_OBJ_P(zv)      Z_EVENT_X_OBJ_P(http,      zv)
+#define Z_EVENT_HTTP_CONN_OBJ_P(zv) Z_EVENT_X_OBJ_P(http_conn, zv)
+#define Z_EVENT_HTTP_REQ_OBJ_P(zv)  Z_EVENT_X_OBJ_P(http_req,  zv)
+#endif /* HAVE_EVENT_EXTRA_LIB */
+
+#define Z_EVENT_STD_OBJ_DTOR(obj_ptr) zend_object_std_dtor(obj_ptr->zo)
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
+Z_EVENT_X_FETCH_OBJ_DECL(ssl_context)
+
+#define Z_EVENT_SSL_CONTEXT_OBJ_P(zv) Z_EVENT_X_OBJ_P(ssl_context, zv)
+#endif /* HAVE_EVENT_OPENSSL_LIB */
+
+/* XXX Replace PHP_EVENT_FETCH_*() occurances with corresponding x = Z_EVENT_x_OBJ_P(); */
+#define PHP_EVENT_FETCH_EVENT(x,       zv) x = Z_EVENT_EVENT_OBJ_P(zv)
+#define PHP_EVENT_FETCH_BASE(x,        zv) x = Z_EVENT_BASE_OBJ_P(zv)
+#define PHP_EVENT_FETCH_CONFIG(x,      zv) x = Z_EVENT_CONFIG_OBJ_P(zv)
+#define PHP_EVENT_FETCH_BEVENT(x,      zv) x = Z_EVENT_BEVENT_OBJ_P(zv)
+#define PHP_EVENT_FETCH_BUFFER(x,      zv) x = Z_EVENT_BUFFER_OBJ_P(zv)
+#define PHP_EVENT_FETCH_DNS_BASE(x,    zv) x = Z_EVENT_DNS_BASE_OBJ_P(zv)
+#define PHP_EVENT_FETCH_LISTENER(x,    zv) x = Z_EVENT_LISTENER_OBJ_P(zv)
+#define PHP_EVENT_FETCH_HTTP_CONN(x,   zv) x = Z_EVENT_HTTP_OBJ_P(zv)
+#define PHP_EVENT_FETCH_HTTP(x,        zv) x = Z_EVENT_HTTP_OBJ_P(zv)
+#define PHP_EVENT_FETCH_HTTP_REQ(x,    zv) x = Z_EVENT_HTTP_REQ_OBJ_P(zv)
+#define PHP_EVENT_FETCH_BUFFER_POS(x,  zv) x = Z_EVENT_BUFFER_OBJ_P(zv)
+#define PHP_EVENT_FETCH_SSL_CONTEXT(x, zv) x = Z_EVENT_SSL_CONTEXT_OBJ_P(zv)
+
+static zend_always_inline void init_properties(zend_object *pzo)/*{{{*/
+{
+	zend_object_std_init(pzo, ce);
+	object_properties_init(pzo, ce);
+}/*}}}*/
+
+static zend_always_inline HashTable * find_prop_handler(const zend_class_entry *ce)/*{{{*/
+{
+	zend_class_entry *ce_parent = ce;
+
+	while (ce_parent->type != ZEND_INTERNAL_CLASS && ce_parent->parent != NULL) {
+		ce_parent = ce_parent->parent;
+	}
+
+	return zend_hash_find_ptr(&classes, ce_parent->name);
+} /*}}}*/
+
+#define PHP_EVENT_OBJ_ALLOC(obj, ce, t)                                \
+	do {                                                               \
+		obj = ecalloc(1, sizeof(t) + zend_object_properties_size(ce)); \
+		PHP_EVENT_ASSERT(obj);                                         \
+		obj->prop_handler = find_prop_handler(ce);                     \
+		init_properties(&obj->zo);                                     \
 	} while (0)
 
-#define PHP_EVENT_FETCH_EVENT(e, ze) \
-	e = (php_event_t *) zend_object_store_get_object(ze)
 
-#define PHP_EVENT_FETCH_BASE(base, zbase) \
-	base = (php_event_base_t *) zend_object_store_get_object(zbase)
-
-#define PHP_EVENT_FETCH_CONFIG(cfg, zcfg) \
-	cfg = (php_event_config_t *) zend_object_store_get_object(zcfg)
-
-#define PHP_EVENT_FETCH_BEVENT(b, zb) \
-	b = (php_event_bevent_t *) zend_object_store_get_object(zb)
-
-#define PHP_EVENT_FETCH_BUFFER(b, zb) \
-	b = (php_event_buffer_t *) zend_object_store_get_object(zb)
-
-#define PHP_EVENT_FETCH_DNS_BASE(b, zb) \
-	b = (php_event_dns_base_t *) zend_object_store_get_object(zb)
-
-#define PHP_EVENT_FETCH_LISTENER(b, zb) \
-	b = (php_event_listener_t *) zend_object_store_get_object(zb)
-
-#define PHP_EVENT_FETCH_HTTP_CONN(b, zb) \
-	b = (php_event_http_conn_t *) zend_object_store_get_object(zb)
-
-#define PHP_EVENT_FETCH_HTTP(b, zb) \
-	b = (php_event_http_t *) zend_object_store_get_object(zb)
-
-#define PHP_EVENT_FETCH_HTTP_REQ(b, zb) \
-	b = (php_event_http_req_t *) zend_object_store_get_object(zb)
-
-#define PHP_EVENT_FETCH_BUFFER_POS(p, zp) \
-	p = (php_event_buffer_pos_t *) zend_object_store_get_object(zp)
-
-#define PHP_EVENT_FETCH_SSL_CONTEXT(p, zp) \
-	p = (php_event_ssl_context_t *) zend_object_store_get_object(zp)
-
-#define PHP_EVENT_TIMEVAL_SET(tv, t)                 \
-	do {                                             \
-		tv.tv_sec  = (long) t;                       \
-		tv.tv_usec = (long) ((t - tv.tv_sec) * 1e6); \
+#define PHP_EVENT_TIMEVAL_SET(tv, t)                     \
+	do {                                                 \
+		tv.tv_sec  = (zend_long)t;                       \
+		tv.tv_usec = (zend_long)((t - tv.tv_sec) * 1e6); \
 	} while (0)
 
 #define PHP_EVENT_TIMEVAL_TO_DOUBLE(tv) (tv.tv_sec + tv.tv_usec * 1e-6)
 
-#define PHP_EVENT_SOCKETS_REQUIRED_NORET                                       \
+#define PHP_EVENT_SOCKETS_REQUIRED_NORET \
 	php_error_docref(NULL, E_ERROR, "`sockets' extension required. " \
 			"If you have `sockets' installed, rebuild `event' extension")
 
@@ -97,7 +136,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 #define PHP_EVENT_REQUIRE_BASE_BY_REF(zbase)                  \
 	do {                                                      \
 		if (!Z_ISREF_P((zbase)) || Z_REFCOUNT_P(zbase) < 2) { \
-			php_error_docref(NULL, E_ERROR,         \
+			php_error_docref(NULL, E_ERROR,                   \
 					"EventBase must be passed by reference"); \
 		}                                                     \
 	} while (0)

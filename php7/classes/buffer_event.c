@@ -66,14 +66,14 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 
 		arg_self = bev->self;
 		if (arg_self) {
-			Z_ADDREF_P(arg_self);
+			Z_TRY_ADDREF_P(arg_self);
 		} else {
 			ALLOC_INIT_ZVAL(arg_self);
 		}
 		args[0] = &arg_self;
 
 		if (arg_data) {
-			Z_ADDREF_P(arg_data);
+			Z_TRY_ADDREF_P(arg_data);
 		} else {
 			ALLOC_INIT_ZVAL(arg_data);
 		}
@@ -165,7 +165,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 
 		arg_self = bev->self;
 		if (arg_self) {
-			Z_ADDREF_P(arg_self);
+			Z_TRY_ADDREF_P(arg_self);
 		} else {
 			ALLOC_INIT_ZVAL(arg_self);
 		}
@@ -176,7 +176,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 		args[1] = &arg_events;
 
 		if (arg_data) {
-			Z_ADDREF_P(arg_data);
+			Z_TRY_ADDREF_P(arg_data);
 		} else {
 			ALLOC_INIT_ZVAL(arg_data);
 		}
@@ -220,7 +220,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
 /* {{{ is_valid_ssl_state */
-static zend_always_inline zend_bool is_valid_ssl_state(long state)
+static zend_always_inline zend_bool is_valid_ssl_state(zend_long state)
 {
 	return (zend_bool) (state == BUFFEREVENT_SSL_OPEN
 			|| state == BUFFEREVENT_SSL_CONNECTING
@@ -249,7 +249,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 	php_event_base_t       *base;
 	zval                   *pzfd     = NULL;
 	evutil_socket_t         fd;
-	long                    options   = 0;
+	zend_long                   options   = 0;
 	php_event_bevent_t     *bev;
 	struct bufferevent     *bevent;
 	zend_fcall_info         fci_read  = empty_fcall_info;
@@ -313,10 +313,10 @@ PHP_METHOD(EventBufferEvent, __construct)
 	bev->bevent = bevent;
 
 	bev->self = zself;
-	Z_ADDREF_P(zself);
+	Z_TRY_ADDREF_P(zself);
 
 	bev->base = zbase;
-	Z_ADDREF_P(zbase);
+	Z_TRY_ADDREF_P(zbase);
 
 	bev->input = bev->output = NULL;
 
@@ -354,7 +354,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 	}
 
 	if (zarg) {
-		Z_ADDREF_P(zarg);
+		Z_TRY_ADDREF_P(zarg);
 		bev->data = zarg;
 	}
 
@@ -427,7 +427,7 @@ PHP_METHOD(EventBufferEvent, createPair)
 {
 	zval               *zbase;
 	php_event_base_t   *base;
-	long                options        = 0;
+	zend_long               options        = 0;
 	zval               *zbev[2];
 	php_event_bevent_t *b[2];
 	struct bufferevent *bevent_pair[2];
@@ -558,8 +558,8 @@ PHP_METHOD(EventBufferEvent, connectHost)
 	zval               *zdns_base    = NULL;
 	char               *hostname;
 	int                 hostname_len;
-	long                port;
-	long                family       = AF_UNSPEC;
+	zend_long               port;
+	zend_long               family       = AF_UNSPEC;
 #ifdef HAVE_EVENT_EXTRA_LIB
 	php_event_dns_base_t *dnsb;
 #endif
@@ -714,7 +714,7 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 	}
 
 	if (zarg) {
-		Z_ADDREF_P(zarg);
+		Z_TRY_ADDREF_P(zarg);
 		bev->data = zarg;
 	}
 
@@ -730,7 +730,7 @@ PHP_METHOD(EventBufferEvent, enable)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
-	long                events;
+	zend_long               events;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&events) == FAILURE) {
@@ -754,7 +754,7 @@ PHP_METHOD(EventBufferEvent,disable)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
-	long                events;
+	zend_long               events;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&events) == FAILURE) {
@@ -811,7 +811,7 @@ PHP_METHOD(EventBufferEvent, getInput)
 	PHP_EVENT_FETCH_BUFFER(b, return_value);
 	/* Don't do this. It's normal to have refcount = 1 here.
 	 * If we got bugs, we most likely free'd an internal buffer somewhere
-	 * Z_ADDREF_P(return_value);*/
+	 * Z_TRY_ADDREF_P(return_value);*/
 
 	b->buf      = bufferevent_get_input(bev->bevent);
 	b->internal = 1;
@@ -838,7 +838,7 @@ PHP_METHOD(EventBufferEvent, getOutput)
 	PHP_EVENT_FETCH_BUFFER(b, return_value);
 	/* Don't do this. It's normal to have refcount = 1 here.
 	 * If we got bugs, we most likely free'd an internal buffer somewhere
-	 * Z_ADDREF_P(return_value);*/
+	 * Z_TRY_ADDREF_P(return_value);*/
 
 	b->buf      = bufferevent_get_output(bev->bevent);
 	b->internal = 1;
@@ -851,9 +851,9 @@ PHP_METHOD(EventBufferEvent, setWatermark)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
-	long                events;
-	long                lowmark;
-	long                highmark;
+	zend_long               events;
+	zend_long               lowmark;
+	zend_long               highmark;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "lll",
 				&events, &lowmark, &highmark) == FAILURE) {
@@ -927,9 +927,9 @@ PHP_METHOD(EventBufferEvent, read)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
-	long                size;
+	zend_long               size;
 	char               *data;
-	long                ret;
+	zend_long               ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&size) == FAILURE) {
@@ -992,7 +992,7 @@ PHP_METHOD(EventBufferEvent, setPriority)
 {
 	zval               *zbevent  = getThis();
 	php_event_bevent_t *bev;
-	long                priority;
+	zend_long               priority;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&priority) == FAILURE) {
@@ -1051,8 +1051,8 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 	php_event_bevent_t      *bev_underlying;
 	zval                    *zctx;
 	php_event_ssl_context_t *ectx;
-	long                     state;
-	long                     options        = 0;
+	zend_long                    state;
+	zend_long                    options        = 0;
 	php_event_bevent_t      *bev;
 	struct bufferevent      *bevent;
 	SSL                     *ssl;
@@ -1104,10 +1104,10 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 	bev->bevent = bevent;
 
 	bev->self = return_value;
-	Z_ADDREF_P(return_value);
+	Z_TRY_ADDREF_P(return_value);
 
 	bev->base = zbase;
-	Z_ADDREF_P(zbase);
+	Z_TRY_ADDREF_P(zbase);
 }
 /* }}} */
 
@@ -1121,8 +1121,8 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	php_event_ssl_context_t  *ectx;
 	zval                     *pzfd;
 	evutil_socket_t           fd;
-	long                      state;
-	long                      options = 0;
+	zend_long                     state;
+	zend_long                     options = 0;
 	php_event_bevent_t       *bev;
 	struct bufferevent       *bevent;
 	SSL                      *ssl;
@@ -1183,10 +1183,10 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	bev->bevent = bevent;
 
 	bev->self = return_value;
-	Z_ADDREF_P(return_value);
+	Z_TRY_ADDREF_P(return_value);
 
 	bev->base = zbase;
-	Z_ADDREF_P(zbase);
+	Z_TRY_ADDREF_P(zbase);
 }
 /* }}} */
 
@@ -1199,7 +1199,7 @@ PHP_METHOD(EventBufferEvent, sslError)
 	zval               *zbevent  = getThis();
 	php_event_bevent_t *bev;
 	char                buf[512];
-	unsigned long       e;
+	zend_ulong          e;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;

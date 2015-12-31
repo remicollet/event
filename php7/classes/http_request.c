@@ -45,7 +45,7 @@
 /* }}} */
 
 /* {{{ _get_http_req_headers */
-static zend_always_inline struct evkeyvalq *_get_http_req_headers(const php_event_http_req_t *http_req, const long type)
+static zend_always_inline struct evkeyvalq *_get_http_req_headers(const php_event_http_req_t *http_req, const zend_long type)
 {
 	struct evkeyvalq *headers;
 
@@ -91,12 +91,12 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	if (req == NULL || !arg_req) {
 		ALLOC_INIT_ZVAL(arg_req);
 	} else {
-		Z_ADDREF_P(arg_req);
+		Z_TRY_ADDREF_P(arg_req);
 	}
 	args[0] = &arg_req;
 
 	if (arg_data) {
-		Z_ADDREF_P(arg_data);
+		Z_TRY_ADDREF_P(arg_data);
 	} else {
 		ALLOC_INIT_ZVAL(arg_data);
 	}
@@ -152,12 +152,12 @@ PHP_METHOD(EventHttpRequest, __construct)
 	http_req->ptr = req;
 
 	if (zarg) {
-		Z_ADDREF_P(zarg);
+		Z_TRY_ADDREF_P(zarg);
 	}
 	http_req->data = zarg;
 
 	http_req->self = zself;
-	Z_ADDREF_P(zself);
+	Z_TRY_ADDREF_P(zself);
 
 	PHP_EVENT_COPY_FCALL_INFO(http_req->fci, http_req->fcc, &fci, &fcc);
 
@@ -399,7 +399,7 @@ PHP_METHOD(EventHttpRequest, getBufferEvent)
 
 	bev->bevent = evhttp_connection_get_bufferevent(conn);
 	bev->self = return_value;
-	Z_ADDREF_P(return_value);
+	Z_TRY_ADDREF_P(return_value);
 	bev->input = NULL;
 	bev->output = NULL;
 	bev->_internal = 1;
@@ -442,7 +442,7 @@ PHP_METHOD(EventHttpRequest, getConnection)
 
 	evcon->conn = conn;
 	evcon->self = return_value;
-	Z_ADDREF_P(return_value);
+	Z_TRY_ADDREF_P(return_value);
 
 	/* Set in ctor:
 	   evcon->base = NULL;
@@ -451,7 +451,7 @@ PHP_METHOD(EventHttpRequest, getConnection)
 	   evcon->fci_closecb = NULL;
 	   evcon->fcc_closecb = NULL;
 	*/
-	Z_ADDREF_P(return_value);
+	Z_TRY_ADDREF_P(return_value);
 }
 /* }}} */
 
@@ -484,7 +484,7 @@ PHP_METHOD(EventHttpRequest, closeConnection)
 PHP_METHOD(EventHttpRequest, sendError)
 {
 	php_event_http_req_t *http_req;
-	long                  error;
+	zend_long                 error;
 	char                 *reason = NULL;
 	int                   reason_len;
 
@@ -508,7 +508,7 @@ PHP_METHOD(EventHttpRequest, sendError)
 PHP_METHOD(EventHttpRequest, sendReply)
 {
 	php_event_http_req_t *http_req;
-	long                  code;
+	zend_long                 code;
 	char                 *reason;
 	int                   reason_len;
 	zval                 *zbuf = NULL;
@@ -595,7 +595,7 @@ PHP_METHOD(EventHttpRequest, sendReplyEnd)
 PHP_METHOD(EventHttpRequest, sendReplyStart)
 {
 	php_event_http_req_t *http_req;
-	long                  code;
+	zend_long                 code;
 	char                 *reason;
 	int                   reason_len;
 
@@ -653,7 +653,7 @@ PHP_METHOD(EventHttpRequest, addHeader)
 	int                   key_len;
 	int                   value_len;
 	struct evkeyvalq     *headers;
-	long                  type;
+	zend_long                 type;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ssl",
 				&key, &key_len, &value, &value_len, &type) == FAILURE) {
@@ -707,7 +707,7 @@ PHP_METHOD(EventHttpRequest, removeHeader)
 	char                 *key;
 	int                   key_len;
 	struct evkeyvalq     *headers;
-	long                  type;
+	zend_long                 type;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sl",
 				&key, &key_len, &type) == FAILURE) {
@@ -740,7 +740,7 @@ PHP_METHOD(EventHttpRequest, findHeader)
 	char                 *key;
 	int                   key_len;
 	struct evkeyvalq     *headers;
-	long                  type;
+	zend_long                 type;
 	const char *val;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sl",

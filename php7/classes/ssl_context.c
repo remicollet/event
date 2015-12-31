@@ -172,11 +172,11 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 	for (zend_hash_internal_pointer_reset_ex(ht, &pos);
 			zend_hash_has_more_elements_ex(ht, &pos) == SUCCESS;
 			zend_hash_move_forward_ex(ht, &pos)) {
-		char   *key;
-		uint    keylen;
-		ulong   idx;
-		int     type;
-		zval  **ppzval;
+		char        *key;
+		uint         keylen;
+		zend_ulong   idx;
+		int          type;
+		zval       **ppzval;
 
 		type = zend_hash_get_current_key_ex(ht, &key, &keylen,
 				&idx, 0, &pos);
@@ -301,7 +301,7 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 /* }}} */
 
 /* {{{ get_ssl_method */
-static zend_always_inline SSL_METHOD *get_ssl_method(long in_method)
+static zend_always_inline SSL_METHOD *get_ssl_method(zend_long in_method)
 {
 	SSL_METHOD *method;
 
@@ -405,10 +405,10 @@ PHP_METHOD(EventSslContext, __construct)
 {
 	php_event_ssl_context_t *ectx;
 	HashTable               *ht_options;
-	long                     in_method;
+	zend_long                    in_method;
 	SSL_METHOD              *method;
 	SSL_CTX                 *ctx;
-	long                     options    = SSL_OP_ALL;
+	zend_long                    options    = SSL_OP_ALL;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "lh",
 				&in_method, &ht_options) == FAILURE) {

@@ -40,24 +40,14 @@ extern zend_class_entry *php_event_util_ce;
 extern zend_class_entry *php_event_ssl_context_ce;
 #endif
 
-extern const php_event_property_entry_t event_property_entries[];
-extern const php_event_property_entry_t event_bevent_property_entries[];
-extern const php_event_property_entry_t event_buffer_property_entries[];
+extern const Z_EVENT_X_PROP_ENTRY_T(event) event_property_entries[];
+extern const Z_EVENT_X_PROP_ENTRY_T(bevent) event_bevent_property_entries[];
+extern const Z_EVENT_X_PROP_ENTRY_T(buffer) event_buffer_property_entries[];
 #ifdef HAVE_EVENT_EXTRA_LIB
-extern const php_event_property_entry_t event_listener_property_entries[];
+extern const Z_EVENT_X_PROP_ENTRY_T(listener) event_listener_property_entries[];
 #endif
 #ifdef HAVE_EVENT_OPENSSL_LIB
-extern const php_event_property_entry_t event_ssl_context_property_entries[];
-#endif
-
-extern const zend_property_info event_property_entry_info[];
-extern const zend_property_info event_bevent_property_entry_info[];
-extern const zend_property_info event_buffer_property_entry_info[];
-#if HAVE_EVENT_EXTRA_LIB
-extern const zend_property_info event_listener_property_entry_info[];
-#endif
-#ifdef HAVE_EVENT_OPENSSL_LIB
-extern const zend_property_info event_ssl_context_property_entry_info[];
+extern const Z_EVENT_X_PROP_ENTRY_T(ssl_context) event_ssl_context_property_entries[];
 #endif
 
 #ifdef HAVE_EVENT_EXTRA_LIB

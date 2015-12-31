@@ -61,7 +61,7 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback arg */
 		if (arg_data) {
-			Z_ADDREF_P(arg_data);
+			Z_TRY_ADDREF_P(arg_data);
 		} else {
 			ALLOC_INIT_ZVAL(arg_data);
 		}
@@ -165,7 +165,7 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 		args[0] = &arg_signum;
 
 		if (arg_data) {
-			Z_ADDREF_P(arg_data);
+			Z_TRY_ADDREF_P(arg_data);
 		} else {
 			ALLOC_INIT_ZVAL(arg_data);
 		}
@@ -203,7 +203,7 @@ PHP_METHOD(Event, __construct)
 	php_event_base_t       *b;
 	zval                   *pzfd;
 	evutil_socket_t         fd;
-	long                    what;
+	zend_long                   what;
 	zend_fcall_info         fci   = empty_fcall_info;
 	zend_fcall_info_cache   fcc   = empty_fcall_info_cache;
 	zval                   *arg   = NULL;
@@ -256,7 +256,7 @@ PHP_METHOD(Event, __construct)
 	e->event = event;
 
 	if (arg) {
-		Z_ADDREF_P(arg);
+		Z_TRY_ADDREF_P(arg);
 	}
 	e->data = arg;
 
@@ -305,7 +305,7 @@ PHP_METHOD(Event, set)
 	php_event_t            *e;
 	zval                   *pzfd   = NULL;
 	evutil_socket_t         fd = -1;
-	long                    what    = -1;
+	zend_long                   what    = -1;
 	zend_fcall_info         fci     = empty_fcall_info;
 	zend_fcall_info_cache   fcc     = empty_fcall_info_cache;
 	zval                   *arg     = NULL;
@@ -355,7 +355,7 @@ PHP_METHOD(Event, set)
 #if 0
 			if (e->stream_res->handle != Z_RES_P(pzfd)->handle) {
 				e->stream_res = Z_RES_P(pzfd);
-				Z_ADDREF_P(pzfd);
+				Z_TRY_ADDREF_P(pzfd);
 			}
 #else
 			e->stream_res = Z_RES_P(pzfd);
@@ -373,7 +373,7 @@ PHP_METHOD(Event, set)
 			zval_ptr_dtor(&e->data);
 		}
 		e->data = arg;
-		Z_ADDREF_P(arg);
+		Z_TRY_ADDREF_P(arg);
 	}
 
 	event_get_assignment(e->event, &b->base,
@@ -499,7 +499,7 @@ PHP_METHOD(Event, setPriority)
 {
 	zval        *zevent = getThis();
 	php_event_t *e;
-	long         priority;
+	zend_long        priority;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&priority) == FAILURE) {
@@ -522,7 +522,7 @@ PHP_METHOD(Event, pending)
 {
 	zval        *zevent = getThis();
 	php_event_t *e;
-	long         flags;
+	zend_long        flags;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&flags) == FAILURE) {
@@ -571,7 +571,7 @@ PHP_METHOD(Event, timer)
 	e->event = event;
 
 	if (arg) {
-		Z_ADDREF_P(arg);
+		Z_TRY_ADDREF_P(arg);
 	}
 	e->data = arg;
 
@@ -627,7 +627,7 @@ PHP_METHOD(Event, setTimer)
 			zval_ptr_dtor(&e->data);
 		}
 		e->data = arg;
-		Z_ADDREF_P(arg);
+		Z_TRY_ADDREF_P(arg);
 	}
 
 	e->stream_res = NULL; /* stdin fd = 0 */
@@ -645,7 +645,7 @@ PHP_METHOD(Event, signal)
 {
 	zval                  *zbase;
 	php_event_base_t      *b;
-	long                   signum;
+	zend_long                  signum;
 	zend_fcall_info        fci    = empty_fcall_info;
 	zend_fcall_info_cache  fcc    = empty_fcall_info_cache;
 	zval                  *arg    = NULL;
@@ -678,7 +678,7 @@ PHP_METHOD(Event, signal)
 	e->event = event;
 
 	if (arg) {
-		Z_ADDREF_P(arg);
+		Z_TRY_ADDREF_P(arg);
 	}
 	e->data = arg;
 

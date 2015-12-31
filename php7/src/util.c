@@ -32,6 +32,7 @@ php_socket_t php_event_zval_to_fd(zval *pfd)
 #ifdef PHP_EVENT_SOCKETS_SUPPORT
 	php_socket   *php_sock;
 #endif
+	const char* invalid_fd_error = "Invalid file descriptor";
 
 	if (Z_TYPE_P(pfd) == IS_RESOURCE) {
 		/* PHP stream or PHP socket resource  */
@@ -97,21 +98,16 @@ php_socket_t php_event_zval_to_fd(zval *pfd)
 	} else if (Z_TYPE_P(pfd) == IS_LONG) {
 		file_desc = Z_LVAL_PP(pfd);
 		if (file_desc < 0) {
-			zend_throw_exception(zend_exception_get_default(), "Invalid file descriptor", 0);
+			zend_throw_exception(zend_exception_get_default(), invalid_fd_error, 0);
 			return -1;
 		}
 	} else {
-		zend_throw_exception(zend_exception_get_default(), "Invalid file descriptor", 0);
+		zend_throw_exception(zend_exception_get_default(), invalid_fd_error, 0);
 		return -1;
 	}
 
-	/* Validate file descriptor */
-#ifndef PHP_WIN32
-	if (file_desc >= 0 && fcntl(file_desc, F_GETFD) == -1) {
-#else
-	if (file_desc == INVALID_SOCKET) {
-#endif
-		zend_throw_exception(zend_exception_get_default(), "fcntl: invalid file descriptor passed", 0);
+	if (!ZEND_VALID_SOCKET(file_desc)) {
+		zend_throw_exception(zend_exception_get_default(), invalid_fd_error, 0);
 		return -1;
 	}
 
@@ -125,7 +121,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 	php_sockaddr_storage  sa_storage;
 	struct sockaddr      *sa         = (struct sockaddr *) &sa_storage;
 	socklen_t             sa_len     = sizeof(php_sockaddr_storage);
-	long                  port       = -1;
+	zend_long                 port       = -1;
 
 	if (getsockname(fd, sa, &sa_len)) {
 		php_error_docref(NULL, E_WARNING,

@@ -49,12 +49,12 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	if (conn == NULL || !arg_conn) {
 		ALLOC_INIT_ZVAL(arg_conn);
 	} else {
-		Z_ADDREF_P(arg_conn);
+		Z_TRY_ADDREF_P(arg_conn);
 	}
 	args[0] = &arg_conn;
 
 	if (arg_data) {
-		Z_ADDREF_P(arg_data);
+		Z_TRY_ADDREF_P(arg_data);
 	} else {
 		ALLOC_INIT_ZVAL(arg_data);
 	}
@@ -93,7 +93,7 @@ PHP_METHOD(EventHttpConnection, __construct)
 	php_event_dns_base_t     *dnsb = NULL;
 	char                     *address;
 	int                       address_len;
-	long                      port;
+	zend_long                     port;
 	php_event_http_conn_t    *evcon;
 	struct evhttp_connection *conn;
 
@@ -101,7 +101,7 @@ PHP_METHOD(EventHttpConnection, __construct)
 	php_event_ssl_context_t *ectx;
 	zval                    *zctx    = NULL;
 	struct bufferevent      *bevent  = NULL;
-	long                     options;
+	zend_long                    options;
 	SSL                     *ssl;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OO!sl|O!",
@@ -173,14 +173,14 @@ PHP_METHOD(EventHttpConnection, __construct)
 	evcon->conn = conn;
 
 	evcon->self = zself;
-	Z_ADDREF_P(zself);
+	Z_TRY_ADDREF_P(zself);
 
 	evcon->base = zbase;
-	Z_ADDREF_P(zbase);
+	Z_TRY_ADDREF_P(zbase);
 
 	evcon->dns_base = zdns_base;
 	if (zdns_base) {
-		Z_ADDREF_P(zdns_base);
+		Z_TRY_ADDREF_P(zdns_base);
 	}
 }
 /* }}} */
@@ -270,7 +270,7 @@ PHP_METHOD(EventHttpConnection, setLocalPort)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
-	long                   port;
+	zend_long                  port;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&port) == FAILURE) {
@@ -289,7 +289,7 @@ PHP_METHOD(EventHttpConnection, setTimeout)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
-	long                   timeout;
+	zend_long                  timeout;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&timeout) == FAILURE) {
@@ -308,7 +308,7 @@ PHP_METHOD(EventHttpConnection, setMaxHeadersSize)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
-	long                   max_size;
+	zend_long                  max_size;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&max_size) == FAILURE) {
@@ -327,7 +327,7 @@ PHP_METHOD(EventHttpConnection, setMaxBodySize)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
-	long                   max_size;
+	zend_long                  max_size;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&max_size) == FAILURE) {
@@ -346,7 +346,7 @@ PHP_METHOD(EventHttpConnection, setRetries)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
-	long                   retries;
+	zend_long                  retries;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&retries) == FAILURE) {
@@ -369,7 +369,7 @@ PHP_METHOD(EventHttpConnection, makeRequest)
 	php_event_http_conn_t *evcon;
 	zval                  *zreq;
 	php_event_http_req_t  *http_req;
-	long                   type;
+	zend_long                  type;
 	char                  *uri;
 	int                    uri_len;
 
@@ -419,7 +419,7 @@ PHP_METHOD(EventHttpConnection, setCloseCallback)
 			zval_ptr_dtor(&evcon->data_closecb);
 		}
 		evcon->data_closecb = zarg;
-		Z_ADDREF_P(zarg);
+		Z_TRY_ADDREF_P(zarg);
 	}
 
 	TSRMLS_SET_CTX(evcon->thread_ctx);

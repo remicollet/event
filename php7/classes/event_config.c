@@ -67,7 +67,7 @@ PHP_METHOD(EventConfig, avoidMethod)
 PHP_METHOD(EventConfig, requireFeatures)
 {
 	zval               *zcfg    = getThis();
-	long                feature;
+	zend_long               feature;
 	php_event_config_t *cfg;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
@@ -94,8 +94,8 @@ PHP_METHOD(EventConfig, setMaxDispatchInterval)
 {
 	zval                  *zcfg          = getThis();
 	php_event_timestamp_t  max_interval;
-	long                   max_callbacks;
-	long                   min_priority;
+	zend_long                  max_callbacks;
+	zend_long                  min_priority;
 	php_event_config_t    *cfg;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "dll",

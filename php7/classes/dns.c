@@ -57,7 +57,7 @@ PHP_METHOD(EventDnsBase, parseResolvConf)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();
-	long                  flags;
+	zend_long                 flags;
 	char                 *filename;
 	int                   filename_len;
 	int                   ret;
@@ -206,7 +206,7 @@ PHP_METHOD(EventDnsBase, setSearchNdots)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();
-	long                  ndots;
+	zend_long                 ndots;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&ndots) == FAILURE) {

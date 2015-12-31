@@ -20,7 +20,7 @@
 #include "src/priv.h"
 
 /* {{{ _get_pos */
-static int _get_pos(struct evbuffer_ptr *out_ptr, const long pos, struct evbuffer *buf)
+static int _get_pos(struct evbuffer_ptr *out_ptr, const zend_long pos, struct evbuffer *buf)
 {
 	if (pos < 0) {
 		return FAILURE;
@@ -184,7 +184,7 @@ PHP_METHOD(EventBuffer, add)
 }
 /* }}} */
 
-/* {{{ proto string EventBuffer::read(long max_bytes);
+/* {{{ proto string EventBuffer::read(zend_long max_bytes);
  *
  * Read data from an evbuffer and drain the bytes read.  If more bytes are
  * requested than are available in the evbuffer, we only extract as many bytes
@@ -194,8 +194,8 @@ PHP_METHOD(EventBuffer, read)
 {
 	php_event_buffer_t *b;
 	zval               *zbuf      = getThis();
-	long                max_bytes;
-	long                ret;
+	zend_long               max_bytes;
+	zend_long               ret;
 	char               *data;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
@@ -254,7 +254,7 @@ PHP_METHOD(EventBuffer, appendFrom)
 	php_event_buffer_t *b_src;
 	zval               *zbuf_dst = getThis();
 	zval               *zbuf_src;
-	long                len;
+	zend_long               len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ol",
 				&zbuf_src, php_event_buffer_ce, &len) == FAILURE) {
@@ -275,7 +275,7 @@ PHP_METHOD(EventBuffer, expand)
 {
 	php_event_buffer_t *b;
 	zval               *zbuf = getThis();
-	long                len;
+	zend_long               len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&len) == FAILURE) {
@@ -345,7 +345,7 @@ PHP_METHOD(EventBuffer, prependBuffer)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::drain(long len);
+/* {{{ proto bool EventBuffer::drain(zend_long len);
  *
  * Behaves as EventBuffer::remove(), except that it does not copy the data: it
  * just removes it from the front of the buffer.
@@ -354,7 +354,7 @@ PHP_METHOD(EventBuffer, drain)
 {
 	zval               *zbuf = getThis();
 	php_event_buffer_t *b;
-	long                len;
+	zend_long               len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&len) == FAILURE) {
@@ -371,7 +371,7 @@ PHP_METHOD(EventBuffer, drain)
 }
 /* }}} */
 
-/* {{{ proto int EventBuffer::copyout(string &data, long max_bytes);
+/* {{{ proto int EventBuffer::copyout(string &data, zend_long max_bytes);
  *
  * Behaves just like EventBuffer::remove(), but does not drain any data from the buffer.
  * I.e. it copies the first max_bytes bytes from the front of the buffer into data.
@@ -384,8 +384,8 @@ PHP_METHOD(EventBuffer, copyout)
 	php_event_buffer_t *b;
 	zval               *zbuf      = getThis();
 	zval               *zdata;
-	long                max_bytes;
-	long                ret;
+	zend_long               max_bytes;
+	zend_long               ret;
 	char               *data;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zl",
@@ -427,7 +427,7 @@ PHP_METHOD(EventBuffer, readLine)
 {
 	zval               *zbuf      = getThis();
 	php_event_buffer_t *b;
-	long                eol_style;
+	zend_long               eol_style;
 	char               *res;
 	size_t              len;
 
@@ -464,8 +464,8 @@ PHP_METHOD(EventBuffer, readLine)
 PHP_METHOD(EventBuffer, search)
 {
 	zval               *zbuf      = getThis();
-	long                start_pos = -1;
-	long                end_pos   = -1;
+	zend_long               start_pos = -1;
+	zend_long               end_pos   = -1;
 	char               *what;
 	int                 what_len;
 	php_event_buffer_t *b;
@@ -515,8 +515,8 @@ PHP_METHOD(EventBuffer, search)
 PHP_METHOD(EventBuffer, searchEol)
 {
 	zval               *zbuf      = getThis();
-	long                start_pos = -1;
-	long                eol_style = EVBUFFER_EOL_ANY;
+	zend_long               start_pos = -1;
+	zend_long               eol_style = EVBUFFER_EOL_ANY;
 	php_event_buffer_t *b;
 
 	struct evbuffer_ptr ptr_start, ptr_res;
@@ -558,7 +558,7 @@ PHP_METHOD(EventBuffer, pullup)
 {
 	zval               *zbuf = getThis();
 	php_event_buffer_t *b;
-	long                size;
+	zend_long               size;
 	unsigned char      *mem;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
@@ -591,8 +591,8 @@ PHP_METHOD(EventBuffer, write)
 	php_event_buffer_t  *b;
 	zval                *pzfd;
 	evutil_socket_t      fd;
-	long                 res;
-	long                 howmuch = -1;
+	zend_long                res;
+	zend_long                howmuch = -1;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|l",
 				&pzfd, &howmuch) == FAILURE) {
@@ -632,8 +632,8 @@ PHP_METHOD(EventBuffer, readFrom)
 	php_event_buffer_t  *b;
 	zval                *pzfd;
 	evutil_socket_t      fd;
-	long                 res;
-	long                 howmuch = -1;
+	zend_long                res;
+	zend_long                howmuch = -1;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|l",
 				&pzfd, &howmuch) == FAILURE) {
@@ -665,13 +665,13 @@ PHP_METHOD(EventBuffer, substr)
 {
 	zval               *zbuf   = getThis();
 	php_event_buffer_t *b;
-	long                n_start;
-	long                n_length = -1;
+	zend_long               n_start;
+	zend_long               n_length = -1;
 
 	struct evbuffer_ptr    ptr;
 	struct evbuffer_iovec *pv;
 	int                    n_chunks;
-	long                   n_read   = 0;
+	zend_long                  n_read   = 0;
 	int                    i;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l|l",

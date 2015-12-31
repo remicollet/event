@@ -102,7 +102,7 @@ PHP_METHOD(EventBase, getFeatures)
 PHP_METHOD(EventBase, priorityInit)
 {
 	zval             *zbase = getThis();
-	long              n_priorities;
+	zend_long             n_priorities;
 	php_event_base_t *b;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
@@ -124,7 +124,7 @@ PHP_METHOD(EventBase, priorityInit)
 PHP_METHOD(EventBase, loop)
 {
 	zval             *zbase = getThis();
-	long              flags = -1;
+	zend_long             flags = -1;
 	php_event_base_t *b;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|l",
