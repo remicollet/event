@@ -19,6 +19,14 @@
 #ifndef PHP_EVENT_STRUCTS_H
 #define PHP_EVENT_STRUCTS_H
 
+#ifndef TRUE
+# define TRUE 1
+#endif
+
+#ifndef FALSE
+# define FALSE 0
+#endif
+
 #define PHP_EVENT_OBJECT_TAIL \
 	HashTable   *prop_handler; \
 	zend_object  zo
@@ -43,7 +51,7 @@ typedef struct _php_event_t {
 
 	PHP_EVENT_OBJECT_TAIL;
 } php_event_t;
-/* typedef php_event_t php_event_event_t; */
+typedef php_event_t php_event_event_t;
 
 /* Represents EventConfig object */
 typedef struct _php_event_config_t {
@@ -82,7 +90,6 @@ typedef struct _php_event_buffer_t {
 } php_event_buffer_t;
 
 #ifdef HAVE_EVENT_EXTRA_LIB/* {{{ */
-
 enum {
 	PHP_EVENT_REQ_HEADER_INPUT  = 1,
 	PHP_EVENT_REQ_HEADER_OUTPUT = 2,
@@ -214,80 +221,33 @@ typedef struct _php_event_ssl_context_t {
 typedef double php_event_timestamp_t;
 
 /* Object's internal struct name */
-#define Z_EVENT_X_OBJ_T(x) php_event_ ## x ## _object
+#define Z_EVENT_X_OBJ_T(x) php_event_ ## x ## _t
 
 
 /* Property handler types */
 
-#define Z_EVENT_X_PROP_READ_HND_T(x)  php_event_ ## x ## _read_t
-#define Z_EVENT_X_PROP_WRITE_HND_T(x) php_event_ ## x ## _write_t
-#define Z_EVENT_X_PROP_PP_HND_T(x)    php_event_ ## x ## _get_prop_ptr_ptr_t
-#define Z_EVENT_X_PROP_HND_TYPEDEF(x) \
-	typedef zval *(*Z_EVENT_X_PROP_READ_HND_T(x))(Z_EVENT_X_OBJ_T(x) *obj, zval *retval); \
-	typedef int (*Z_EVENT_X_PROP_WRITE_HND_T(x))(Z_EVENT_X_OBJ_T(x) *obj, zval *newval); \
-	typedef zval *(*Z_EVENT_X_PROP_PP_HND_T(x))(Z_EVENT_X_OBJ_T(x) *obj)
+typedef zval *(*php_event_prop_read_t)(void *obj, zval *retval);
+typedef int (*php_event_prop_write_t)(void *obj, zval *newval);
+typedef zval *(*php_event_prop_get_ptr_ptr_t)(void *obj);
 
-Z_EVENT_X_PROP_HND_TYPEDEF(event)
-Z_EVENT_X_PROP_HND_TYPEDEF(bevent)
-Z_EVENT_X_PROP_HND_TYPEDEF(buffer)
-#ifdef HAVE_EVENT_EXTRA_LIB
-Z_EVENT_X_PROP_HND_TYPEDEF(listener)
-#endif
-#ifdef HAVE_EVENT_OPENSSL_LIB
-Z_EVENT_X_PROP_HND_TYPEDEF(ssl_context)
-#endif
+/* Property entry type */
 
-#undef Z_EVENT_X_PROP_HND_TYPEDEF
+typedef struct _php_event_property_entry_t {
+	const char                   *name;
+	size_t                        name_length;
+	php_event_prop_read_t         read_func;
+	php_event_prop_write_t        write_func;
+	php_event_prop_get_ptr_ptr_t  get_ptr_ptr_func;
+} php_event_property_entry_t;
 
+/* Property entry handler type  */
 
-/* Property entry structs */
-
-#define Z_EVENT_X_PROP_ENTRY_T(x) php_event_ ## x ## _property_entry_t
-#define Z_EVENT_X_PROP_ENTRY_T_DECL(x)                   \
-	typedef struct _ ## Z_EVENT_X_PROP_ENTRY_T(x) {      \
-		const char                    *name;             \
-		size_t                         name_length;      \
-		Z_EVENT_X_PROP_READ_HND_T(x)   read_func;        \
-		Z_EVENT_X_PROP_WRITE_HND_T(x)  write_func;       \
-		Z_EVENT_X_PROP_PP_HND_T(x)     get_ptr_ptr_func; \
-	} Z_EVENT_X_PROP_ENTRY_T(x)
-
-Z_EVENT_X_PROP_ENTRY_T_DECL(event)
-Z_EVENT_X_PROP_ENTRY_T_DECL(bevent)
-Z_EVENT_X_PROP_ENTRY_T_DECL(buffer)
-#ifdef HAVE_EVENT_EXTRA_LIB
-Z_EVENT_X_PROP_ENTRY_T_DECL(listener)
-#endif
-#ifdef HAVE_EVENT_OPENSSL_LIB
-Z_EVENT_X_PROP_ENTRY_T_DECL(ssl_context)
-#endif
-
-#undef Z_EVENT_X_PROP_ENTRY_T_DECL
-
-
-/* Property entry handler structs */
-
-#define Z_EVENT_X_PROP_HND_T(x) php_event_ ## x ## _prop_handler_t
-#define Z_EVENT_X_PROP_HND_T_DECL(x)                     \
-	typedef struct _ ## Z_EVENT_X_PROP_HND_T(x) {        \
-		zend_string                       *name;         \
-		Z_EVENT_X_PROP_READ_HND_T(x)   read_func;        \
-		Z_EVENT_X_PROP_WRITE_HND_T(x)  write_func;       \
-		Z_EVENT_X_PROP_PP_HND_T(x)     get_ptr_ptr_func; \
-	} Z_EVENT_X_PROP_HND_T(x)
-
-Z_EVENT_X_PROP_HND_T_DECL(event)
-Z_EVENT_X_PROP_HND_T_DECL(bevent)
-Z_EVENT_X_PROP_HND_T_DECL(buffer)
-#ifdef HAVE_EVENT_EXTRA_LIB
-Z_EVENT_X_PROP_HND_T_DECL(listener)
-#endif
-#ifdef HAVE_EVENT_OPENSSL_LIB
-Z_EVENT_X_PROP_HND_T_DECL(ssl_context)
-#endif
-
-#undef Z_EVENT_X_PROP_HND_T_DECL
-
+typedef struct _php_event_prop_handler_t {
+	zend_string                  *name;
+	php_event_prop_read_t         read_func;
+	php_event_prop_write_t        write_func;
+	php_event_prop_get_ptr_ptr_t  get_ptr_ptr_func;
+} php_event_prop_handler_t;
 
 #ifndef LIBEVENT_VERSION_NUMBER
 # error "<event2/*.h> must be included before " ## #__FILE__

@@ -119,7 +119,7 @@ static void free_prop_handler(zval *el)
 	pefree(Z_PTR_P(el), 1);
 }
 
-static void event_event_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_event_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_t *e = Z_EVENT_EVENT_OBJ_P(object);
 
@@ -149,7 +149,7 @@ static void event_event_object_free_storage(zend_object *object)/*{{{*/
 	Z_EVENT_STD_OBJ_DTOR(e);
 }/*}}}*/
 
-static void event_base_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_base_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_base_t *b = Z_EVENT_BASE_OBJ_P(object);
 
@@ -163,7 +163,7 @@ static void event_base_object_free_storage(zend_object *object)/*{{{*/
 	Z_EVENT_STD_OBJ_DTOR(b);
 }/*}}}*/
 
-static void event_config_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_config_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_config_t *cfg = Z_EVENT_CONFIG_OBJ_P(object);
 
@@ -177,7 +177,7 @@ static void event_config_object_free_storage(zend_object *object)/*{{{*/
 	Z_EVENT_STD_OBJ_DTOR(cfg);
 }/*}}}*/
 
-static void event_bevent_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_bevent_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_bevent_t *b = Z_EVENT_BEVENT_OBJ_P(object);
 
@@ -216,7 +216,7 @@ static void event_bevent_object_free_storage(zend_object *object)/*{{{*/
 	Z_EVENT_STD_OBJ_DTOR(b);
 }/*}}}*/
 
-static void event_buffer_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_buffer_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_buffer_t *b = Z_EVENT_BUFFER_OBJ_P(object);
 
@@ -237,7 +237,7 @@ static void event_buffer_object_free_storage(zend_object *object)/*{{{*/
 
 #ifdef HAVE_EVENT_EXTRA_LIB
 
-static void event_dns_base_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_dns_base_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_dns_base_t *dnsb = Z_EVENT_DNS_BASE_OBJ_P(object);
 
@@ -253,7 +253,7 @@ static void event_dns_base_object_free_storage(zend_object *object)/*{{{*/
 	Z_EVENT_STD_OBJ_DTOR(dnsb);
 }/*}}}*/
 
-static void event_listener_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_listener_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_listener_t *l = Z_EVENT_LISTENER_OBJ_P(object);
 
@@ -278,7 +278,7 @@ static void event_listener_object_free_storage(zend_object *object)/*{{{*/
 	Z_EVENT_STD_OBJ_DTOR(l);
 }/*}}}*/
 
-static void event_http_conn_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_http_conn_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_http_conn_t *evcon = Z_EVENT_HTTP_CONN_OBJ_P(object);
 
@@ -310,7 +310,7 @@ static void event_http_conn_object_free_storage(zend_object *object)/*{{{*/
 	Z_EVENT_STD_OBJ_DTOR(evcon);
 }/*}}}*/
 
-static void event_http_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_http_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_http_cb_t *cb, *cb_next;
 	php_event_http_t *http = Z_EVENT_HTTP_OBJ_P(object);
@@ -343,7 +343,7 @@ static void event_http_object_free_storage(zend_object *object)/*{{{*/
 	Z_EVENT_STD_OBJ_DTOR(http);
 }/*}}}*/
 
-static void event_http_req_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_http_req_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_http_req_t *http_req = Z_EVENT_HTTP_REQ_OBJ_P(object);
 
@@ -378,7 +378,7 @@ static void event_http_req_object_free_storage(zend_object *object)/*{{{*/
 
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
-static void event_ssl_context_object_free_storage(zend_object *object)/*{{{*/
+static void php_event_ssl_context_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_ssl_context_t *ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(object);
 
@@ -514,7 +514,7 @@ static zend_object * event_http_req_object_create(zend_class_entry *ce)/*{{{*/
 	php_event_abstract_object_t *obj = (php_event_abstract_object_t *) object_new(ce, sizeof(php_event_http_req_t));
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
-			event_http_req_object_free_storage);
+			event_http_req_free_obj);
 
 	php_event_http_req_t *intern;
 
@@ -601,17 +601,11 @@ static void event_object_dtor(zend_object *object)/*{{{*/
 }
 /*}}}*/
 
-
-/* {{{ read_property */
-static zval * read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv)
+static zval * read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv, void *obj, HashTable *prop_handler)/*{{{*/
 {
-	zval                         tmp_member;
-	zval                        *retval;
-	php_event_abstract_object_t *obj;
-	php_event_prop_handler_t    *hnd;
-
-	hnd = NULL;
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
+	zval                      tmp_member;
+	zval                     *retval;
+	php_event_prop_handler_t *hnd        = NULL;
 
 	if (Z_TYPE_P(member) != IS_STRING) {
 		ZVAL_COPY(&tmp_member, member);
@@ -619,8 +613,8 @@ static zval * read_property(zval *object, zval *member, int type, void **cache_s
 		member = &tmp_member;
 	}
 
-	if (obj->prop_handler != NULL) {
-		hnd = zend_hash_find_ptr(obj->prop_handler, Z_STR_P(member));
+	if (prop_handler != NULL) {
+		hnd = zend_hash_find_ptr(prop_handler, Z_STR_P(member));
 	}
 
 	if (hnd) {
@@ -638,173 +632,124 @@ static zval * read_property(zval *object, zval *member, int type, void **cache_s
 	}
 
 	return retval;
-}
-/* }}} */
+}/*}}}*/
 
-/* {{{ write_property */
-static void write_property(zval *object, zval *member, zval *value, const zend_literal *key)
+static void write_property(zval *object, zval *member, zval *value, void **cache_slot, void *obj, HashTable *prop_handler)/*{{{*/
 {
-	zval                         tmp_member;
-	php_event_abstract_object_t *obj;
-	php_event_prop_handler_t    *hnd;
-	int                          ret;
+	zval                      tmp_member;
+	php_event_prop_handler_t *hnd        = NULL;
 
-	if (member->type != IS_STRING) {
-		tmp_member = *member;
-		zval_copy_ctor(&tmp_member);
+	if (Z_TYPE_P(member) != IS_STRING) {
+		ZVAL_COPY(&tmp_member, member);
 		convert_to_string(&tmp_member);
 		member = &tmp_member;
 	}
 
-	ret = FAILURE;
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
-
-	if (obj->prop_handler != NULL) {
-		ret = zend_hash_find((HashTable *) obj->prop_handler, Z_STRVAL_P(member), Z_STRLEN_P(member)+1, (void **) &hnd);
+	if (prop_handler != NULL) {
+	    hnd = zend_hash_find_ptr(prop_handler, Z_STR_P(member));
 	}
-	if (ret == SUCCESS) {
+
+	if (hnd) {
 		hnd->write_func(obj, value);
 	} else {
-		zend_object_handlers * std_hnd = zend_get_std_object_handlers();
+		zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 		std_hnd->write_property(object, member, value, key);
 	}
 
 	if (member == &tmp_member) {
 		zval_dtor(member);
 	}
-}
-/* }}} */
+}/*}}}*/
 
-/* {{{ object_has_property */
-static int object_has_property(zval *object, zval *member, int has_set_exists, const zend_literal *key)
+static int object_has_property(zval *object, zval *member, int has_set_exists, void **cache_slot, void *obj, HashTable *prop_handler)/*{{{*/
 {
-	php_event_abstract_object_t *obj;
-	int                          ret = 0;
-	php_event_prop_handler_t    p;
+	php_event_prop_handler_t *p;
+	int                       ret = 0;
 
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
-
-
-	if (obj->prop_handler) {
-		if (zend_hash_find(obj->prop_handler, Z_STRVAL_P(member),
-					Z_STRLEN_P(member) + 1, (void **) &p) == SUCCESS) {
-			switch (has_set_exists) {
-				case 2:
-					ret = 1;
-					break;
-				case 1: {
-							zval *value = read_property(object, member, BP_VAR_IS, key);
-							if (value != EG(uninitialized_zval_ptr)) {
-								convert_to_boolean(value);
-								ret = Z_BVAL_P(value)? 1:0;
-								/* refcount is 0 */
-								Z_TRY_ADDREF_P(value);
-								zval_ptr_dtor(&value);
-							}
-							break;
+	if ((p = zend_hash_find_ptr(prop_handler, Z_STR_P(member))) != NULL) {
+		switch (has_set_exists) {
+			case 2:
+				ret = 1;
+				break;
+			case 1: {
+						zval rv;
+						zval *value = read_property(object, member, BP_VAR_IS, cache_slot, &rv, obj, prop_handler);
+						if (value != &EG(uninitialized_zval)) {
+							convert_to_boolean(value);
+							ret = Z_TYPE_P(value) == IS_TRUE ? 1 : 0;
 						}
-				case 0:{
-						   zval *value = read_property(object, member, BP_VAR_IS, key);
-						   if (value != EG(uninitialized_zval_ptr)) {
-							   ret = Z_TYPE_P(value) != IS_NULL? 1:0;
-							   /* refcount is 0 */
-							   Z_TRY_ADDREF_P(value);
-							   zval_ptr_dtor(&value);
-						   }
-						   break;
+						break;
+					}
+			case 0:{
+					   zval rv;
+					   zval *value = read_property(object, member, BP_VAR_IS, cache_slot, &rv, obj, prop_handler);
+					   if (value != &EG(uninitialized_zval)) {
+						   ret = Z_TYPE_P(value) != IS_NULL ? 1 : 0;
+						   zval_ptr_dtor(value);
 					   }
-				default:
-					   php_error_docref(NULL, E_WARNING, "Invalid value for has_set_exists");
-			}
-		} else {
-			zend_object_handlers *std_hnd = zend_get_std_object_handlers();
-			ret = std_hnd->has_property(object, member, has_set_exists, key);
+					   break;
+				   }
+			default:
+				   php_error_docref(NULL, E_WARNING, "Invalid value for has_set_exists");
 		}
+	} else {
+		zend_object_handlers *std_hnd = zend_get_std_object_handlers();
+		ret = std_hnd->has_property(object, member, has_set_exists, cache_slot);
 	}
-	return ret;
-}
-/* }}} */
 
-#if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 3
-/* {{{ object_get_debug_info */
-static HashTable *object_get_debug_info(zval *object, int *is_temp)
+	return ret;
+}/*}}}*/
+
+static HashTable * object_get_debug_info(zval *object, int *is_temp, void *obj, HashTable *prop_handler)/*{{{*/
 {
-	php_event_abstract_object_t *obj;
-	HashTable                   *retval;
-	HashTable                   *props;
-	HashPosition                 pos;
+	HashTable                *props = prop_handler;
+	HashTable                *retval;
 	php_event_prop_handler_t *entry;
 
-	obj   = (php_event_abstract_object_t *) zend_objects_get_address(object);
-	props = obj->prop_handler;
-
 	ALLOC_HASHTABLE(retval);
-
-	if (!props) {
-		ZEND_INIT_SYMTABLE_EX(retval, 1, 0);
-		return retval;
-	}
-
 	ZEND_INIT_SYMTABLE_EX(retval, zend_hash_num_elements(props) + 1, 0);
 
-	zend_hash_internal_pointer_reset_ex(props, &pos);
-	while (zend_hash_get_current_data_ex(props, (void **) &entry, &pos) == SUCCESS) {
-		zval member;
+	ZEND_HASH_FOREACH_PTR(props, entry) {
+		zval rv, member;
 		zval *value;
-
-		INIT_ZVAL(member);
-		ZVAL_STRINGL(&member, entry->name, entry->name_len, 0);
-
-		value = read_property(object, &member, BP_VAR_IS, 0);
-		if (value != EG(uninitialized_zval_ptr)) {
-			Z_TRY_ADDREF_P(value);
-			zend_hash_add(retval, entry->name, entry->name_len + 1, &value, sizeof(zval *) , NULL);
+		ZVAL_STR(&member, entry->name);
+		value = read_property(object, &member, BP_VAR_IS, 0, &rv, obj, prop_handler);
+		if (value != &EG(uninitialized_zval)) {
+			zend_hash_add(retval, Z_STR(member), value);
 		}
-
-		zend_hash_move_forward_ex(props, &pos);
-	}
+	} ZEND_HASH_FOREACH_END();
 
 	*is_temp = 1;
 
 	return retval;
-}
-/* }}} */
-#endif
+}/*}}}*/
 
-/* {{{ get_property_ptr_ptr */
-#if PHP_VERSION_ID >= 50500
-static zval **get_property_ptr_ptr(zval *object, zval *member, int type, const zend_literal *key)
-#else
-static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_literal *key)
-#endif
+static zval * get_property_ptr_ptr(zval *object, zval *member, int type, void **cache_slot, void *obj, HashTable *prop_handler)/*{{{*/
 {
-	php_event_abstract_object_t  *obj;
-	zval                          tmp_member;
-	zval                        **retval     = NULL;
-	php_event_prop_handler_t     *hnd;
-	int                           ret        = FAILURE;
+	zval                     *retval     = NULL;
+	php_event_prop_handler_t *hnd        = NULL;
+	zval                      tmp_member;
 
-	if (member->type != IS_STRING) {
-		tmp_member = *member;
-		zval_copy_ctor(&tmp_member);
+	if (Z_TYPE_P(member) != IS_STRING) {
+		ZVAL_COPY(&tmp_member, member);
 		convert_to_string(&tmp_member);
 		member = &tmp_member;
+		cache_slot = NULL;
 	}
 
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
-
-	if (obj->prop_handler != NULL) {
-		ret = zend_hash_find(obj->prop_handler, Z_STRVAL_P(member), Z_STRLEN_P(member) + 1, (void **) &hnd);
+	if (prop_handler != NULL) {
+		hnd = zend_hash_find_ptr(prop_handler, Z_STR_P(member));
 	}
 
-	if (ret == FAILURE) {
-#if PHP_VERSION_ID >= 50500
-		retval = zend_get_std_object_handlers()->get_property_ptr_ptr(object, member, type, key);
-#else
-		retval = zend_get_std_object_handlers()->get_property_ptr_ptr(object, member, key);
-#endif
-	} else if (hnd->get_ptr_ptr_func) {
+	if (hnd && hnd->get_ptr_ptr_func != NULL) {
 		retval = hnd->get_ptr_ptr_func(obj);
+	} else {
+		zend_object_handlers *std_hnd = zend_get_std_object_handlers();
+		retval = std_hnd->get_property_ptr_ptr(object, member, type, cache_slot);
+	}
+
+	if (Z_ISUNDEF_P(retval)) {
+		ZVAL_NULL(retval);
 	}
 
 	if (member == &tmp_member) {
@@ -812,60 +757,120 @@ static zval **get_property_ptr_ptr(zval *object, zval *member, const zend_litera
 	}
 
 	return retval;
-}
-/* }}} */
+}/*}}}*/
 
-
-#if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 4
-/* {{{ get_properties
-   Returns all object properties. */
-static HashTable *get_properties(zval *object)
+static HashTable * get_properties(zval *object, void *obj, HashTable *prop_handler)/*{{{*/
 {
-	php_event_abstract_object_t *obj;
-	php_event_prop_handler_t    *hnd;
-	HashTable                   *props;
-	zval                        *val;
-	char                        *key;
-	uint                         key_len;
-	HashPosition                 pos;
-	zend_ulong                   num_key;
+	HashTable           *props = zend_std_get_properties(object);
+	php_ev_prop_handler *hnd;
+	zend_string         *key;
 
-	obj = (php_event_abstract_object_t *) zend_objects_get_address(object);
-	/* Don't get obj->zo.properties; directly!
-	 * Otherwise serialization functions will cause SEGFAULTs */
-	props = zend_std_get_properties(object);
-
-	if (obj->prop_handler) {
-		zend_hash_internal_pointer_reset_ex(obj->prop_handler, &pos);
-
-		while (zend_hash_get_current_data_ex(obj->prop_handler,
-					(void **) &hnd, &pos) == SUCCESS) {
-			zend_hash_get_current_key_ex(obj->prop_handler,
-					&key, &key_len, &num_key, 0, &pos);
-			if (!hnd->read_func || hnd->read_func(obj, &val) != SUCCESS) {
-				val = EG(uninitialized_zval_ptr);
-				Z_TRY_ADDREF_P(val);
-			}
-			zend_hash_update(props, key, key_len, (void *) &val, sizeof(zval *), NULL);
-			zend_hash_move_forward_ex(obj->prop_handler, &pos);
-		}
+	if (prop_handler == NULL) {
+		return NULL;
 	}
 
-	return obj->zo.properties;
-}
-/* }}} */
-#endif
+	ZEND_HASH_FOREACH_STR_KEY_PTR(prop_handler, key, hnd) {
+		zval zret;
+		if (hnd->read_func && hnd->read_func(obj, &zret)) {
+			zend_hash_update(props, key, &zret);
+		}
+	} ZEND_HASH_FOREACH_END();
 
-static HashTable * get_gc(zval *object, zval **gc_data, int *gc_count)
+	return props;
+}/*}}}*/
+
+static HashTable * get_gc(zval *object, zval **gc_data, int *gc_count)/*{{{*/
 {
 	*gc_data = NULL;
 	*gc_count = 0;
 	return zend_std_get_properties(object);
+}/*}}}*/
+
+
+#define PHP_EVENT_X_READ_PROPERTY_DECL(x) \
+static zval * php_event_ ## x ## _read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv) \
+{ \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object); \
+	return (obj ? read_property(object, member, type, cache_slot, rv, (void *)obj, obj->prop_handler) : NULL); \
 }
 
+#define PHP_EVENT_X_WRITE_PROPERTY_DECL(x) \
+static void php_event_ ## x ## _write_property(zval *object, zval *member, zval *value, void **cache_slot) \
+{ \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object); \
+	if (EXPECTED(obj)) { \
+		write_property(object, member, value, cache_slot, (void *)obj, obj->prop_handler); \
+	} \
+}
 
-/* {{{ php_event_add_property */
-static void php_event_add_property(HashTable *h, const char *name, size_t name_len, php_event_prop_read_t read_func, php_event_prop_write_t write_func, php_event_prop_get_prop_ptr_ptr_t get_ptr_ptr_func) {
+#define PHP_EVENT_X_HAS_PROPERTY_DECL(x) \
+static int php_event_ ## x ## _has_property(zval *object, zval *member, int has_set_exists, void **cache_slot) \
+{ \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object); \
+	return (obj ? object_has_property(object, member, has_set_exists, cache_slot, (void *)obj, obj->prop_handler) : 0); \
+}
+
+#define PHP_EVENT_X_GET_DEBUG_INFO_DECL(x) \
+static HashTable * php_event_ ## x ## _get_debug_info(zval *object, int *is_temp) \
+{ \
+	HashTable *retval; \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object); \
+	if (EXPECTED(obj)) { \
+		retval = object_get_debug_info(object, is_temp, (void *)obj, obj->prop_handler); \
+	} else { \
+		ALLOC_HASHTABLE(retval); \
+	} \
+	return retval; \
+}
+
+#define PHP_EVENT_X_GET_PROPERTY_PTR_PTR_DECL(x) \
+static zval * php_event_ ## x ## _get_prop_ptr_ptr(zval *object, zval *member, int type, void **cache_slot) \
+{ \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object); \
+	return (EXPECTED(obj) ? get_property_ptr_ptr(object, member, type, cache_slot, (void *)obj, obj->prop_handler) : NULL); \
+}
+
+#define PHP_EVENT_X_GET_PROPERTIES(x) \
+static HashTable * php_event_ ## x ## _get_properties(zval *object) \
+{ \
+	HashTable *retval; \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object); \
+	if (EXPECTED(obj)) { \
+		retval = get_properties(object, (void *)obj, obj->prop_handler); \
+	} else { \
+		ALLOC_HASHTABLE(retval); \
+	} \
+	return retval; \
+}
+
+#define PHP_EVENT_X_PROP_HND_DECL(x) \
+	PHP_EVENT_X_READ_PROPERTY_DECL(x) \
+	PHP_EVENT_X_WRITE_PROPERTY_DECL(x) \
+	PHP_EVENT_X_HAS_PROPERTY_DECL(x) \
+	PHP_EVENT_X_GET_DEBUG_INFO_DECL(x) \
+	PHP_EVENT_X_GET_PROPERTY_PTR_PTR_DECL(x) \
+	PHP_EVENT_X_GET_PROPERTIES(x)
+
+PHP_EVENT_X_PROP_HND_DECL(event)
+PHP_EVENT_X_PROP_HND_DECL(base)
+PHP_EVENT_X_PROP_HND_DECL(event)
+PHP_EVENT_X_PROP_HND_DECL(config)
+PHP_EVENT_X_PROP_HND_DECL(buffer)
+
+#ifdef HAVE_EVENT_EXTRA_LIB
+PHP_EVENT_X_PROP_HND_DECL(dns_base)
+PHP_EVENT_X_PROP_HND_DECL(listener)
+PHP_EVENT_X_PROP_HND_DECL(http)
+PHP_EVENT_X_PROP_HND_DECL(http_conn)
+PHP_EVENT_X_PROP_HND_DECL(http_req)
+#endif /* HAVE_EVENT_EXTRA_LIB */
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
+PHP_EVENT_X_PROP_HND_DECL(ssl_context)
+#endif /* HAVE_EVENT_OPENSSL_LIB */
+
+
+static void add_property(HashTable *h, const char *name, size_t name_len, php_event_prop_read_t read_func, php_event_prop_write_t write_func, php_event_prop_get_prop_ptr_ptr_t get_ptr_ptr_func) {/*{{{*/
 	php_event_prop_handler_t p;
 
 	p.name             = (char *) name;
@@ -874,14 +879,13 @@ static void php_event_add_property(HashTable *h, const char *name, size_t name_l
 	p.write_func       = (write_func) ? write_func: write_property_default;
 	p.get_ptr_ptr_func = get_ptr_ptr_func;
 	zend_hash_add(h, name, name_len + 1, &p, sizeof(php_event_prop_handler_t), NULL);
-}
-/* }}} */
+}/*}}}*/
 
 #define PHP_EVENT_ADD_CLASS_PROPERTIES(a, b)                                 \
 {                                                                            \
 	int i = 0;                                                               \
 	while (b[i].name != NULL) {                                              \
-		php_event_add_property((a), (b)[i].name, (b)[i].name_length,         \
+		add_property((a), (b)[i].name, (b)[i].name_length,                   \
 				(php_event_prop_read_t)(b)[i].read_func,                     \
 				(php_event_prop_write_t)(b)[i].write_func,                   \
 				(php_event_prop_get_prop_ptr_ptr_t)(b)[i].get_ptr_ptr_func); \
@@ -892,8 +896,7 @@ static void php_event_add_property(HashTable *h, const char *name, size_t name_l
 #define PHP_EVENT_DECL_PROP_NULL(ce, name, attr) \
 	zend_declare_property_null(ce, #name, sizeof(#name) - 1, attr)
 
-/* {{{ register_classes */
-static zend_always_inline void register_classes()
+static zend_always_inline void register_classes()/*{{{*/
 {
 	zend_class_entry *ce;
 
@@ -989,8 +992,7 @@ static zend_always_inline void register_classes()
 	PHP_EVENT_DECL_PROP_NULL(ce, "local_pk",   ZEND_ACC_PUBLIC);
 	zend_hash_add_ptr(&classes, ce->name, &event_ssl_context_properties);
 #endif /* HAVE_EVENT_OPENSSL_LIB */
-}
-/* }}} */
+}/*}}}*/
 
 /* Private functions }}} */
 
@@ -1005,45 +1007,50 @@ PHP_MINIT_FUNCTION(event)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 
+#define PHP_EVENT_SET_X_OBJ_HANDLER(x, name) \
+	event_ ## x ## _object_handlers = php_event_ ## x ## _ ## name
+
+#define PHP_EVENT_SET_X_OBJ_HANDLERS(x) do { \
+	PHP_EVENT_X_OBJ_HANDLERS(x).offset = XtOffsetOf(Z_EVENT_X_OBJ_T(x), zo); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, free_obj); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, read_property); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, write_property); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_property_ptr_ptr); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, has_property); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_debug_info); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_properties); \
+} while (0)
+
+#define PHP_EVENT_INIT_X_OBJ_HANDLERS(x) do { \
+	memcpy(&PHP_EVENT_X_OBJ_HANDLERS(x), &event_object_handlers, sizeof(zend_object_handlers)); \
+	PHP_EVENT_SET_X_OBJ_HANDLERS(x); \
+} while (0)
+
 	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 
 	memcpy(&event_object_handlers, std_hnd, sizeof(zend_object_handlers));
-	event_object_handlers.offset               = XtOffsetOf(php_event_t, zo);
-	event_object_handlers.free_obj             = event_event_object_free_storage;
-	event_object_handlers.clone_obj            = NULL;
-	event_object_handlers.dtor_obj             = event_object_dtor;
-	event_object_handlers.read_property        = read_property;
-	event_object_handlers.write_property       = write_property;
-	event_object_handlers.get_property_ptr_ptr = get_property_ptr_ptr;
-	event_object_handlers.has_property         = object_has_property;
-	event_object_handlers.get_debug_info       = object_get_debug_info;
-	event_object_handlers.get_properties       = get_properties;
-	event_object_handlers.get_gc               = get_gc;
+	event_object_handlers.clone_obj = NULL;
+	event_object_handlers.dtor_obj  = event_object_dtor;
+	event_object_handlers.get_gc    = get_gc;
+	PHP_EVENT_SET_X_OBJ_HANDLERS(event);
 
-#define INIT_EVENT_X_OBJ_HANDLERS(x) do { \
-	memcpy(&event_ ## x ## _object_handlers, &event_object_handlers, sizeof(zend_object_handlers)); \
-	event_ ## x ## _object_handlers.offset   = XtOffsetOf(php_event_ ## x ## _t, zo); \
-	event_ ## x ## _object_handlers.free_obj = event_ ## x ## _object_free_storage; \
-} while (0)
-
-	INIT_EVENT_X_OBJ_HANDLERS(base);
-	INIT_EVENT_X_OBJ_HANDLERS(config);
-	INIT_EVENT_X_OBJ_HANDLERS(bevent);
-	INIT_EVENT_X_OBJ_HANDLERS(buffer);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(base);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(config);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(bevent);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(buffer);
 #if HAVE_EVENT_EXTRA_LIB
-	INIT_EVENT_X_OBJ_HANDLERS(dns_base);
-	INIT_EVENT_X_OBJ_HANDLERS(listener);
-	INIT_EVENT_X_OBJ_HANDLERS(http_conn);
-	INIT_EVENT_X_OBJ_HANDLERS(http);
-	INIT_EVENT_X_OBJ_HANDLERS(http_req);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(dns_base);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(listener);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(http_conn);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(http);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(http_req);
 #endif
-	INIT_EVENT_X_OBJ_HANDLERS(util);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(util);
 #ifdef HAVE_EVENT_OPENSSL_LIB
-	INIT_EVENT_X_OBJ_HANDLERS(ssl_context);
+	PHP_EVENT_INIT_X_OBJ_HANDLERS(ssl_context);
 #endif
-#undef INIT_EVENT_X_OBJ_HANDLERS
 
-	zend_hash_init(&classes, 8, NULL, NULL, 1);
+	zend_hash_init(&classes, 4, NULL, NULL, 1);
 	register_classes();
 
 	/* Loop flags */
