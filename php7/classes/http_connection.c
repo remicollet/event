@@ -38,8 +38,6 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	pfcc = evcon->fcc_closecb;
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(evcon->thread_ctx);
-
 	/* Call userspace function according to
 	 * proto void callback(EventHttpConnection conn, mixed data); */
 
@@ -422,12 +420,9 @@ PHP_METHOD(EventHttpConnection, setCloseCallback)
 		Z_TRY_ADDREF_P(zarg);
 	}
 
-	TSRMLS_SET_CTX(evcon->thread_ctx);
-
 	evhttp_connection_set_closecb(evcon->conn, _conn_close_cb, (void *) evcon);
 }
 /* }}} */
-
 
 /*
  * Local variables:

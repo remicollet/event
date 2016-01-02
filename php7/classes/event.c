@@ -56,8 +56,6 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	pfci     = e->fci;
 	arg_data = e->data;
 
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
-
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback arg */
 		if (arg_data) {
@@ -99,8 +97,6 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	PHP_EVENT_ASSERT(e->fci && e->fcc);
 
 	pfci = e->fci;
-
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback arguments */
@@ -155,8 +151,6 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 
 	pfci     = e->fci;
 	arg_data = e->data;
-
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(e->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback args */

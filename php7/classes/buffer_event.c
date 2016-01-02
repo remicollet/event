@@ -54,8 +54,6 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 
 	arg_data = bev->data;
 
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(bev->thread_ctx);
-
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 #ifdef HAVE_EVENT_PTHREADS_LIB
 		if (bevent) {
@@ -151,8 +149,6 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	PHP_EVENT_ASSERT(bev->base);
 
 	arg_data = bev->data;
-
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(bev->thread_ctx);
 
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 #ifdef HAVE_EVENT_PTHREADS_LIB

@@ -256,8 +256,7 @@ typedef struct _php_event_prop_handler_t {
 #if LIBEVENT_VERSION_NUMBER < 0x02000200
 /* These types are introduced in libevent 2.0.2-alpha */
 typedef void (*bufferevent_data_cb)(struct bufferevent *bev, void *ctx);
-typedef void (*bufferevent_event_cb)(struct bufferevent *bev, short events,
-		void *ctx);
+typedef void (*bufferevent_event_cb)(struct bufferevent *bev, short events, void *ctx);
 #endif
 
 #endif /* PHP_EVENT_STRUCTS_H */

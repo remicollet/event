@@ -79,8 +79,6 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	pfcc = http_req->fcc;
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(http_req->thread_ctx);
-
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data); */
 

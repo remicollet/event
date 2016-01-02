@@ -113,8 +113,6 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 
 	arg_data = l->data;
 
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
-
 	/* Call user function having proto:
 	 * void cb (EventListener $listener, resource $fd, array $address, mixed $data);
 	 * $address = array ("IP-address", port)
@@ -205,8 +203,6 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
 	arg_data = l->data;
-
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(l->thread_ctx);
 
 	/* Call user function having proto:
 	 * void cb (EventListener $listener, mixed $data); */

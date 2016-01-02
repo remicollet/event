@@ -147,19 +147,6 @@ static zend_always_inline HashTable * find_prop_handler(const zend_class_entry *
 		}                                                     \
 	} while (0)
 
-#if defined(PHP_WIN32)
-#if defined(ZTS)
-#  define PHP_EVENT_TSRMLS_FETCH_FROM_CTX(ctx) tsrm_ls = (void ***)ctx
-#  define PHP_EVENT_TSRM_DECL void ***tsrm_ls;
-# else
-#  define PHP_EVENT_TSRMLS_FETCH_FROM_CTX(ctx)
-#  define PHP_EVENT_TSRM_DECL
-# endif
-#else
-# define PHP_EVENT_TSRMLS_FETCH_FROM_CTX(ctx) TSRMLS_FETCH_FROM_CTX(ctx)
-# define PHP_EVENT_TSRM_DECL
-#endif
-
 #endif /* PHP_EVENT_UTIL_H */
 
 /*

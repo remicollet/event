@@ -66,8 +66,6 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	pfcc = cb->fcc;
 	PHP_EVENT_ASSERT(pfci && pfcc);
 
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(cb->thread_ctx);
-
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
@@ -135,8 +133,6 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	pfci = http->fci;
 	pfcc = http->fcc;
 	PHP_EVENT_ASSERT(pfci && pfcc);
-
-	PHP_EVENT_TSRMLS_FETCH_FROM_CTX(http->thread_ctx);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
