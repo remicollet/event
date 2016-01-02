@@ -28,16 +28,15 @@ zend_class_entry *php_event_config_ce;
 zend_class_entry *php_event_bevent_ce;
 zend_class_entry *php_event_buffer_ce;
 zend_class_entry *php_event_util_ce;
-#ifdef HAVE_EVENT_OPENSSL_LIB
-zend_class_entry *php_event_ssl_context_ce;
-#endif
-
 #ifdef HAVE_EVENT_EXTRA_LIB
 zend_class_entry *php_event_dns_base_ce;
 zend_class_entry *php_event_listener_ce;
 zend_class_entry *php_event_http_conn_ce;
 zend_class_entry *php_event_http_ce;
 zend_class_entry *php_event_http_req_ce;
+#endif
+#ifdef HAVE_EVENT_OPENSSL_LIB
+zend_class_entry *php_event_ssl_context_ce;
 #endif
 
 static HashTable classes;
@@ -51,12 +50,12 @@ static HashTable event_ssl_context_properties;
 int php_event_ssl_data_index;
 #endif
 
-
 static zend_object_handlers event_object_handlers;
 static zend_object_handlers event_base_object_handlers;
 static zend_object_handlers event_config_object_handlers;
 static zend_object_handlers event_bevent_object_handlers;
 static zend_object_handlers event_buffer_object_handlers;
+static zend_object_handlers event_util_object_handlers;
 #if HAVE_EVENT_EXTRA_LIB
 static zend_object_handlers event_dns_base_object_handlers;
 static zend_object_handlers event_listener_object_handlers;
@@ -64,7 +63,6 @@ static zend_object_handlers event_http_conn_object_handlers;
 static zend_object_handlers event_http_object_handlers;
 static zend_object_handlers event_http_req_object_handlers;
 #endif
-static zend_object_handlers event_util_object_handlers;
 #ifdef HAVE_EVENT_OPENSSL_LIB
 static zend_object_handlers event_ssl_context_object_handlers;
 #endif
@@ -73,41 +71,30 @@ static const zend_module_dep event_deps[] = {
 #ifdef PHP_EVENT_SOCKETS_SUPPORT
 	ZEND_MOD_REQUIRED("sockets")
 #endif
-	{NULL, NULL, NULL}
+	ZEND_MOD_END
 };
 
 /* {{{ event_module_entry */
 zend_module_entry event_module_entry = {
-#if ZEND_MODULE_API_NO >= 20050922
 	STANDARD_MODULE_HEADER_EX,
 	NULL,
 	event_deps,
-#elif ZEND_MODULE_API_NO >= 20010901
-	STANDARD_MODULE_HEADER,
-#endif
 	"event",
 	NULL, /*event_functions*/
 	PHP_MINIT(event),
 	PHP_MSHUTDOWN(event),
-	NULL,
-	NULL,
+	PHP_RINIT(event),
+	NULL, /*PHP_RSHUTDOWN(event),*/
 	PHP_MINFO(event),
-#if ZEND_MODULE_API_NO >= 20010901
 	PHP_EVENT_VERSION,
-#endif
-#if 0
-	PHP_MODULE_GLOBALS(event),
-	PHP_GINIT(event),
-	NULL,
-	NULL,
-	STANDARD_MODULE_PROPERTIES_EX,
-#endif
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
 
 #ifdef COMPILE_DL_EVENT
+#ifdef ZTS
 ZEND_TSRMLS_CACHE_DEFINE();
+#endif
 ZEND_GET_MODULE(event)
 #endif
 
@@ -230,6 +217,7 @@ static void php_event_buffer_free_obj(zend_object *object)/*{{{*/
 
 	if (!b->internal && b->buf) {
 		evbuffer_free(b->buf);
+		b->buf = NULL;
 	}
 
 	Z_EVENT_STD_OBJ_DTOR(b);
@@ -248,6 +236,7 @@ static void php_event_dns_base_free_obj(zend_object *object)/*{{{*/
 		 * their callbacks invoked with a canceled error code before it
 		 * frees the base*/
 		evdns_base_free(dnsb->dns_base, 1);
+		dnsb->dns_base = NULL;
 	}
 
 	Z_EVENT_STD_OBJ_DTOR(dnsb);
@@ -566,40 +555,18 @@ static void log_cb(int severity, const char *msg)
 /* }}} */
 
 
-/* {{{ read_property_default */
-static int read_property_default(php_event_abstract_object_t *obj, zval **retval)
+static zval * read_property_default(void *obj, zval *retval)/*{{{*/
 {
-	*retval = NULL;
+	ZVAL_NULL(retval);
 	php_error_docref(NULL, E_ERROR, "Cannot read property");
-	return FAILURE;
-}
-/* }}} */
+	return retval;
+}/*}}}*/
 
-/* {{{ write_property_default */
-static int write_property_default(php_event_abstract_object_t *obj, zval *newval)
+static int write_property_default(void *obj, zval *newval)/*{{{*/
 {
 	php_error_docref(NULL, E_ERROR, "Cannot write property");
 	return FAILURE;
-}
-/* }}} */
-
-static void php_event_object_dtor(zend_object *object)/*{{{*/
-{
-	zend_objects_destroy_object(object);
-}
-/*}}}*/
-
-
-static void event_object_dtor(zend_object *object)/*{{{*/
-{
-#if 0
-	php_event_t *intern = php_event_event_fetch_object(object);
-	PHP_EVENT_ASSERT(intern);
-	/* XXX ??? */
-#endif
-	php_event_object_dtor(object);
-}
-/*}}}*/
+}/*}}}*/
 
 static zval * read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv, void *obj, HashTable *prop_handler)/*{{{*/
 {
@@ -869,23 +836,11 @@ PHP_EVENT_X_PROP_HND_DECL(http_req)
 PHP_EVENT_X_PROP_HND_DECL(ssl_context)
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
-
-static void add_property(HashTable *h, const char *name, size_t name_len, php_event_prop_read_t read_func, php_event_prop_write_t write_func, php_event_prop_get_prop_ptr_ptr_t get_ptr_ptr_func) {/*{{{*/
-	php_event_prop_handler_t p;
-
-	p.name             = (char *) name;
-	p.name_len         = name_len;
-	p.read_func        = (read_func) ? read_func : read_property_default;
-	p.write_func       = (write_func) ? write_func: write_property_default;
-	p.get_ptr_ptr_func = get_ptr_ptr_func;
-	zend_hash_add(h, name, name_len + 1, &p, sizeof(php_event_prop_handler_t), NULL);
-}/*}}}*/
-
 #define PHP_EVENT_ADD_CLASS_PROPERTIES(a, b)                                 \
 {                                                                            \
 	int i = 0;                                                               \
 	while (b[i].name != NULL) {                                              \
-		add_property((a), (b)[i].name, (b)[i].name_length,                   \
+		php_event_add_property((a), (b)[i].name, (b)[i].name_length,         \
 				(php_event_prop_read_t)(b)[i].read_func,                     \
 				(php_event_prop_write_t)(b)[i].write_func,                   \
 				(php_event_prop_get_prop_ptr_ptr_t)(b)[i].get_ptr_ptr_func); \
@@ -895,6 +850,17 @@ static void add_property(HashTable *h, const char *name, size_t name_len, php_ev
 
 #define PHP_EVENT_DECL_PROP_NULL(ce, name, attr) \
 	zend_declare_property_null(ce, #name, sizeof(#name) - 1, attr)
+
+static void php_event_add_property(HashTable *h, const char *name, size_t name_len, php_event_prop_read_t read_func, php_event_prop_write_t write_func, php_event_prop_get_prop_ptr_ptr_t get_ptr_ptr_func) {/*{{{*/
+	php_event_prop_handler_t p;
+
+	p.name             = zend_string_init(name, name_len, 1);
+	p.read_func        = read_func ? read_func : read_property_default;
+	p.write_func       = write_func ? write_func: write_property_default;
+	p.get_ptr_ptr_func = get_ptr_ptr_func;
+	zend_hash_add_mem(h, p.name, &p, sizeof(php_event_prop_handler_t));
+	zend_string_release(p.name);
+}/*}}}*/
 
 static zend_always_inline void register_classes()/*{{{*/
 {
@@ -996,43 +962,20 @@ static zend_always_inline void register_classes()/*{{{*/
 
 /* Private functions }}} */
 
-#define REGISTER_EVENT_CLASS_CONST_LONG(pce, const_name, value) \
-	zend_declare_class_constant_long((pce), #const_name,        \
-			sizeof(#const_name) - 1, (zend_long) value)
-
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
 {
-#if defined(COMPILE_DL_EIO) && defined(ZTS)
-	ZEND_TSRMLS_CACHE_UPDATE();
-#endif
+	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 
-#define PHP_EVENT_SET_X_OBJ_HANDLER(x, name) \
-	event_ ## x ## _object_handlers = php_event_ ## x ## _ ## name
-
-#define PHP_EVENT_SET_X_OBJ_HANDLERS(x) do { \
-	PHP_EVENT_X_OBJ_HANDLERS(x).offset = XtOffsetOf(Z_EVENT_X_OBJ_T(x), zo); \
-	PHP_EVENT_SET_X_OBJ_HANDLER(x, free_obj); \
-	PHP_EVENT_SET_X_OBJ_HANDLER(x, read_property); \
-	PHP_EVENT_SET_X_OBJ_HANDLER(x, write_property); \
-	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_property_ptr_ptr); \
-	PHP_EVENT_SET_X_OBJ_HANDLER(x, has_property); \
-	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_debug_info); \
-	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_properties); \
-} while (0)
+	memcpy(&event_object_handlers, std_hnd, sizeof(zend_object_handlers));
+	event_object_handlers.clone_obj = NULL;
+	event_object_handlers.get_gc    = get_gc;
+	PHP_EVENT_SET_X_OBJ_HANDLERS(event);
 
 #define PHP_EVENT_INIT_X_OBJ_HANDLERS(x) do { \
 	memcpy(&PHP_EVENT_X_OBJ_HANDLERS(x), &event_object_handlers, sizeof(zend_object_handlers)); \
 	PHP_EVENT_SET_X_OBJ_HANDLERS(x); \
 } while (0)
-
-	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
-
-	memcpy(&event_object_handlers, std_hnd, sizeof(zend_object_handlers));
-	event_object_handlers.clone_obj = NULL;
-	event_object_handlers.dtor_obj  = event_object_dtor;
-	event_object_handlers.get_gc    = get_gc;
-	PHP_EVENT_SET_X_OBJ_HANDLERS(event);
 
 	PHP_EVENT_INIT_X_OBJ_HANDLERS(base);
 	PHP_EVENT_INIT_X_OBJ_HANDLERS(config);
@@ -1054,171 +997,171 @@ PHP_MINIT_FUNCTION(event)
 	register_classes();
 
 	/* Loop flags */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, LOOP_ONCE,     EVLOOP_ONCE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, LOOP_NONBLOCK, EVLOOP_NONBLOCK);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_base_ce, LOOP_ONCE,     EVLOOP_ONCE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_base_ce, LOOP_NONBLOCK, EVLOOP_NONBLOCK);
 
 	/* Run-time flags of event base usually passed to event_config_set_flag */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, NOLOCK,               EVENT_BASE_FLAG_NOLOCK);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, STARTUP_IOCP,         EVENT_BASE_FLAG_STARTUP_IOCP);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, NO_CACHE_TIME,        EVENT_BASE_FLAG_NO_CACHE_TIME);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, EPOLL_USE_CHANGELIST, EVENT_BASE_FLAG_EPOLL_USE_CHANGELIST);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_base_ce, NOLOCK,               EVENT_BASE_FLAG_NOLOCK);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_base_ce, STARTUP_IOCP,         EVENT_BASE_FLAG_STARTUP_IOCP);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_base_ce, NO_CACHE_TIME,        EVENT_BASE_FLAG_NO_CACHE_TIME);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_base_ce, EPOLL_USE_CHANGELIST, EVENT_BASE_FLAG_EPOLL_USE_CHANGELIST);
 #ifdef EVENT_BASE_FLAG_IGNORE_ENV
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, IGNORE_ENV,           IGNORE_ENV);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_base_ce, IGNORE_ENV,           IGNORE_ENV);
 #endif
 #ifdef EVENT_BASE_FLAG_PRECISE_TIMER
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_base_ce, PRECISE_TIMER,        PRECISE_TIMER);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_base_ce, PRECISE_TIMER,        PRECISE_TIMER);
 #endif
 
 	/* Event flags */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, ET,      EV_ET);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, PERSIST, EV_PERSIST);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, READ,    EV_READ);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, WRITE,   EV_WRITE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, SIGNAL,  EV_SIGNAL);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ce, TIMEOUT, EV_TIMEOUT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ce, ET,      EV_ET);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ce, PERSIST, EV_PERSIST);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ce, READ,    EV_READ);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ce, WRITE,   EV_WRITE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ce, SIGNAL,  EV_SIGNAL);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ce, TIMEOUT, EV_TIMEOUT);
 
 	/* Features of event_base usually passed to event_config_require_features */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_ET,  EV_FEATURE_ET);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_O1,  EV_FEATURE_O1);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_config_ce, FEATURE_FDS, EV_FEATURE_FDS);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_config_ce, FEATURE_ET,  EV_FEATURE_ET);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_config_ce, FEATURE_O1,  EV_FEATURE_O1);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_config_ce, FEATURE_FDS, EV_FEATURE_FDS);
 
 	/* Buffer event flags */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, READING,   BEV_EVENT_READING);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, WRITING,   BEV_EVENT_WRITING);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, EOF,       BEV_EVENT_EOF);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, ERROR,     BEV_EVENT_ERROR);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, TIMEOUT,   BEV_EVENT_TIMEOUT);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, CONNECTED, BEV_EVENT_CONNECTED);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, READING,   BEV_EVENT_READING);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, WRITING,   BEV_EVENT_WRITING);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, EOF,       BEV_EVENT_EOF);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, ERROR,     BEV_EVENT_ERROR);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, TIMEOUT,   BEV_EVENT_TIMEOUT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, CONNECTED, BEV_EVENT_CONNECTED);
 
 	/* Option flags for bufferevents */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, OPT_CLOSE_ON_FREE,    BEV_OPT_CLOSE_ON_FREE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, OPT_THREADSAFE,       BEV_OPT_THREADSAFE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, OPT_DEFER_CALLBACKS,  BEV_OPT_DEFER_CALLBACKS);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, OPT_CLOSE_ON_FREE,    BEV_OPT_CLOSE_ON_FREE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, OPT_THREADSAFE,       BEV_OPT_THREADSAFE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, OPT_DEFER_CALLBACKS,  BEV_OPT_DEFER_CALLBACKS);
 #if LIBEVENT_VERSION_NUMBER >= 0x02000500
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, OPT_UNLOCK_CALLBACKS, BEV_OPT_UNLOCK_CALLBACKS);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, OPT_UNLOCK_CALLBACKS, BEV_OPT_UNLOCK_CALLBACKS);
 #endif
 #ifdef HAVE_EVENT_OPENSSL_LIB
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, SSL_OPEN,       BUFFEREVENT_SSL_OPEN);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, SSL_CONNECTING, BUFFEREVENT_SSL_CONNECTING);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_bevent_ce, SSL_ACCEPTING,  BUFFEREVENT_SSL_ACCEPTING);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, SSL_OPEN,       BUFFEREVENT_SSL_OPEN);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, SSL_CONNECTING, BUFFEREVENT_SSL_CONNECTING);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_bevent_ce, SSL_ACCEPTING,  BUFFEREVENT_SSL_ACCEPTING);
 #endif
 
 	/* Address families */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_INET,   AF_INET);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_INET6,  AF_INET6);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_UNIX,   AF_UNIX);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, AF_UNSPEC, AF_UNSPEC);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, AF_INET,   AF_INET);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, AF_INET6,  AF_INET6);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, AF_UNIX,   AF_UNIX);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, AF_UNSPEC, AF_UNSPEC);
 
 	/* Socket options */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_DEBUG,     SO_DEBUG);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_REUSEADDR, SO_REUSEADDR);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_KEEPALIVE, SO_KEEPALIVE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_DONTROUTE, SO_DONTROUTE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_LINGER,    SO_LINGER);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_BROADCAST, SO_BROADCAST);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_OOBINLINE, SO_OOBINLINE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_SNDBUF,    SO_SNDBUF);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_RCVBUF,    SO_RCVBUF);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_SNDLOWAT,  SO_SNDLOWAT);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_RCVLOWAT,  SO_RCVLOWAT);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_SNDTIMEO,  SO_SNDTIMEO);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_RCVTIMEO,  SO_RCVTIMEO);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_TYPE,      SO_TYPE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SO_ERROR,     SO_ERROR);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_DEBUG,     SO_DEBUG);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_REUSEADDR, SO_REUSEADDR);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_KEEPALIVE, SO_KEEPALIVE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_DONTROUTE, SO_DONTROUTE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_LINGER,    SO_LINGER);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_BROADCAST, SO_BROADCAST);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_OOBINLINE, SO_OOBINLINE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_SNDBUF,    SO_SNDBUF);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_RCVBUF,    SO_RCVBUF);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_SNDLOWAT,  SO_SNDLOWAT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_RCVLOWAT,  SO_RCVLOWAT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_SNDTIMEO,  SO_SNDTIMEO);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_RCVTIMEO,  SO_RCVTIMEO);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_TYPE,      SO_TYPE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SO_ERROR,     SO_ERROR);
 #ifdef TCP_NODELAY
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, TCP_NODELAY, TCP_NODELAY);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, TCP_NODELAY, TCP_NODELAY);
 #endif
 
 	/* Socket protocol levels */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SOL_SOCKET, SOL_SOCKET);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SOL_TCP,    IPPROTO_TCP);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, SOL_UDP,    IPPROTO_UDP);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, IPPROTO_IP, IPPROTO_IP);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SOL_SOCKET, SOL_SOCKET);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SOL_TCP,    IPPROTO_TCP);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, SOL_UDP,    IPPROTO_UDP);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, IPPROTO_IP, IPPROTO_IP);
 #if HAVE_IPV6
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, IPPROTO_IPV6, IPPROTO_IPV6);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, IPPROTO_IPV6, IPPROTO_IPV6);
 #endif
 
 
 #ifdef HAVE_EVENT_EXTRA_LIB
 	/* DNS options */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_SEARCH,      DNS_OPTION_SEARCH);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_NAMESERVERS, DNS_OPTION_NAMESERVERS);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_MISC,        DNS_OPTION_MISC);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_HOSTSFILE,   DNS_OPTION_HOSTSFILE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_dns_base_ce, OPTIONS_ALL,        DNS_OPTIONS_ALL);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_SEARCH,      DNS_OPTION_SEARCH);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_NAMESERVERS, DNS_OPTION_NAMESERVERS);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_MISC,        DNS_OPTION_MISC);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_dns_base_ce, OPTION_HOSTSFILE,   DNS_OPTION_HOSTSFILE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_dns_base_ce, OPTIONS_ALL,        DNS_OPTIONS_ALL);
 
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_LEAVE_SOCKETS_BLOCKING, LEV_OPT_LEAVE_SOCKETS_BLOCKING);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_CLOSE_ON_FREE,          LEV_OPT_CLOSE_ON_FREE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_CLOSE_ON_EXEC,          LEV_OPT_CLOSE_ON_EXEC);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_REUSEABLE,              LEV_OPT_REUSEABLE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_listener_ce, OPT_LEAVE_SOCKETS_BLOCKING, LEV_OPT_LEAVE_SOCKETS_BLOCKING);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_listener_ce, OPT_CLOSE_ON_FREE,          LEV_OPT_CLOSE_ON_FREE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_listener_ce, OPT_CLOSE_ON_EXEC,          LEV_OPT_CLOSE_ON_EXEC);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_listener_ce, OPT_REUSEABLE,              LEV_OPT_REUSEABLE);
 # if LIBEVENT_VERSION_NUMBER >= 0x02010100
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_DISABLED,               LEV_OPT_DISABLED);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_listener_ce, OPT_DISABLED,               LEV_OPT_DISABLED);
 # endif
 # if LIBEVENT_VERSION_NUMBER >= 0x02000800
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_THREADSAFE,             LEV_OPT_THREADSAFE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_listener_ce, OPT_THREADSAFE,             LEV_OPT_THREADSAFE);
 #endif
 # if LIBEVENT_VERSION_NUMBER >= 0x02010100
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_listener_ce, OPT_DEFERRED_ACCEPT,        LEV_OPT_DEFERRED_ACCEPT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_listener_ce, OPT_DEFERRED_ACCEPT,        LEV_OPT_DEFERRED_ACCEPT);
 # endif
 
 	/* EventHttpRequest command types */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_GET,     EVHTTP_REQ_GET);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_POST,    EVHTTP_REQ_POST);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_HEAD,    EVHTTP_REQ_HEAD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_PUT,     EVHTTP_REQ_PUT);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_DELETE,  EVHTTP_REQ_DELETE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_OPTIONS, EVHTTP_REQ_OPTIONS);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_TRACE,   EVHTTP_REQ_TRACE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_CONNECT, EVHTTP_REQ_CONNECT);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, CMD_PATCH,   EVHTTP_REQ_PATCH);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, CMD_GET,     EVHTTP_REQ_GET);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, CMD_POST,    EVHTTP_REQ_POST);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, CMD_HEAD,    EVHTTP_REQ_HEAD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, CMD_PUT,     EVHTTP_REQ_PUT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, CMD_DELETE,  EVHTTP_REQ_DELETE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, CMD_OPTIONS, EVHTTP_REQ_OPTIONS);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, CMD_TRACE,   EVHTTP_REQ_TRACE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, CMD_CONNECT, EVHTTP_REQ_CONNECT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, CMD_PATCH,   EVHTTP_REQ_PATCH);
 
 	/* EventHttpRequest header types */
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, INPUT_HEADER,  PHP_EVENT_REQ_HEADER_INPUT);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_http_req_ce, OUTPUT_HEADER, PHP_EVENT_REQ_HEADER_OUTPUT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, INPUT_HEADER,  PHP_EVENT_REQ_HEADER_INPUT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_http_req_ce, OUTPUT_HEADER, PHP_EVENT_REQ_HEADER_OUTPUT);
 
 #endif /* HAVE_EVENT_EXTRA_LIB */
 
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_util_ce, LIBEVENT_VERSION_NUMBER, LIBEVENT_VERSION_NUMBER);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_util_ce, LIBEVENT_VERSION_NUMBER, LIBEVENT_VERSION_NUMBER);
 
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_ANY,         EVBUFFER_EOL_ANY);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_CRLF,        EVBUFFER_EOL_CRLF);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_CRLF_STRICT, EVBUFFER_EOL_CRLF_STRICT);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_LF,          EVBUFFER_EOL_LF);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_buffer_ce, EOL_ANY,         EVBUFFER_EOL_ANY);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_buffer_ce, EOL_CRLF,        EVBUFFER_EOL_CRLF);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_buffer_ce, EOL_CRLF_STRICT, EVBUFFER_EOL_CRLF_STRICT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_buffer_ce, EOL_LF,          EVBUFFER_EOL_LF);
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, EOL_NUL,         EVBUFFER_EOL_NUL);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_buffer_ce, EOL_NUL,         EVBUFFER_EOL_NUL);
 #endif
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, PTR_SET,         EVBUFFER_PTR_SET);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_buffer_ce, PTR_ADD,         EVBUFFER_PTR_ADD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_buffer_ce, PTR_SET,         EVBUFFER_PTR_SET);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_buffer_ce, PTR_ADD,         EVBUFFER_PTR_ADD);
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv2_CLIENT_METHOD,  PHP_EVENT_SSLv2_CLIENT_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv3_CLIENT_METHOD,  PHP_EVENT_SSLv3_CLIENT_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_CLIENT_METHOD, PHP_EVENT_SSLv23_CLIENT_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS_CLIENT_METHOD,    PHP_EVENT_TLS_CLIENT_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv2_SERVER_METHOD,  PHP_EVENT_SSLv2_SERVER_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv3_SERVER_METHOD,  PHP_EVENT_SSLv3_SERVER_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_SERVER_METHOD, PHP_EVENT_SSLv23_SERVER_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS_SERVER_METHOD,    PHP_EVENT_TLS_SERVER_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv11_CLIENT_METHOD, PHP_EVENT_TLSv11_CLIENT_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv11_SERVER_METHOD, PHP_EVENT_TLSv11_SERVER_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv12_CLIENT_METHOD, PHP_EVENT_TLSv12_CLIENT_METHOD);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv12_SERVER_METHOD, PHP_EVENT_TLSv12_SERVER_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv2_CLIENT_METHOD,  PHP_EVENT_SSLv2_CLIENT_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv3_CLIENT_METHOD,  PHP_EVENT_SSLv3_CLIENT_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_CLIENT_METHOD, PHP_EVENT_SSLv23_CLIENT_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS_CLIENT_METHOD,    PHP_EVENT_TLS_CLIENT_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv2_SERVER_METHOD,  PHP_EVENT_SSLv2_SERVER_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv3_SERVER_METHOD,  PHP_EVENT_SSLv3_SERVER_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_SERVER_METHOD, PHP_EVENT_SSLv23_SERVER_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS_SERVER_METHOD,    PHP_EVENT_TLS_SERVER_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv11_CLIENT_METHOD, PHP_EVENT_TLSv11_CLIENT_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv11_SERVER_METHOD, PHP_EVENT_TLSv11_SERVER_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv12_CLIENT_METHOD, PHP_EVENT_TLSv12_CLIENT_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv12_SERVER_METHOD, PHP_EVENT_TLSv12_SERVER_METHOD);
 
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_LOCAL_CERT,               PHP_EVENT_OPT_LOCAL_CERT);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_LOCAL_PK,                 PHP_EVENT_OPT_LOCAL_PK);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_PASSPHRASE,               PHP_EVENT_OPT_PASSPHRASE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CA_FILE,                  PHP_EVENT_OPT_CA_FILE);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CA_PATH,                  PHP_EVENT_OPT_CA_PATH);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_ALLOW_SELF_SIGNED,        PHP_EVENT_OPT_ALLOW_SELF_SIGNED);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_VERIFY_PEER,              PHP_EVENT_OPT_VERIFY_PEER);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_VERIFY_DEPTH,             PHP_EVENT_OPT_VERIFY_DEPTH);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CIPHERS,                  PHP_EVENT_OPT_CIPHERS);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_SSLv2,                 PHP_EVENT_OPT_NO_SSLv2);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_SSLv3,                 PHP_EVENT_OPT_NO_SSLv3);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_TLSv1,                 PHP_EVENT_OPT_NO_TLSv1);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_TLSv1_1,               PHP_EVENT_OPT_NO_TLSv1_1);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_TLSv1_2,               PHP_EVENT_OPT_NO_TLSv1_2);
-	REGISTER_EVENT_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CIPHER_SERVER_PREFERENCE, PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_LOCAL_CERT,               PHP_EVENT_OPT_LOCAL_CERT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_LOCAL_PK,                 PHP_EVENT_OPT_LOCAL_PK);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_PASSPHRASE,               PHP_EVENT_OPT_PASSPHRASE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CA_FILE,                  PHP_EVENT_OPT_CA_FILE);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CA_PATH,                  PHP_EVENT_OPT_CA_PATH);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_ALLOW_SELF_SIGNED,        PHP_EVENT_OPT_ALLOW_SELF_SIGNED);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_VERIFY_PEER,              PHP_EVENT_OPT_VERIFY_PEER);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_VERIFY_DEPTH,             PHP_EVENT_OPT_VERIFY_DEPTH);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CIPHERS,                  PHP_EVENT_OPT_CIPHERS);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_SSLv2,                 PHP_EVENT_OPT_NO_SSLv2);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_SSLv3,                 PHP_EVENT_OPT_NO_SSLv3);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_TLSv1,                 PHP_EVENT_OPT_NO_TLSv1);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_TLSv1_1,               PHP_EVENT_OPT_NO_TLSv1_1);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_NO_TLSv1_2,               PHP_EVENT_OPT_NO_TLSv1_2);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CIPHER_SERVER_PREFERENCE, PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE);
 
 	/* Initialize openssl library */
 	SSL_library_init();
@@ -1230,7 +1173,6 @@ PHP_MINIT_FUNCTION(event)
 	/* Create new index which will be used to retreive custom data of the OpenSSL callbacks */
 	php_event_ssl_data_index = SSL_get_ex_new_index(0, "PHP EventSslContext index", NULL, NULL, NULL);
 #endif /* HAVE_EVENT_OPENSSL_LIB */
-
 
 #ifdef PHP_EVENT_DEBUG
 	event_enable_debug_mode();
@@ -1245,7 +1187,7 @@ PHP_MINIT_FUNCTION(event)
 				"evthread_use_pthreads failed, submit a bug");
 	}
 # endif
-#endif
+#endif /* HAVE_EVENT_PTHREADS_LIB */
 
 	/* Handle libevent's error logging more gracefully than it's default
 	 * logging to stderr, or calling abort()/exit() */
@@ -1286,6 +1228,25 @@ PHP_MSHUTDOWN_FUNCTION(event)
 	return SUCCESS;
 }
 /* }}} */
+
+/*{{{ PHP_RINIT_FUNCTION */
+PHP_RINIT_FUNCTION(event)
+{
+#if defined(COMPILE_DL_EVENT) && defined(ZTS)
+	ZEND_TSRMLS_CACHE_UPDATE();
+#endif
+	return SUCCESS;
+}
+/*}}}*/
+
+/*{{{ PHP_RSHUTDOWN_FUNCTION */
+#if 0
+PHP_RSHUTDOWN_FUNCTION(event)
+{
+	return SUCCESS;
+}
+#endif
+/*}}}*/
 
 /* {{{ PHP_MINFO_FUNCTION */
 PHP_MINFO_FUNCTION(event)

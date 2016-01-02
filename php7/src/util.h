@@ -34,6 +34,24 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 
 #define PHP_EVENT_INIT_CLASS_OBJECT(pz, pce) object_init_ex((pz), (pce))
 
+#define REGISTER_EVENT_CLASS_CONST_LONG(pce, const_name, value) \
+	zend_declare_class_constant_long((pce), #const_name,        \
+			sizeof(#const_name) - 1, (zend_long) value)
+
+#define PHP_EVENT_SET_X_OBJ_HANDLER(x, name) \
+	event_ ## x ## _object_handlers = php_event_ ## x ## _ ## name
+
+#define PHP_EVENT_SET_X_OBJ_HANDLERS(x) do { \
+	PHP_EVENT_X_OBJ_HANDLERS(x).offset = XtOffsetOf(Z_EVENT_X_OBJ_T(x), zo); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, free_obj); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, read_property); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, write_property); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_property_ptr_ptr); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, has_property); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_debug_info); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_properties); \
+} while (0)
+
 /* php_event_x_fetch_object(zend_object *obj) */
 #define Z_EVENT_X_FETCH_OBJ_DECL(x) \
 	static zend_always_inline php_event_ ## x ## _t * php_event_ ## x ## _fetch_object(zend_object *obj) { \
@@ -67,7 +85,7 @@ Z_EVENT_X_FETCH_OBJ_DECL(http_req)
 #define Z_EVENT_HTTP_REQ_OBJ_P(zv)  Z_EVENT_X_OBJ_P(http_req,  zv)
 #endif /* HAVE_EVENT_EXTRA_LIB */
 
-#define Z_EVENT_STD_OBJ_DTOR(obj_ptr) zend_object_std_dtor(obj_ptr->zo)
+#define Z_EVENT_STD_OBJ_DTOR(o) zend_object_std_dtor(&o->zo)
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
 Z_EVENT_X_FETCH_OBJ_DECL(ssl_context)
@@ -113,7 +131,6 @@ static zend_always_inline HashTable * find_prop_handler(const zend_class_entry *
 		obj->prop_handler = find_prop_handler(ce);                     \
 		init_properties(&obj->zo);                                     \
 	} while (0)
-
 
 #define PHP_EVENT_TIMEVAL_SET(tv, t)                     \
 	do {                                                 \
