@@ -105,7 +105,7 @@ PHP_METHOD(EventUtil, getSocketName)
 		RETURN_FALSE;
 	}
 
-	if (_php_event_getsockname(fd, &zaddress, &zport) == FAILURE) {
+	if (_php_event_getsockname(fd, zaddress, zport) == FAILURE) {
 		RETURN_FALSE;
 	}
 

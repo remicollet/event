@@ -19,7 +19,7 @@
 #define PHP_EVENT_UTIL_H
 
 php_socket_t php_event_zval_to_fd(zval *pfd);
-int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport);
+int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport);
 
 #define php_event_is_pending(e) \
 	event_pending((e), EV_READ | EV_WRITE | EV_SIGNAL | EV_TIMEOUT, NULL)
@@ -31,6 +31,9 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 	tmp_ce.create_object = create_func;                               \
 	ce = zend_register_internal_class(&tmp_ce);                       \
 }
+
+#define PHP_EVENT_DECL_PROP_NULL(ce, name, attr) \
+	zend_declare_property_null(ce, #name, sizeof(#name) - 1, attr)
 
 #define PHP_EVENT_INIT_CLASS_OBJECT(pz, pce) object_init_ex((pz), (pce))
 

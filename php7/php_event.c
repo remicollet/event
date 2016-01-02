@@ -113,9 +113,7 @@ static void php_event_event_free_obj(zend_object *object)/*{{{*/
 	PHP_EVENT_ASSERT(e);
 
 	if (e->event) {
-		/* No need in
-		 * event_del(e->event);
-		 * since event_free makes event non-pending internally */
+		/* No need in event_del(e->event) since event_free makes event non-pending internally */
 		event_free(e->event);
 		e->event = NULL;
 	}
@@ -847,9 +845,6 @@ PHP_EVENT_X_PROP_HND_DECL(ssl_context)
 		i++;                                                                 \
 	}                                                                        \
 }
-
-#define PHP_EVENT_DECL_PROP_NULL(ce, name, attr) \
-	zend_declare_property_null(ce, #name, sizeof(#name) - 1, attr)
 
 static void php_event_add_property(HashTable *h, const char *name, size_t name_len, php_event_prop_read_t read_func, php_event_prop_write_t write_func, php_event_prop_get_prop_ptr_ptr_t get_ptr_ptr_func) {/*{{{*/
 	php_event_prop_handler_t p;

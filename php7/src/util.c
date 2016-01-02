@@ -115,13 +115,12 @@ php_socket_t php_event_zval_to_fd(zval *pfd)
 }
 /* }}} */
 
-/* {{{ _php_event_getsockname */
-int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport TSRMLS_DC)
+int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport)/*{{{*/
 {
 	php_sockaddr_storage  sa_storage;
-	struct sockaddr      *sa         = (struct sockaddr *) &sa_storage;
+	struct sockaddr      *sa         = (struct sockaddr *)&sa_storage;
 	socklen_t             sa_len     = sizeof(php_sockaddr_storage);
-	zend_long                 port       = -1;
+	zend_long             port       = -1;
 
 	if (getsockname(fd, sa, &sa_len)) {
 		php_error_docref(NULL, E_WARNING,
@@ -137,12 +136,12 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 
 				if (evutil_inet_ntop(sa->sa_family, &sin->sin_addr,
 							(void *) &addr, sizeof(addr))) {
-					if (*ppzaddress) {
-						zval_dtor(*ppzaddress);
+					if (!Z_ISUNDEF_P(pzaddr)) {
+						zval_dtor(pzaddr);
 					}
-					ZVAL_STRING(*ppzaddress, addr, 1);
+					ZVAL_STRING(pzaddr, addr);
 
-					if (*ppzport != NULL) {
+					if (pzport != NULL) {
 						port = ntohs(sin->sin_port);
 					}
 				}
@@ -156,12 +155,12 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 
 				if (evutil_inet_ntop(sa->sa_family, &sin6->sin6_addr,
 							(void *) &addr6, sizeof(addr6))) {
-					if (*ppzaddress) {
-						zval_dtor(*ppzaddress);
+					if (!Z_ISUNDEF_P(pzaddr)) {
+						zval_dtor(pzaddr);
 					}
-					ZVAL_STRING(*ppzaddress, addr6, 1);
+					ZVAL_STRING(pzaddr, addr6);
 
-					if (*ppzport != NULL) {
+					if (pzport != NULL) {
 						port = ntohs(sin6->sin6_port);
 					}
 				}
@@ -173,10 +172,10 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 			{
 				struct sockaddr_un *ua = (struct sockaddr_un *) sa;
 
-				if (*ppzaddress) {
-					zval_dtor(*ppzaddress);
+				if (!Z_ISUNDEF(pzaddr)) {
+					zval_dtor(pzaddr);
 				}
-				ZVAL_STRING(*ppzaddress, ua->sun_path, 1);
+				ZVAL_STRING(pzaddr, ua->sun_path);
 			}
 			break;
 #endif
@@ -187,15 +186,14 @@ int _php_event_getsockname(evutil_socket_t fd, zval **ppzaddress, zval **ppzport
 	}
 
 	if (port != -1) {
-		if (*ppzport) {
-			zval_dtor(*ppzport);
+		if (pzport && !Z_ISUNDEF_P(pzport)) {
+			zval_dtor(pzport);
 		}
-		ZVAL_LONG(*ppzport, port);
+		ZVAL_LONG(pzport, port);
 	}
 
 	return SUCCESS;
-}
-/* }}} */
+}/*}}}*/
 
 /*
  * Local variables:

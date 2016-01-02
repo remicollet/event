@@ -44,16 +44,9 @@ static zend_always_inline void _prop_read_zval(zval *pz, zval *retval)
 	}
 }
 
-
-static zval **get_ssl_option(const HashTable *ht, zend_long idx)/*{{{*/
+static zend_always_inline zval * get_ssl_option(const HashTable *ht, zend_ulong idx)/*{{{*/
 {
-	zval **val;
-
-	if (zend_hash_index_find(ht, idx, (void **) &val) == SUCCESS) {
-		return val;
-	}
-
-	return NULL;
+	return zend_hash_index_find(ht, idx);
 }/*}}}*/
 
 
