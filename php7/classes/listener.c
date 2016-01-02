@@ -274,7 +274,7 @@ PHP_METHOD(EventListener, __construct)
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
-	PHP_EVENT_FETCH_BASE(base, zbase);
+	base = Z_EVENT_BASE_OBJ_P(zbase);
 
 	if (Z_TYPE_P(pztarget) == IS_STRING) {
 		struct sockaddr_storage ss;
@@ -299,7 +299,7 @@ PHP_METHOD(EventListener, __construct)
 				return;
 			}
 
-		PHP_EVENT_FETCH_LISTENER(l, zself);
+		l = Z_EVENT_LISTENER_OBJ_P(zself);
 
 		listener = evconnlistener_new_bind(base->base, _php_event_listener_cb,
 				(void *) l, flags, backlog, (struct sockaddr *) &ss, ss_len);
@@ -319,7 +319,7 @@ PHP_METHOD(EventListener, __construct)
 			evutil_make_socket_nonblocking(fd);
 		}
 
-		PHP_EVENT_FETCH_LISTENER(l, zself);
+		l = Z_EVENT_LISTENER_OBJ_P(zself);
 
 		listener = evconnlistener_new(base->base, _php_event_listener_cb,
 				(void *) l, flags, backlog, fd);
@@ -357,7 +357,7 @@ PHP_METHOD(EventListener, enable)
 		return;
 	}
 
-	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	l = Z_EVENT_LISTENER_OBJ_P(zlistener);
 	_ret_if_invalid_listener_ptr(l);
 
 	if (evconnlistener_enable(l->listener)) {
@@ -380,7 +380,7 @@ PHP_METHOD(EventListener, disable)
 		return;
 	}
 
-	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	l = Z_EVENT_LISTENER_OBJ_P(zlistener);
 	_ret_if_invalid_listener_ptr(l);
 
 	if (evconnlistener_disable(l->listener)) {
@@ -409,7 +409,7 @@ PHP_METHOD(EventListener, setCallback)
 		return;
 	}
 
-	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	l = Z_EVENT_LISTENER_OBJ_P(zlistener);
 	_ret_if_invalid_listener_ptr(l);
 
 	if (ZEND_FCI_INITIALIZED(fci)) {
@@ -449,7 +449,7 @@ PHP_METHOD(EventListener, setErrorCallback)
 		return;
 	}
 
-	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	l = Z_EVENT_LISTENER_OBJ_P(zlistener);
 	_ret_if_invalid_listener_ptr(l);
 
 	if (ZEND_FCI_INITIALIZED(fci)) {
@@ -479,13 +479,13 @@ PHP_METHOD(EventListener, getBase)
 		return;
 	}
 
-	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	l = Z_EVENT_LISTENER_OBJ_P(zlistener);
 	_ret_if_invalid_listener_ptr(l);
 
 	/* base = evconnlistener_get_base(l->listener); */
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_base_ce);
-	PHP_EVENT_FETCH_BASE(b, return_value);
+	b = Z_EVENT_BASE_OBJ_P(return_value);
 	/* Don't do this. It's normal to have refcount = 1 here.
 	 * If we got bugs, we most likely free'd an internal buffer somewhere
 	 * Z_TRY_ADDREF_P(return_value);*/
@@ -512,7 +512,7 @@ PHP_METHOD(EventListener, getSocketName)
 		return;
 	}
 
-	PHP_EVENT_FETCH_LISTENER(l, zlistener);
+	l = Z_EVENT_LISTENER_OBJ_P(zlistener);
 	_ret_if_invalid_listener_ptr(l);
 
 	fd = evconnlistener_get_fd(l->listener);

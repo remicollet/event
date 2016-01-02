@@ -30,7 +30,7 @@ PHP_METHOD(EventConfig, __construct)
 		return;
 	}
 
-	PHP_EVENT_FETCH_CONFIG(cfg, getThis());
+	cfg = Z_EVENT_CONFIG_OBJ_P(getThis());
 
 	cfg->ptr = event_config_new();
 }
@@ -52,7 +52,7 @@ PHP_METHOD(EventConfig, avoidMethod)
 		return;
 	}
 
-	PHP_EVENT_FETCH_CONFIG(cfg, zcfg);
+	cfg = Z_EVENT_CONFIG_OBJ_P(zcfg);
 
 	if (event_config_avoid_method(cfg->ptr, method)) {
 		RETURN_FALSE;
@@ -75,7 +75,7 @@ PHP_METHOD(EventConfig, requireFeatures)
 		return;
 	}
 
-	PHP_EVENT_FETCH_CONFIG(cfg, zcfg);
+	cfg = Z_EVENT_CONFIG_OBJ_P(zcfg);
 
 	if (event_config_require_features(cfg->ptr, feature)) {
 		RETURN_FALSE;
@@ -103,7 +103,7 @@ PHP_METHOD(EventConfig, setMaxDispatchInterval)
 		return;
 	}
 
-	PHP_EVENT_FETCH_CONFIG(cfg, zcfg);
+	cfg = Z_EVENT_CONFIG_OBJ_P(zcfg);
 
 	if (max_interval > 0) {
 		struct timeval tv;

@@ -90,7 +90,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 		} else {
 			if (EG(exception)) {
 				PHP_EVENT_ASSERT(bev->base);
-				PHP_EVENT_FETCH_BASE(b, bev->base);
+				b = Z_EVENT_BASE_OBJ_P(bev->base);
 				event_base_loopbreak(b->base);
 
 				zval_ptr_dtor(&arg_data);
@@ -193,7 +193,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 		} else {
 			if (EG(exception)) {
 				PHP_EVENT_ASSERT(bev->base);
-				PHP_EVENT_FETCH_BASE(b, bev->base);
+				b = Z_EVENT_BASE_OBJ_P(bev->base);
 				event_base_loopbreak(b->base);
 
 				zval_ptr_dtor(&arg_events);
@@ -296,9 +296,9 @@ PHP_METHOD(EventBufferEvent, __construct)
 		options |= BEV_OPT_CLOSE_ON_FREE;
 	}
 
-	PHP_EVENT_FETCH_BASE(base, zbase);
+	base = Z_EVENT_BASE_OBJ_P(zbase);
 
-	PHP_EVENT_FETCH_BEVENT(bev, zself);
+	bev = Z_EVENT_BEVENT_OBJ_P(zself);
 
 #ifdef HAVE_EVENT_PTHREADS_LIB
 	options |= BEV_OPT_THREADSAFE;
@@ -372,7 +372,7 @@ PHP_METHOD(EventBufferEvent, free)
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 
 	if (bev->bevent) {
 		if (!bev->_internal) {
@@ -400,7 +400,7 @@ PHP_METHOD(EventBufferEvent, close)
 	php_event_bevent_t *bev;
 	evutil_socket_t     fd;
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 
 	if (bev->bevent) {
 		fd = bufferevent_getfd(bev->bevent);
@@ -440,7 +440,7 @@ PHP_METHOD(EventBufferEvent, createPair)
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
-	PHP_EVENT_FETCH_BASE(base, zbase);
+	base = Z_EVENT_BASE_OBJ_P(zbase);
 
 	if (bufferevent_pair_new(base->base, options, bevent_pair)) {
 		RETURN_FALSE;
@@ -451,7 +451,7 @@ PHP_METHOD(EventBufferEvent, createPair)
 	for (i = 0; i < 2; i++) {
 		MAKE_STD_ZVAL(zbev[i]);
 		PHP_EVENT_INIT_CLASS_OBJECT(zbev[i], php_event_bevent_ce);
-		PHP_EVENT_FETCH_BEVENT(b[i], zbev[i]);
+		b[i] = Z_EVENT_BEVENT_OBJ_P(zbev[i]);
 
 		b[i]->bevent    = bevent_pair[i];
 
@@ -489,7 +489,7 @@ PHP_METHOD(EventBufferEvent, connect)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	ZEND_SECURE_ZERO(&ss, sizeof(ss));
@@ -585,7 +585,7 @@ PHP_METHOD(EventBufferEvent, connectHost)
 		RETURN_FALSE;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	/* bufferevent_socket_connect() allocates a socket stream internally, if we
@@ -594,7 +594,7 @@ PHP_METHOD(EventBufferEvent, connectHost)
 
 #ifdef HAVE_EVENT_EXTRA_LIB
 	if (zdns_base) {
-		PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+		dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 	}
 
 	if (bufferevent_socket_connect_hostname(bev->bevent,
@@ -637,7 +637,7 @@ PHP_METHOD(EventBufferEvent, getDnsErrorString)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	err = bufferevent_socket_get_dns_error(bev->bevent);
@@ -677,7 +677,7 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	if (ZEND_FCI_INITIALIZED(fci_read)) {
@@ -737,7 +737,7 @@ PHP_METHOD(EventBufferEvent, enable)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	if (bufferevent_enable(bev->bevent, events)) {
@@ -761,7 +761,7 @@ PHP_METHOD(EventBufferEvent,disable)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	if (bufferevent_disable(bev->bevent, events)) {
@@ -783,7 +783,7 @@ PHP_METHOD(EventBufferEvent, getEnabled)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 
@@ -804,11 +804,11 @@ PHP_METHOD(EventBufferEvent, getInput)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_ce);
-	PHP_EVENT_FETCH_BUFFER(b, return_value);
+	b = Z_EVENT_BUFFER_OBJ_P(return_value);
 	/* Don't do this. It's normal to have refcount = 1 here.
 	 * If we got bugs, we most likely free'd an internal buffer somewhere
 	 * Z_TRY_ADDREF_P(return_value);*/
@@ -831,11 +831,11 @@ PHP_METHOD(EventBufferEvent, getOutput)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_ce);
-	PHP_EVENT_FETCH_BUFFER(b, return_value);
+	b = Z_EVENT_BUFFER_OBJ_P(return_value);
 	/* Don't do this. It's normal to have refcount = 1 here.
 	 * If we got bugs, we most likely free'd an internal buffer somewhere
 	 * Z_TRY_ADDREF_P(return_value);*/
@@ -860,7 +860,7 @@ PHP_METHOD(EventBufferEvent, setWatermark)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	bufferevent_setwatermark(bev->bevent, events, (size_t) lowmark, (size_t) highmark);
@@ -880,7 +880,7 @@ PHP_METHOD(EventBufferEvent, write)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	convert_to_string(zdata);
@@ -907,10 +907,10 @@ PHP_METHOD(EventBufferEvent, writeBuffer)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (bufferevent_write_buffer(bev->bevent, b->buf)) {
 		RETURN_FALSE;
@@ -941,7 +941,7 @@ PHP_METHOD(EventBufferEvent, read)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	data = safe_emalloc(size, sizeof(char), 1);
@@ -972,10 +972,10 @@ PHP_METHOD(EventBufferEvent, readBuffer)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (bufferevent_read_buffer(bev->bevent, b->buf)) {
 		RETURN_FALSE;
@@ -999,7 +999,7 @@ PHP_METHOD(EventBufferEvent, setPriority)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	if (bufferevent_priority_set(bev->bevent, priority)) {
@@ -1026,7 +1026,7 @@ PHP_METHOD(EventBufferEvent, setTimeouts)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	PHP_EVENT_TIMEVAL_SET(tv_read, timeout_read);
@@ -1073,14 +1073,14 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 		RETURN_FALSE;
 	}
 
-	PHP_EVENT_FETCH_BASE(base, zbase);
-	PHP_EVENT_FETCH_BEVENT(bev_underlying, zunderlying);
+	base = Z_EVENT_BASE_OBJ_P(zbase);
+	bev_underlying = Z_EVENT_BEVENT_OBJ_P(zunderlying);
 	_ret_if_invalid_bevent_ptr(bev_underlying);
 
-	PHP_EVENT_FETCH_SSL_CONTEXT(ectx, zctx);
+	ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(zctx);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
-	PHP_EVENT_FETCH_BEVENT(bev, return_value);
+	bev = Z_EVENT_BEVENT_OBJ_P(return_value);
 
 	PHP_EVENT_ASSERT(ectx->ctx);
 	ssl = SSL_new(ectx->ctx);
@@ -1143,11 +1143,11 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 		RETURN_FALSE;
 	}
 
-	PHP_EVENT_FETCH_BASE(base, zbase);
-	PHP_EVENT_FETCH_SSL_CONTEXT(ectx, zctx);
+	base = Z_EVENT_BASE_OBJ_P(zbase);
+	ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(zctx);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
-	PHP_EVENT_FETCH_BEVENT(bev, return_value);
+	bev = Z_EVENT_BEVENT_OBJ_P(return_value);
 
 	if (Z_TYPE_P(pzfd) == IS_NULL) {
 		/* User decided to set fd later via connect or connectHost etc.*/
@@ -1205,7 +1205,7 @@ PHP_METHOD(EventBufferEvent, sslError)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	e = bufferevent_get_openssl_error(bev->bevent);
@@ -1236,7 +1236,7 @@ PHP_METHOD(EventBufferEvent, sslRenegotiate)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	bufferevent_ssl_renegotiate(bev->bevent);
@@ -1259,7 +1259,7 @@ PHP_METHOD(EventBufferEvent, sslGetCipherInfo)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	ssl = bufferevent_openssl_get_ssl(bev->bevent);
@@ -1291,7 +1291,7 @@ PHP_METHOD(EventBufferEvent, sslGetCipherName)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	ssl = bufferevent_openssl_get_ssl(bev->bevent);
@@ -1316,7 +1316,7 @@ PHP_METHOD(EventBufferEvent, sslGetCipherVersion)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	ssl = bufferevent_openssl_get_ssl(bev->bevent);
@@ -1341,7 +1341,7 @@ PHP_METHOD(EventBufferEvent, sslGetProtocol)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BEVENT(bev, zbevent);
+	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
 	ssl = bufferevent_openssl_get_ssl(bev->bevent);

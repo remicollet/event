@@ -120,17 +120,17 @@ PHP_METHOD(EventHttpConnection, __construct)
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
-	PHP_EVENT_FETCH_BASE(b, zbase);
+	b = Z_EVENT_BASE_OBJ_P(zbase);
 
 	if (zdns_base) {
-		PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+		dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zself);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zself);
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
 	if (zctx) {
-		PHP_EVENT_FETCH_SSL_CONTEXT(ectx, zctx);
+		ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(zctx);
 		PHP_EVENT_ASSERT(ectx->ctx);
 
 		ssl = SSL_new(ectx->ctx);
@@ -198,7 +198,7 @@ PHP_METHOD(EventHttpConnection, getBase)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	/*
 	 * No sense in this call
@@ -235,7 +235,7 @@ PHP_METHOD(EventHttpConnection, getPeer)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	evhttp_connection_get_peer(evcon->conn, &address, &port);
 
@@ -258,7 +258,7 @@ PHP_METHOD(EventHttpConnection, setLocalAddress)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	evhttp_connection_set_local_address(evcon->conn, address);
 }
@@ -277,7 +277,7 @@ PHP_METHOD(EventHttpConnection, setLocalPort)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	evhttp_connection_set_local_port(evcon->conn, port);
 }
@@ -296,7 +296,7 @@ PHP_METHOD(EventHttpConnection, setTimeout)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	evhttp_connection_set_timeout(evcon->conn, timeout);
 }
@@ -315,7 +315,7 @@ PHP_METHOD(EventHttpConnection, setMaxHeadersSize)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	evhttp_connection_set_max_headers_size(evcon->conn, (ev_ssize_t) max_size);
 }
@@ -334,7 +334,7 @@ PHP_METHOD(EventHttpConnection, setMaxBodySize)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	evhttp_connection_set_max_body_size(evcon->conn, (ev_ssize_t) max_size);
 }
@@ -353,7 +353,7 @@ PHP_METHOD(EventHttpConnection, setRetries)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	evhttp_connection_set_retries(evcon->conn, retries);
 }
@@ -378,14 +378,14 @@ PHP_METHOD(EventHttpConnection, makeRequest)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, zreq);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(zreq);
 	if (!http_req->ptr) {
 		php_error_docref(NULL, E_WARNING,
 				"Unconfigured HTTP request object passed");
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	if (evhttp_make_request(evcon->conn, http_req->ptr, type, uri)) {
 		RETURN_FALSE;
@@ -409,7 +409,7 @@ PHP_METHOD(EventHttpConnection, setCloseCallback)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
 
 	PHP_EVENT_FREE_FCALL_INFO(evcon->fci_closecb, evcon->fcc_closecb);
 	PHP_EVENT_COPY_FCALL_INFO(evcon->fci_closecb, evcon->fcc_closecb, &fci, &fcc);

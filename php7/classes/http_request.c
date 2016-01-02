@@ -141,7 +141,7 @@ PHP_METHOD(EventHttpRequest, __construct)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, zself);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(zself);
 
 	req = evhttp_request_new(_req_handler, (void *) http_req);
 	PHP_EVENT_ASSERT(req);
@@ -172,7 +172,7 @@ PHP_METHOD(EventHttpRequest, free)
 	zval                 *zself    = getThis();
 	php_event_http_req_t *http_req;
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, zself);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(zself);
 
 	if (!http_req->ptr || http_req->internal) {
 		return;
@@ -212,7 +212,7 @@ PHP_METHOD(EventHttpRequest, getCommand)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -230,7 +230,7 @@ PHP_METHOD(EventHttpRequest, getHost)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -248,7 +248,7 @@ PHP_METHOD(EventHttpRequest, getUri)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -266,7 +266,7 @@ PHP_METHOD(EventHttpRequest, getResponseCode)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -286,7 +286,7 @@ PHP_METHOD(EventHttpRequest, getInputHeaders)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -314,7 +314,7 @@ PHP_METHOD(EventHttpRequest, getOutputHeaders)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -339,12 +339,12 @@ PHP_METHOD(EventHttpRequest, getInputBuffer)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_ce);
-	PHP_EVENT_FETCH_BUFFER(b, return_value);
+	b = Z_EVENT_BUFFER_OBJ_P(return_value);
 	b->buf      = evhttp_request_get_input_buffer(http_req->ptr);
 	b->internal = 1;
 }
@@ -361,12 +361,12 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_buffer_ce);
-	PHP_EVENT_FETCH_BUFFER(b, return_value);
+	b = Z_EVENT_BUFFER_OBJ_P(return_value);
 	b->buf      = evhttp_request_get_output_buffer(http_req->ptr);
 	b->internal = 1;
 }
@@ -385,7 +385,7 @@ PHP_METHOD(EventHttpRequest, getBufferEvent)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -395,7 +395,7 @@ PHP_METHOD(EventHttpRequest, getBufferEvent)
 	}
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
-	PHP_EVENT_FETCH_BEVENT(bev, return_value);
+	bev = Z_EVENT_BEVENT_OBJ_P(return_value);
 
 	bev->bevent = evhttp_connection_get_bufferevent(conn);
 	bev->self = return_value;
@@ -428,7 +428,7 @@ PHP_METHOD(EventHttpRequest, getConnection)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -438,7 +438,7 @@ PHP_METHOD(EventHttpRequest, getConnection)
 	}
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_http_conn_ce);
-	PHP_EVENT_FETCH_HTTP_CONN(evcon, return_value);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(return_value);
 
 	evcon->conn = conn;
 	evcon->self = return_value;
@@ -466,7 +466,7 @@ PHP_METHOD(EventHttpRequest, closeConnection)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -493,7 +493,7 @@ PHP_METHOD(EventHttpRequest, sendError)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -520,12 +520,12 @@ PHP_METHOD(EventHttpRequest, sendReply)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
 	if (zbuf) {
-		PHP_EVENT_FETCH_BUFFER(b, zbuf);
+		b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 		PHP_EVENT_ASSERT(b->buf);
 	}
 
@@ -549,12 +549,12 @@ PHP_METHOD(EventHttpRequest, sendReplyChunk)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
 	if (zbuf) {
-		PHP_EVENT_FETCH_BUFFER(b, zbuf);
+		b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 		PHP_EVENT_ASSERT(b->buf);
 		evhttp_send_reply_chunk(http_req->ptr, b->buf);
 	}
@@ -572,7 +572,7 @@ PHP_METHOD(EventHttpRequest, sendReplyEnd)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -604,7 +604,7 @@ PHP_METHOD(EventHttpRequest, sendReplyStart)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -632,7 +632,7 @@ PHP_METHOD(EventHttpRequest, cancel)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -660,7 +660,7 @@ PHP_METHOD(EventHttpRequest, addHeader)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 	_check_http_req_ptr(http_req);
 
 	headers = _get_http_req_headers(http_req, type);
@@ -686,7 +686,7 @@ PHP_METHOD(EventHttpRequest, clearHeaders)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 	_check_http_req_ptr(http_req);
 
 	out_headers = evhttp_request_get_output_headers(http_req->ptr);
@@ -714,7 +714,7 @@ PHP_METHOD(EventHttpRequest, removeHeader)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 
 	_check_http_req_ptr(http_req);
 
@@ -750,7 +750,7 @@ PHP_METHOD(EventHttpRequest, findHeader)
 
 	_check_http_req_type(type);
 
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, getThis());
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
 	_check_http_req_ptr(http_req);
 
 	headers = _get_http_req_headers(http_req, type);

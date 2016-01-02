@@ -429,7 +429,7 @@ PHP_METHOD(EventSslContext, __construct)
 		return;
 	}
 
-	PHP_EVENT_FETCH_SSL_CONTEXT(ectx, getThis());
+	ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(getThis());
 	ectx->ctx = ctx;
 
 	ALLOC_HASHTABLE(ectx->ht);

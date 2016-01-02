@@ -75,7 +75,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 
 	MAKE_STD_ZVAL(arg_req);
 	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(arg_req);
 	http_req->ptr      = req;
 #if 0
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
@@ -100,7 +100,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	} else {
 		if (EG(exception)) {
 			PHP_EVENT_ASSERT(cb->base);
-			PHP_EVENT_FETCH_BASE(b, cb->base);
+			b = Z_EVENT_BASE_OBJ_P(cb->base);
 			event_base_loopbreak(b->base);
 
 			zval_ptr_dtor(&arg_req);
@@ -145,7 +145,7 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 
 	MAKE_STD_ZVAL(arg_req);
 	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
-	PHP_EVENT_FETCH_HTTP_REQ(http_req, arg_req);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(arg_req);
 	http_req->ptr      = req;
 #if 0
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
@@ -170,7 +170,7 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	} else {
 		if (EG(exception)) {
 			PHP_EVENT_ASSERT(http && http->base);
-			PHP_EVENT_FETCH_BASE(b, http->base);
+			b = Z_EVENT_BASE_OBJ_P(http->base);
 			event_base_loopbreak(b->base);
 
 			zval_ptr_dtor(&arg_req);
@@ -256,9 +256,9 @@ PHP_METHOD(EventHttp, __construct)
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
-	PHP_EVENT_FETCH_BASE(b, zbase);
+	b = Z_EVENT_BASE_OBJ_P(zbase);
 
-	PHP_EVENT_FETCH_HTTP(http, getThis());
+	http = Z_EVENT_HTTP_OBJ_P(getThis());
 
 	http_ptr = evhttp_new(b->base);
 	if (!http_ptr) {
@@ -280,7 +280,7 @@ PHP_METHOD(EventHttp, __construct)
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
 	if (zctx) {
-		PHP_EVENT_FETCH_SSL_CONTEXT(ectx, zctx);
+		ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(zctx);
 		PHP_EVENT_ASSERT(ectx->ctx);
 		evhttp_set_bevcb(http_ptr, _bev_ssl_callback, ectx->ctx);
 	}
@@ -310,7 +310,7 @@ PHP_METHOD(EventHttp, accept)
 	}
 	evutil_make_socket_nonblocking(fd);
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	if (evhttp_accept_socket(http->ptr, fd)) {
 		RETURN_FALSE;
@@ -337,7 +337,7 @@ PHP_METHOD(EventHttp, bind)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	/* XXX Call evhttp_bind_socket_with_handle instead, and store the bound
 	 * socket in the internal struct for further useful API? */
@@ -370,7 +370,7 @@ PHP_METHOD(EventHttp, setCallback)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	cb = _new_http_cb(http->base, zarg, &fci, &fcc);
 	PHP_EVENT_ASSERT(cb);
@@ -413,7 +413,7 @@ PHP_METHOD(EventHttp, setDefaultCallback)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	if (http->fci) {
 		PHP_EVENT_FREE_FCALL_INFO(http->fci, http->fcc);
@@ -450,7 +450,7 @@ PHP_METHOD(EventHttp, setAllowedMethods)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	evhttp_set_allowed_methods(http->ptr, methods);
 }
@@ -469,7 +469,7 @@ PHP_METHOD(EventHttp, setMaxBodySize)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	evhttp_set_max_body_size(http->ptr, value);
 }
@@ -488,7 +488,7 @@ PHP_METHOD(EventHttp, setMaxHeadersSize)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	evhttp_set_max_headers_size(http->ptr, value);
 }
@@ -508,7 +508,7 @@ PHP_METHOD(EventHttp, setTimeout)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	evhttp_set_timeout(http->ptr, value);
 }
@@ -529,7 +529,7 @@ PHP_METHOD(EventHttp, addServerAlias)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	if (evhttp_add_server_alias(http->ptr, alias)) {
 		RETURN_FALSE;
@@ -553,7 +553,7 @@ PHP_METHOD(EventHttp, removeServerAlias)
 		return;
 	}
 
-	PHP_EVENT_FETCH_HTTP(http, zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(zhttp);
 
 	if (evhttp_remove_server_alias(http->ptr, alias)) {
 		RETURN_FALSE;

@@ -42,9 +42,9 @@ PHP_METHOD(EventDnsBase, __construct)
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
-	PHP_EVENT_FETCH_BASE(base, zbase);
+	base = Z_EVENT_BASE_OBJ_P(zbase);
 
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, getThis());
+	dnsb = Z_EVENT_DNS_BASE_OBJ_P(getThis());
 
 	dnsb->dns_base = evdns_base_new(base->base, initialize);
 }
@@ -74,7 +74,7 @@ PHP_METHOD(EventDnsBase, parseResolvConf)
 		RETURN_FALSE;
 	}
 
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+	dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 
 	ret = evdns_base_resolv_conf_parse(dnsb->dns_base, flags, filename);
 
@@ -126,7 +126,7 @@ PHP_METHOD(EventDnsBase, addNameserverIp)
 		return;
 	}
 
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+	dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 
 	if (evdns_base_nameserver_ip_add(dnsb->dns_base, ip)) {
 		RETURN_FALSE;
@@ -151,7 +151,7 @@ PHP_METHOD(EventDnsBase, loadHosts)
 		return;
 	}
 
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+	dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 
 	if (evdns_base_load_hosts(dnsb->dns_base, hosts)) {
 		RETURN_FALSE;
@@ -174,7 +174,7 @@ PHP_METHOD(EventDnsBase, clearSearch)
 		return;
 	}
 
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+	dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 
 	evdns_base_search_clear(dnsb->dns_base);
 }
@@ -194,7 +194,7 @@ PHP_METHOD(EventDnsBase, addSearch)
 		return;
 	}
 
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+	dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 
 	evdns_base_search_add(dnsb->dns_base, domain);
 }
@@ -213,7 +213,7 @@ PHP_METHOD(EventDnsBase, setSearchNdots)
 		return;
 	}
 
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+	dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 
 	evdns_base_search_ndots_set(dnsb->dns_base, ndots);
 }
@@ -235,7 +235,7 @@ PHP_METHOD(EventDnsBase, setOption)
 		return;
 	}
 
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+	dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 
 	if (evdns_base_set_option(dnsb->dns_base, option, value)) {
 		RETURN_FALSE;
@@ -256,7 +256,7 @@ PHP_METHOD(EventDnsBase, countNameservers)
 		return;
 	}
 
-	PHP_EVENT_FETCH_DNS_BASE(dnsb, zdns_base);
+	dnsb = Z_EVENT_DNS_BASE_OBJ_P(zdns_base);
 
 	RETURN_LONG(evdns_base_count_nameservers(dnsb->dns_base));
 }

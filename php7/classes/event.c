@@ -240,7 +240,7 @@ PHP_METHOD(Event, __construct)
 		}
 	}
 
-	PHP_EVENT_FETCH_BASE(b, zbase);
+	b = Z_EVENT_BASE_OBJ_P(zbase);
 
 	/* TODO: check if a signum bound to different event bases */
 
@@ -278,7 +278,7 @@ PHP_METHOD(Event, free)
 	zval        *zself = getThis();
 	php_event_t *e;
 
-	PHP_EVENT_FETCH_EVENT(e, zself);
+	e = Z_EVENT_EVENT_OBJ_P(zself);
 
 	if (e->event) {
 		/* No need in
@@ -337,14 +337,14 @@ PHP_METHOD(Event, set)
 		}
 	}
 
-	PHP_EVENT_FETCH_EVENT(e, zevent);
+	e = Z_EVENT_EVENT_OBJ_P(zevent);
 
 	if (php_event_is_pending(e->event)) {
 		php_error_docref(NULL, E_WARNING, "Can't modify pending event");
 		RETURN_FALSE;
 	}
 
-	PHP_EVENT_FETCH_BASE(b, zbase);
+	b = Z_EVENT_BASE_OBJ_P(zbase);
 
 	/* TODO: check if a signum bound to different event bases */
 
@@ -429,7 +429,7 @@ PHP_METHOD(Event, add)
 		return;
 	}
 
-	PHP_EVENT_FETCH_EVENT(e, zevent);
+	e = Z_EVENT_EVENT_OBJ_P(zevent);
 
 	if (timeout == -1) {
 		res = event_add(e->event, NULL);
@@ -459,7 +459,7 @@ PHP_METHOD(Event, del)
 		return;
 	}
 
-	PHP_EVENT_FETCH_EVENT(e, zevent);
+	e = Z_EVENT_EVENT_OBJ_P(zevent);
 
 	if (e->event == NULL || event_del(e->event)) {
 		php_error_docref(NULL, E_WARNING, "Failed deletting event");
@@ -482,7 +482,7 @@ PHP_METHOD(Event, removeTimer)
 		return;
 	}
 
-	PHP_EVENT_FETCH_EVENT(e, zevent);
+	e = Z_EVENT_EVENT_OBJ_P(zevent);
 
 	if (event_remove_timer(e->event)) {
 		php_error_docref(NULL, E_WARNING, "Failed deletting event");
@@ -506,7 +506,7 @@ PHP_METHOD(Event, setPriority)
 		return;
 	}
 
-	PHP_EVENT_FETCH_EVENT(e, zevent);
+	e = Z_EVENT_EVENT_OBJ_P(zevent);
 
 	if (event_priority_set(e->event, priority)) {
 		php_error_docref(NULL, E_WARNING, "Unable to set event priority: %ld", priority);
@@ -529,7 +529,7 @@ PHP_METHOD(Event, pending)
 		return;
 	}
 
-	PHP_EVENT_FETCH_EVENT(e, zevent);
+	e = Z_EVENT_EVENT_OBJ_P(zevent);
 
 	if (event_pending(e->event, flags, NULL)) {
 		RETURN_TRUE;
@@ -558,10 +558,10 @@ PHP_METHOD(Event, timer)
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
-	PHP_EVENT_FETCH_BASE(b, zbase);
+	b = Z_EVENT_BASE_OBJ_P(zbase);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_ce);
-	PHP_EVENT_FETCH_EVENT(e, return_value);
+	e = Z_EVENT_EVENT_OBJ_P(return_value);
 
 	event = evtimer_new(b->base, timer_cb, (void *) e);
 	if (!event) {
@@ -604,7 +604,7 @@ PHP_METHOD(Event, setTimer)
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
-	PHP_EVENT_FETCH_EVENT(e, zevent);
+	e = Z_EVENT_EVENT_OBJ_P(zevent);
 
 	if (evtimer_pending(e->event, NULL)) {
 		php_error_docref(NULL, E_WARNING, "Can't modify pending timer");
@@ -612,7 +612,7 @@ PHP_METHOD(Event, setTimer)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BASE(b, zbase);
+	b = Z_EVENT_BASE_OBJ_P(zbase);
 
 	if (ZEND_FCI_INITIALIZED(fci)) {
 		if (e->fci && ZEND_FCI_INITIALIZED(*e->fci)) {
@@ -665,10 +665,10 @@ PHP_METHOD(Event, signal)
 		RETURN_FALSE;
 	}
 
-	PHP_EVENT_FETCH_BASE(b, zbase);
+	b = Z_EVENT_BASE_OBJ_P(zbase);
 
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_ce);
-	PHP_EVENT_FETCH_EVENT(e, return_value);
+	e = Z_EVENT_EVENT_OBJ_P(return_value);
 
 	event = evsignal_new(b->base, signum, signal_cb, (void *) e);
 	if (!event) {

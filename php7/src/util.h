@@ -93,20 +93,6 @@ Z_EVENT_X_FETCH_OBJ_DECL(ssl_context)
 #define Z_EVENT_SSL_CONTEXT_OBJ_P(zv) Z_EVENT_X_OBJ_P(ssl_context, zv)
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
-/* XXX Replace PHP_EVENT_FETCH_*() occurances with corresponding x = Z_EVENT_x_OBJ_P(); */
-#define PHP_EVENT_FETCH_EVENT(x,       zv) x = Z_EVENT_EVENT_OBJ_P(zv)
-#define PHP_EVENT_FETCH_BASE(x,        zv) x = Z_EVENT_BASE_OBJ_P(zv)
-#define PHP_EVENT_FETCH_CONFIG(x,      zv) x = Z_EVENT_CONFIG_OBJ_P(zv)
-#define PHP_EVENT_FETCH_BEVENT(x,      zv) x = Z_EVENT_BEVENT_OBJ_P(zv)
-#define PHP_EVENT_FETCH_BUFFER(x,      zv) x = Z_EVENT_BUFFER_OBJ_P(zv)
-#define PHP_EVENT_FETCH_DNS_BASE(x,    zv) x = Z_EVENT_DNS_BASE_OBJ_P(zv)
-#define PHP_EVENT_FETCH_LISTENER(x,    zv) x = Z_EVENT_LISTENER_OBJ_P(zv)
-#define PHP_EVENT_FETCH_HTTP_CONN(x,   zv) x = Z_EVENT_HTTP_OBJ_P(zv)
-#define PHP_EVENT_FETCH_HTTP(x,        zv) x = Z_EVENT_HTTP_OBJ_P(zv)
-#define PHP_EVENT_FETCH_HTTP_REQ(x,    zv) x = Z_EVENT_HTTP_REQ_OBJ_P(zv)
-#define PHP_EVENT_FETCH_BUFFER_POS(x,  zv) x = Z_EVENT_BUFFER_OBJ_P(zv)
-#define PHP_EVENT_FETCH_SSL_CONTEXT(x, zv) x = Z_EVENT_SSL_CONTEXT_OBJ_P(zv)
-
 static zend_always_inline void init_properties(zend_object *pzo)/*{{{*/
 {
 	zend_object_std_init(pzo, ce);

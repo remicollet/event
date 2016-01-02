@@ -46,7 +46,7 @@ PHP_METHOD(EventBuffer, __construct)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, getThis());
+	b = Z_EVENT_BUFFER_OBJ_P(getThis());
 
 	b->buf = evbuffer_new();
 }
@@ -65,7 +65,7 @@ PHP_METHOD(EventBuffer, freeze)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (evbuffer_freeze(b->buf, at_front)) {
 		RETURN_FALSE;
@@ -88,7 +88,7 @@ PHP_METHOD(EventBuffer, unfreeze)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (evbuffer_unfreeze(b->buf, at_front)) {
 		RETURN_FALSE;
@@ -111,7 +111,7 @@ PHP_METHOD(EventBuffer, lock)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	evbuffer_lock(b->buf);
 }
@@ -130,7 +130,7 @@ PHP_METHOD(EventBuffer, unlock)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	evbuffer_unlock(b->buf);
 }
@@ -151,7 +151,7 @@ PHP_METHOD(EventBuffer, enableLocking)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	evbuffer_enable_locking(b->buf, NULL);
 }
@@ -172,7 +172,7 @@ PHP_METHOD(EventBuffer, add)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	convert_to_string_ex(ppzdata);
 
@@ -203,7 +203,7 @@ PHP_METHOD(EventBuffer, read)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	data = emalloc(sizeof(char) * max_bytes + 1);
 
@@ -234,8 +234,8 @@ PHP_METHOD(EventBuffer, addBuffer)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b_dst, zbuf_dst);
-	PHP_EVENT_FETCH_BUFFER(b_src, zbuf_src);
+	b_dst = Z_EVENT_BUFFER_OBJ_P(zbuf_dst);
+	b_src = Z_EVENT_BUFFER_OBJ_P(zbuf_src);
 
 	if (evbuffer_add_buffer(b_dst->buf, b_src->buf)) {
 		RETURN_FALSE;
@@ -261,8 +261,8 @@ PHP_METHOD(EventBuffer, appendFrom)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b_dst, zbuf_dst);
-	PHP_EVENT_FETCH_BUFFER(b_src, zbuf_src);
+	b_dst = Z_EVENT_BUFFER_OBJ_P(zbuf_dst);
+	b_src = Z_EVENT_BUFFER_OBJ_P(zbuf_src);
 
 	RETVAL_LONG(evbuffer_remove_buffer(b_src->buf, b_dst->buf, (size_t) len));
 }
@@ -282,7 +282,7 @@ PHP_METHOD(EventBuffer, expand)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (evbuffer_expand(b->buf, (size_t) len)) {
 		RETURN_FALSE;
@@ -307,7 +307,7 @@ PHP_METHOD(EventBuffer, prepend)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	convert_to_string_ex(ppzdata);
 
@@ -334,8 +334,8 @@ PHP_METHOD(EventBuffer, prependBuffer)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b_dst, zbuf_dst);
-	PHP_EVENT_FETCH_BUFFER(b_src, zbuf_src);
+	b_dst = Z_EVENT_BUFFER_OBJ_P(zbuf_dst);
+	b_src = Z_EVENT_BUFFER_OBJ_P(zbuf_src);
 
 	if (evbuffer_prepend_buffer(b_dst->buf, b_src->buf)) {
 		RETURN_FALSE;
@@ -361,7 +361,7 @@ PHP_METHOD(EventBuffer, drain)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (evbuffer_drain(b->buf, len)) {
 		RETURN_FALSE;
@@ -393,7 +393,7 @@ PHP_METHOD(EventBuffer, copyout)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	data = emalloc(sizeof(char) * max_bytes + 1);
 
@@ -436,7 +436,7 @@ PHP_METHOD(EventBuffer, readLine)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	res = evbuffer_readln(b->buf, &len, eol_style);
 
@@ -480,7 +480,7 @@ PHP_METHOD(EventBuffer, search)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (start_pos != -1
 			&& _get_pos(&ptr_start, start_pos, b->buf) == FAILURE) {
@@ -526,7 +526,7 @@ PHP_METHOD(EventBuffer, searchEol)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (start_pos != -1
 			&& _get_pos(&ptr_start, start_pos, b->buf) == FAILURE) {
@@ -566,7 +566,7 @@ PHP_METHOD(EventBuffer, pullup)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	mem = evbuffer_pullup(b->buf, size);
 
@@ -604,7 +604,7 @@ PHP_METHOD(EventBuffer, write)
 		RETURN_FALSE;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (howmuch < 0) {
 		res = evbuffer_write(b->buf, fd);
@@ -645,7 +645,7 @@ PHP_METHOD(EventBuffer, readFrom)
 		RETURN_FALSE;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	res = evbuffer_read(b->buf, fd, howmuch);
 
@@ -679,7 +679,7 @@ PHP_METHOD(EventBuffer, substr)
 		return;
 	}
 
-	PHP_EVENT_FETCH_BUFFER(b, zbuf);
+	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
 	if (_get_pos(&ptr, n_start, b->buf) == FAILURE) {
 		RETURN_FALSE;
