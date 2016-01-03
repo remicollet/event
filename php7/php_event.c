@@ -101,10 +101,10 @@ ZEND_GET_MODULE(event)
 
 /* {{{ Private functions */
 
-static void free_prop_handler(zval *el)
+static void free_prop_handler(zval *el)/*{{{*/
 {
 	pefree(Z_PTR_P(el), 1);
-}
+}/*}}}*/
 
 static void php_event_event_free_obj(zend_object *object)/*{{{*/
 {
@@ -129,7 +129,7 @@ static void php_event_event_free_obj(zend_object *object)/*{{{*/
 		zval_ptr_dtor(&e->data);
 	}
 
-	PHP_EVENT_FREE_FCALL_INFO(e->fci, e->fcc);
+	php_event_free_callback(&e->cb);
 
 	Z_EVENT_STD_OBJ_DTOR(e);
 }/*}}}*/
@@ -171,11 +171,10 @@ static void php_event_bevent_free_obj(zend_object *object)/*{{{*/
 			zval_ptr_dtor(&b->data);
 		}
 
-		PHP_EVENT_FREE_FCALL_INFO(b->fci_read,  b->fcc_read);
-		PHP_EVENT_FREE_FCALL_INFO(b->fci_write, b->fcc_write);
-		PHP_EVENT_FREE_FCALL_INFO(b->fci_event, b->fcc_event);
+		php_event_free_callback(&b->cb_read);
+		php_event_free_callback(&b->cb_write);
+		php_event_free_callback(&b->cb_event);
 
-		/* XXX */
 		if (Z_REFCOUNT(b->self) > 1) {
 			zval_ptr_dtor(&b->self);
 		}
@@ -254,8 +253,8 @@ static void php_event_listener_free_obj(zend_object *object)/*{{{*/
 		zval_ptr_dtor(&l->self);
 	}
 
-	PHP_EVENT_FREE_FCALL_INFO(l->fci, l->fcc);
-	PHP_EVENT_FREE_FCALL_INFO(l->fci_err, l->fcc_err);
+	php_event_free_callback(&l->cb);
+	php_event_free_callback(&l->cb_err);
 
 	if (l->listener) {
 		evconnlistener_free(l->listener);
@@ -271,7 +270,7 @@ static void php_event_http_conn_free_obj(zend_object *object)/*{{{*/
 
 	PHP_EVENT_ASSERT(evcon);
 
-	PHP_EVENT_FREE_FCALL_INFO(evcon->fci_closecb, evcon->fcc_closecb);
+	php_event_free_callback(&evcon->cb_close);
 
 	if (Z_REFCOUNT(evcon->self) > 1) {
 		zval_ptr_dtor(&evcon->self);
@@ -304,7 +303,7 @@ static void php_event_http_free_obj(zend_object *object)/*{{{*/
 
 	PHP_EVENT_ASSERT(http);
 
-	PHP_EVENT_FREE_FCALL_INFO(http->fci, http->fcc);
+	php_event_free_callback(&http->cb);
 
 	/* Free attached callbacks */
 	cb = http->cb_head;
@@ -336,7 +335,7 @@ static void php_event_http_req_free_obj(zend_object *object)/*{{{*/
 
 	PHP_EVENT_ASSERT(http_req);
 
-	PHP_EVENT_FREE_FCALL_INFO(http_req->fci, http_req->fcc);
+	php_event_free_callback(http_req->cb);
 
 	if (Z_REFCOUNT(http_req->self) > 1) {
 		zval_ptr_dtor(&http_req->self);

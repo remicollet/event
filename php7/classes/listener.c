@@ -94,144 +94,138 @@ static int sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
 
 /* {{{ _php_event_listener_cb */
 static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *address, int socklen, void *ctx) {
-	php_event_listener_t *l = (php_event_listener_t *) ctx;
-	zend_fcall_info       *pfci;
-	zend_fcall_info_cache *pfcc;
-	zval  **args[4];
-	zval   *arg_fd;
-	zval   *arg_address;
-	zval   *arg_data;
-	zval   *retval_ptr = NULL;
-	PHP_EVENT_TSRM_DECL
+	php_event_listener_t *l       = (php_event_listener_t *)ctx;
+	zend_fcall_info       fci;
+	zval                  argv[4];
+	zval                  retval;
+	zend_string     *func_name;
 
 	PHP_EVENT_ASSERT(l);
 
-	pfci = l->fci;
-	pfcc = l->fcc;
-
-	PHP_EVENT_ASSERT(pfci && pfcc);
-
-	arg_data = l->data;
+	if (!zend_is_callable(l->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+		zend_string_release(func_name);
+		return;
+	}
+	zend_string_release(func_name);
 
 	/* Call user function having proto:
 	 * void cb (EventListener $listener, resource $fd, array $address, mixed $data);
 	 * $address = array ("IP-address", port)
 	 */
 
-	if (ZEND_FCI_INITIALIZED(*pfci)) {
-		args[0] = &l->self;
+	ZVAL_COPY(&argv[0], &l->self);
 
-		/* Always create new resource, since every new connection creates new fd.
-		 * We are in the accept-connection callback now. */
-		/*
-		 * We might convert it to stream. But likely nobody wants it for any
-		 * purpose than passing back to event, e.g. to
-		 * EventBufferEvent::__construct
-		 *
-		 * php_stream *stream;
-		 * stream = php_stream_fopen_from_fd(fd, "r", NULL);
-		 * php_stream_to_zval(stream, arg_fd);
-		 *
-		 * Thus, we're just passing numeric fd here.
-		 */
-		if (fd) {
-			MAKE_STD_ZVAL(arg_fd);
-			ZVAL_LONG(arg_fd, fd);
-		} else {
-			ALLOC_INIT_ZVAL(arg_fd);
-		}
-		args[1] = &arg_fd;
-
-		MAKE_STD_ZVAL(arg_address);
-		/* A client connected via UNIX domain can't be bound to the socket.
-		 * I.e. the socket is most likely abstract(unnamed), and has no sense here. */
-#ifdef AF_UNIX
-		if (address->sa_family == AF_UNIX) {
-			ZVAL_NULL(arg_address);
-		} else {
-			array_init(arg_address);
-			sockaddr_parse(address, arg_address);
-		}
-#else
-		array_init(arg_address);
-		sockaddr_parse(address, arg_address);
-#endif
-		args[2] = &arg_address;
-
-		if (arg_data) {
-			Z_TRY_ADDREF_P(arg_data);
-		} else {
-			ALLOC_INIT_ZVAL(arg_data);
-		}
-		args[3] = &arg_data;
-
- 		/* Prepare callback */
-        pfci->params         = args;
-        pfci->retval_ptr_ptr = &retval_ptr;
-        pfci->param_count    = 4;
-        pfci->no_separation  = 1;
-
-        if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
-            zval_ptr_dtor(&retval_ptr);
-        } else {
-            php_error_docref(NULL, E_WARNING,
-                    "An error occurred while invoking the callback");
-        }
-
-        zval_ptr_dtor(&arg_fd);
-        zval_ptr_dtor(&arg_address);
-        zval_ptr_dtor(&arg_data);
+	/* Always create new resource, since every new connection creates new fd.
+	 * We are in the accept-connection callback now. */
+	/*
+	 * We might convert it to stream. But likely nobody wants it for any
+	 * purpose than passing back to event, e.g. to
+	 * EventBufferEvent::__construct
+	 *
+	 * php_stream *stream;
+	 * stream = php_stream_fopen_from_fd(fd, "r", NULL);
+	 * php_stream_to_zval(stream, arg_fd);
+	 *
+	 * Thus, we're just passing numeric fd here.
+	 */
+	if (fd) {
+		ZVAL_LONG(&argv[1], fd);
+	} else {
+		ZVAL_NULL(&argv[1]);
 	}
+
+	/* A client connected via UNIX domain can't be bound to the socket.
+	 * I.e. the socket is most likely abstract(unnamed), and has no sense here. */
+#ifdef AF_UNIX
+	if (address->sa_family == AF_UNIX) {
+		ZVAL_NULL(&argv[2]);
+	} else {
+		array_init(&argv[2]);
+		sockaddr_parse(address, &argv[2]);
+	}
+#else
+	array_init(&argv[2]);
+	sockaddr_parse(address, &argv[2]);
+#endif
+
+	if (Z_ISUNDEF(l->data)) {
+		ZVAL_NULL(&argv[3]);
+	} else {
+		ZVAL_COPY(&argv[3], &l->data);
+	}
+
+	fci.size = sizeof(fci);
+	fci.function_table = EG(function_table);
+	ZVAL_COPY_VALUE(&fci.function_name, &l->cb.func_name);
+	fci.object = NULL;
+	fci.retval = &retval;
+	fci.params = argv;
+	fci.param_count = 4;
+	fci.no_separation  = 1;
+	fci.symbol_table = NULL;
+
+	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
+		if (Z_ISUNDEF(retval)) {
+			zval_ptr_dtor(&retval);
+		}
+	} else {
+		php_error_docref(NULL, E_WARNING, "Failed to invoke listener callback");
+	}
+
+	zval_ptr_dtor(&argv[0]);
+	zval_ptr_dtor(&argv[1]);
+	zval_ptr_dtor(&argv[2]);
+	zval_ptr_dtor(&argv[3]);
 }
 /* }}} */
 
 /* {{{ listener_error_cb */
 static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
-	php_event_listener_t  *l = (php_event_listener_t *) ctx;
-	zend_fcall_info       *pfci;
-	zend_fcall_info_cache *pfcc;
-	zval  **args[2];
-	zval   *arg_data;
-	zval   *retval_ptr = NULL;
-	PHP_EVENT_TSRM_DECL
+	php_event_listener_t *l         = (php_event_listener_t *)ctx;
+	zend_fcall_info       fci;
+	zval                  argv[2];
+	zval                  retval;
+	zend_string          *func_name;
 
 	PHP_EVENT_ASSERT(l);
 
-	pfci = l->fci_err;
-	pfcc = l->fcc_err;
-
-	PHP_EVENT_ASSERT(pfci && pfcc);
-
-	arg_data = l->data;
+	if (!zend_is_callable(l->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+		zend_string_release(func_name);
+		return;
+	}
+	zend_string_release(func_name);
 
 	/* Call user function having proto:
 	 * void cb (EventListener $listener, mixed $data); */
 
-	if (ZEND_FCI_INITIALIZED(*pfci)) {
-		args[0] = &l->self;
+	ZVAL_COPY(&argv[0], &l->self);
 
-		if (arg_data) {
-			Z_TRY_ADDREF_P(arg_data);
-		} else {
-			ALLOC_INIT_ZVAL(arg_data);
-		}
-		args[1] = &arg_data;
-
- 		/* Prepare callback */
-        pfci->params         = args;
-        pfci->retval_ptr_ptr = &retval_ptr;
-        pfci->param_count    = 2;
-        pfci->no_separation  = 1;
-
-        if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
-            zval_ptr_dtor(&retval_ptr);
-        } else {
-            php_error_docref(NULL, E_WARNING,
-                    "An error occurred while invoking the callback");
-        }
-
-        zval_ptr_dtor(&arg_data);
+	if (Z_ISUNDEF(l->data)) {
+		ZVAL_NULL(&argv[1]);
+	} else {
+		ZVAL_COPY(&argv[1], &l->data);
 	}
+
+	fci.size = sizeof(fci);
+	fci.function_table = EG(function_table);
+	ZVAL_COPY_VALUE(&fci.function_name, &e->cb.func_name);
+	fci.object = NULL;
+	fci.retval = &retval;
+	fci.params = argv;
+	fci.param_count = 2;
+	fci.no_separation  = 1;
+	fci.symbol_table = NULL;
+
+	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
+		if (Z_ISUNDEF(retval)) {
+			zval_ptr_dtor(&retval);
+		}
+	} else {
+		php_error_docref(NULL, E_WARNING, "Failed to invoke listener error callback");
+	}
+
+	zval_ptr_dtor(&argv[0]);
+	zval_ptr_dtor(&argv[1]);
 }
 /* }}} */
 
@@ -250,27 +244,27 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
  */
 PHP_METHOD(EventListener, __construct)
 {
-	zval                   *zself     = getThis();
-	zval                   *zbase;
-	php_event_base_t       *base;
-	zend_fcall_info         fci       = empty_fcall_info;
-	zend_fcall_info_cache   fcc       = empty_fcall_info_cache;
-	php_event_listener_t   *l;
-	zval                   *zdata     = NULL;
-	zval                   *pztarget;
-	zend_long                   flags;
-	zend_long                   backlog;
-	struct evconnlistener  *listener;
+	struct evconnlistener *listener;
+	zval                  *zself    = getThis();
+	zval                  *zbase;
+	zval                  *zcb;
+	zval                  *zdata    = NULL;
+	zval                  *pztarget;
+	zend_long              flags;
+	zend_long              backlog;
+	php_event_base_t      *base;
+	php_event_listener_t  *l;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ofz!llz",
 				&zbase, php_event_base_ce,
-				&fci, &fcc, &zdata, &flags, &backlog, &pztarget) == FAILURE) {
+				&zcb, &zdata, &flags, &backlog, &pztarget) == FAILURE) {
 		return;
 	}
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
 	base = Z_EVENT_BASE_OBJ_P(zbase);
+	PHP_EVENT_ASSERT(base);
 
 	if (Z_TYPE_P(pztarget) == IS_STRING) {
 		struct sockaddr_storage ss;
@@ -282,7 +276,7 @@ PHP_METHOD(EventListener, __construct)
 					sizeof(PHP_EVENT_SUN_PREFIX) - 1) == 0) {
 			struct sockaddr_un *s_un;
 
-			s_un             = (struct sockaddr_un *) &ss;
+			s_un             = (struct sockaddr_un *)&ss;
 			s_un->sun_family = AF_UNIX;
 
 			strcpy(s_un->sun_path, Z_STRVAL_P(pztarget) + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
@@ -290,15 +284,16 @@ PHP_METHOD(EventListener, __construct)
 		} else
 #endif
 			if (php_network_parse_network_address_with_port(Z_STRVAL_P(pztarget),
-						Z_STRLEN_P(pztarget), (struct sockaddr *) &ss, &ss_len) != SUCCESS) {
+						Z_STRLEN_P(pztarget), (struct sockaddr *)&ss, &ss_len) != SUCCESS) {
 				ZVAL_NULL(zself);
 				return;
 			}
 
 		l = Z_EVENT_LISTENER_OBJ_P(zself);
+		PHP_EVENT_ASSERT(l);
 
 		listener = evconnlistener_new_bind(base->base, _php_event_listener_cb,
-				(void *) l, flags, backlog, (struct sockaddr *) &ss, ss_len);
+				(void *)l, flags, backlog, (struct sockaddr *)&ss, ss_len);
 	} else { /* pztarget is not string */
 		evutil_socket_t fd = -1;
 
@@ -327,18 +322,9 @@ PHP_METHOD(EventListener, __construct)
 	}
 
 	l->listener = listener;
-
-	if (zdata) {
-		l->data = zdata;
-		Z_TRY_ADDREF_P(zdata);
-	}
-
-	PHP_EVENT_COPY_FCALL_INFO(l->fci, l->fcc, &fci, &fcc);
-
-	l->self = zself;
-	Z_TRY_ADDREF_P(l->self);
-
-	TSRMLS_SET_CTX(l->thread_ctx);
+	php_event_copy_zval(&l->data, zdata);
+	php_event_copy_callback(&l->cb, zcb);
+	ZVAL_COPY(&l->self, zself);
 }
 /* }}} */
 
@@ -394,33 +380,19 @@ PHP_METHOD(EventListener, disable)
  */
 PHP_METHOD(EventListener, setCallback)
 {
-	php_event_listener_t  *l;
-	zval                  *zlistener = getThis();
-	zend_fcall_info        fci       = empty_fcall_info;
-	zend_fcall_info_cache  fcc       = empty_fcall_info_cache;
-	zval                  *zarg      = NULL;
+	php_event_listener_t *l;
+	zval                 *zcb;
+	zval                 *zarg      = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f!|z!",
-				&fci, &fcc, &zarg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z!", &zcb, &zarg) == FAILURE) {
 		return;
 	}
 
-	l = Z_EVENT_LISTENER_OBJ_P(zlistener);
+	l = Z_EVENT_LISTENER_OBJ_P(getThis());
 	_ret_if_invalid_listener_ptr(l);
 
-	if (ZEND_FCI_INITIALIZED(fci)) {
-		PHP_EVENT_FREE_FCALL_INFO(l->fci, l->fcc);
-		PHP_EVENT_COPY_FCALL_INFO(l->fci, l->fcc, &fci, &fcc);
-	}
-
-	if (zarg) {
-		if (l->data) {
-			zval_ptr_dtor(&l->data);
-		}
-
-		l->data = zarg;
-		Z_TRY_ADDREF_P(zarg);
-	}
+	php_event_replace_callback(&l->cb, zcb);
+	php_event_copy_zval(&l->data, zarg);
 
 	/*
 	 * No sense in the following call, since the callback and the pointer
@@ -435,23 +407,17 @@ PHP_METHOD(EventListener, setCallback)
  */
 PHP_METHOD(EventListener, setErrorCallback)
 {
-	zval                  *zlistener = getThis();
-	php_event_listener_t  *l;
-	zend_fcall_info        fci;
-	zend_fcall_info_cache  fcc;
+	php_event_listener_t *l;
+	zval                 *zcb;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f",
-				&fci, &fcc) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &zcb) == FAILURE) {
 		return;
 	}
 
-	l = Z_EVENT_LISTENER_OBJ_P(zlistener);
+	l = Z_EVENT_LISTENER_OBJ_P(getThis());
 	_ret_if_invalid_listener_ptr(l);
 
-	if (ZEND_FCI_INITIALIZED(fci)) {
-		PHP_EVENT_FREE_FCALL_INFO(l->fci_err, l->fcc_err);
-		PHP_EVENT_COPY_FCALL_INFO(l->fci_err, l->fcc_err, &fci, &fcc);
-	}
+	php_event_replace_callback(&l->cb_err, zcb);
 
 	/*
 	 * No much sense in the following call, since the callback and the pointer

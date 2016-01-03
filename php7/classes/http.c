@@ -24,23 +24,24 @@
 
 /* {{{ _new_http_cb
  * Allocate memory for new callback structure for the next HTTP server's URI */
-static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zbase, zval *zarg, const zend_fcall_info *fci, const zend_fcall_info_cache *fcc)
+static zend_always_inline php_event_http_cb_t * _new_http_cb(zval *zbase, zval *zarg, zval *zcb)
 {
-	php_event_http_cb_t *cb = emalloc(sizeof(php_event_http_cb_t));
+	php_event_http_cb_t *cb = ecalloc(1, sizeof(php_event_http_cb_t));
+
+	PHP_EVENT_ASSERT(cb);
 
 	if (zarg) {
-		Z_TRY_ADDREF_P(zarg);
+		ZVAL_COPY(&cb->data, zarg);
+	} else {
+		ZVAL_UNDEF(&cb->data);
 	}
-	cb->data = zarg;
 
-	cb->base = zbase;
-	Z_TRY_ADDREF_P(zbase);
+	ZVAL_COPY(&cb->base, zbase);
 
-	PHP_EVENT_COPY_FCALL_INFO(cb->fci, cb->fcc, fci, fcc);
+	php_event_copy_callback(&cb->cb, zcb);
 
-	TSRMLS_SET_CTX(cb->thread_ctx);
-
-	cb->next = NULL;
+	/* ecalloc() already did it
+	cb->next = NULL; */
 
 	return cb;
 }
@@ -49,136 +50,144 @@ static zend_always_inline php_event_http_cb_t *_new_http_cb(zval *zbase, zval *z
 /* {{{ _http_callback */
 static void _http_callback(struct evhttp_request *req, void *arg)
 {
-	php_event_http_cb_t *cb = (php_event_http_cb_t *) arg;
-	php_event_base_t *b;
+	php_event_http_cb_t  *cb       = (php_event_http_cb_t *)arg;
+	php_event_base_t     *b;
 	php_event_http_req_t *http_req;
-	zend_fcall_info       *pfci;
-	zend_fcall_info_cache *pfcc;
-	zval  *arg_data;
-	zval  *arg_req;
-	zval **args[2];
-	zval  *retval_ptr = NULL;
-	PHP_EVENT_TSRM_DECL
+	zend_fcall_info       fci;
+	zval pzreq;
+	zval                  argv[2];
+	zval                  retval;
 
 	PHP_EVENT_ASSERT(cb);
-
-	pfci = cb->fci;
-	pfcc = cb->fcc;
-	PHP_EVENT_ASSERT(pfci && pfcc);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
-	arg_data = cb->data;
-
-	MAKE_STD_ZVAL(arg_req);
-	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
-	http_req = Z_EVENT_HTTP_REQ_OBJ_P(arg_req);
-	http_req->ptr      = req;
+	pzreq = &argv[0];
+	PHP_EVENT_INIT_CLASS_OBJECT(pzreq, php_event_http_req_ce);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(pzreq);
+	http_req->ptr = req;
 #if 0
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
-	Z_TRY_ADDREF_P(arg_req);
+	Z_TRY_ADDREF_P(pzreq);
 #endif
-	args[0] = &arg_req;
 
-	if (arg_data) {
-		Z_TRY_ADDREF_P(arg_data);
+	if (Z_ISUNDEF(cb->data)) {
+		ZVAL_NULL(&argv[1]);
 	} else {
-		ALLOC_INIT_ZVAL(arg_data);
+		ZVAL_COPY(&argv[1], &cb->data);
 	}
-	args[1] = &arg_data;
 
-	pfci->params		 = args;
-	pfci->retval_ptr_ptr = &retval_ptr;
-	pfci->param_count	 = 2;
-	pfci->no_separation  = 1;
+	fci.size = sizeof(fci);
+	fci.function_table = EG(function_table);
+	ZVAL_COPY_VALUE(&fci.function_name, &cb->cb.func_name);
+	fci.object = NULL;
+	fci.retval = &retval;
+	fci.params = argv;
+	fci.param_count = 2;
+	fci.no_separation = 1;
+	fci.symbol_table = NULL;
 
-	if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
-		zval_ptr_dtor(&retval_ptr);
+	if (zend_call_function(&fci, &cb->cb.fci_cache) == SUCCESS) {
+		if (!Z_ISUNDEF(retval)) {
+			zval_ptr_dtor(&retval);
+		}
 	} else {
 		if (EG(exception)) {
-			PHP_EVENT_ASSERT(cb->base);
-			b = Z_EVENT_BASE_OBJ_P(cb->base);
+			b = Z_EVENT_BASE_OBJ_P(&cb->base);
+			PHP_EVENT_ASSERT(b && b->base);
 			event_base_loopbreak(b->base);
 
-			zval_ptr_dtor(&arg_req);
-			zval_ptr_dtor(&arg_data);
+			if (!Z_ISUNDEF(argv[0])) {
+				zval_ptr_dtor(&argv[0]);
+			}
+			if (!Z_ISUNDEF(argv[1])) {
+				zval_ptr_dtor(&argv[1]);
+			}
 		} else {
 			php_error_docref(NULL, E_WARNING,
 					"An error occurred while invoking the http request callback");
 		}
 	}
 
-	zval_ptr_dtor(&arg_req);
-	zval_ptr_dtor(&arg_data);
+	if (!Z_ISUNDEF(argv[0])) {
+		zval_ptr_dtor(&argv[0]);
+	}
+	if (!Z_ISUNDEF(argv[1])) {
+		zval_ptr_dtor(&argv[1]);
+	}
 }
 /* }}} */
 
 /* {{{ _http_default_callback */
 static void _http_default_callback(struct evhttp_request *req, void *arg)
 {
-	php_event_http_t *http = (php_event_http_t *) arg;
+	php_event_http_t     *http     = (php_event_http_t *) arg;
 	php_event_http_req_t *http_req;
-	zend_fcall_info       *pfci;
-	zend_fcall_info_cache *pfcc;
-	zval  *arg_data;
-	zval  *arg_req;
-	zval **args[2];
-	zval  *retval_ptr = NULL;
-	php_event_base_t *b;
-	PHP_EVENT_TSRM_DECL
+	zend_fcall_info       fci;
+	zval                  argv[2];
+	zval                 *pzreq;
+	zval                  retval;
+	php_event_base_t     *b;
 
 	PHP_EVENT_ASSERT(http);
-
-	pfci = http->fci;
-	pfcc = http->fcc;
-	PHP_EVENT_ASSERT(pfci && pfcc);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
 	arg_data = http->data;
 
-	MAKE_STD_ZVAL(arg_req);
-	PHP_EVENT_INIT_CLASS_OBJECT(arg_req, php_event_http_req_ce);
-	http_req = Z_EVENT_HTTP_REQ_OBJ_P(arg_req);
+	pzreq = &argv[0];
+	PHP_EVENT_INIT_CLASS_OBJECT(pzreq, php_event_http_req_ce);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(pzreq);
 	http_req->ptr      = req;
 #if 0
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
-	Z_TRY_ADDREF_P(arg_req);
 #endif
-	args[0] = &arg_req;
 
 	if (arg_data) {
-		Z_TRY_ADDREF_P(arg_data);
+		ZVAL_COPY(&argv[1], &http->data);
 	} else {
-		ALLOC_INIT_ZVAL(arg_data);
+		ZVAL_NULL(&argv[1]);
 	}
-	args[1] = &arg_data;
 
-	pfci->params		 = args;
-	pfci->retval_ptr_ptr = &retval_ptr;
-	pfci->param_count	 = 2;
-	pfci->no_separation  = 1;
+	fci.size = sizeof(fci);
+	fci.function_table = EG(function_table);
+	ZVAL_COPY_VALUE(&fci.function_name, &http->cb.func_name);
+	fci.object = NULL;
+	fci.retval = &retval;
+	fci.params = argv;
+	fci.param_count = 2;
+	fci.no_separation  = 1;
+	fci.symbol_table = NULL;
 
-	if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
-		zval_ptr_dtor(&retval_ptr);
+	if (zend_call_function(&fci, &http->cb.fci_cache) == SUCCESS) {
+		if (!Z_ISUNDEF(retval)) {
+			zval_ptr_dtor(&retval);
+		}
 	} else {
 		if (EG(exception)) {
 			PHP_EVENT_ASSERT(http && http->base);
 			b = Z_EVENT_BASE_OBJ_P(http->base);
 			event_base_loopbreak(b->base);
 
-			zval_ptr_dtor(&arg_req);
-			zval_ptr_dtor(&arg_data);
+			if (!Z_ISUNDEF(&argv[0])) {
+				zval_ptr_dtor(&argv[0]);
+			}
+			if (!Z_ISUNDEF(&argv[1])) {
+				zval_ptr_dtor(&argv[1]);
+			}
 		} else {
-			php_error_docref(NULL, E_WARNING,
-					"An error occurred while invoking the http request callback");
+			php_error_docref(NULL, E_WARNING, "Failed to invoke http request callback");
 		}
 	}
 
-	zval_ptr_dtor(&arg_req);
-	zval_ptr_dtor(&arg_data);
+	if (!Z_ISUNDEF(&argv[0])) {
+		zval_ptr_dtor(&argv[0]);
+	}
+	if (!Z_ISUNDEF(&argv[1])) {
+		zval_ptr_dtor(&argv[1]);
+	}
 }
 /* }}} */
 
@@ -207,20 +216,18 @@ static struct bufferevent* _bev_ssl_callback(struct event_base *base, void *arg)
 /* }}} */
 
 /* {{{  _php_event_free_http_cb */
-void _php_event_free_http_cb(php_event_http_cb_t *cb)
+void _php_event_free_http_cb(php_event_http_cb_t *http_cb)
 {
-	if (cb->data) {
-		zval_ptr_dtor(&cb->data);
-		cb->data = NULL;
+	if (!Z_ISUNDEF(http_cb->data)) {
+		zval_ptr_dtor(&http_cb->data);
 	}
-	if (cb->base) {
-		zval_ptr_dtor(&cb->base);
-		cb->base = NULL;
+	if (!Z_ISUNDEF(http_cb->base)) {
+		zval_ptr_dtor(&http_cb->base);
 	}
 
-	PHP_EVENT_FREE_FCALL_INFO(cb->fci, cb->fcc);
+	php_event_free_callback(&http_cb->cb);
 
-	efree(cb);
+	efree(http_cb);
 }
 /* }}} */
 
@@ -350,38 +357,32 @@ PHP_METHOD(EventHttp, bind)
  */
 PHP_METHOD(EventHttp, setCallback)
 {
-	zval                  *zhttp    = getThis();
-	php_event_http_t      *http;
-	char                  *path;
-	int                    path_len;
-	zend_fcall_info        fci      = empty_fcall_info;
-	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
-	zval                  *zarg     = NULL;
-	int                    res;
-	php_event_http_cb_t   *cb;
-	php_event_http_cb_t   *cb_head;
+	php_event_http_t    *http;
+	char                *path;
+	int                  path_len;
+	int                  res;
+	zval                *zcb;
+	zval                *zarg     = NULL;
+	php_event_http_cb_t *cb;
+	php_event_http_cb_t *cb_head;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sf|z!",
-				&path, &path_len, &fci, &fcc, &zarg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sz|z!",
+				&path, &path_len, &zcb, &zarg) == FAILURE) {
 		return;
 	}
 
-	http = Z_EVENT_HTTP_OBJ_P(zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(getThis());
 
-	cb = _new_http_cb(http->base, zarg, &fci, &fcc);
-	PHP_EVENT_ASSERT(cb);
+	cb = _new_http_cb(http->base, zarg, zcb);
 
 	res = evhttp_set_cb(http->ptr, path, _http_callback, (void *) cb);
 	if (res == -2) {
 		_php_event_free_http_cb(cb);
-
 		RETURN_FALSE;
 	}
-	if (res == -1) { // the callback existed already
+	if (res == -1) {
 		_php_event_free_http_cb(cb);
-
-		php_error_docref(NULL, E_WARNING,
-				"The callback already exists");
+		php_error_docref(NULL, E_WARNING, "The callback already exists");
 		RETURN_FALSE;
 	}
 
@@ -398,30 +399,25 @@ PHP_METHOD(EventHttp, setCallback)
  */
 PHP_METHOD(EventHttp, setDefaultCallback)
 {
-	zval                  *zhttp    = getThis();
-	php_event_http_t      *http;
-	zend_fcall_info        fci      = empty_fcall_info;
-	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
-	zval                  *zarg     = NULL;
+	php_event_http_t *http;
+	zval             *zcb;
+	zval             *zarg  = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f|z!",
-				&fci, &fcc, &zarg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z!", &zcb, &zarg) == FAILURE) {
 		return;
 	}
 
-	http = Z_EVENT_HTTP_OBJ_P(zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(getThis());
 
-	if (http->fci) {
-		PHP_EVENT_FREE_FCALL_INFO(http->fci, http->fcc);
-	}
-	PHP_EVENT_COPY_FCALL_INFO(http->fci, http->fcc, &fci, &fcc);
+	php_event_replace_callback(&http->cb, zcb);
 
 	if (zarg) {
-		Z_TRY_ADDREF_P(zarg);
+		ZVAL_COPY(&http->data, zarg);
+	} else {
+		ZVAL_UNDEF(&http->data);
 	}
-	http->data = zarg;
 
-	evhttp_set_gencb(http->ptr, _http_default_callback, (void *) http);
+	evhttp_set_gencb(http->ptr, _http_default_callback, (void *)http);
 }
 /* }}} */
 
@@ -437,16 +433,14 @@ PHP_METHOD(EventHttp, setDefaultCallback)
  */
 PHP_METHOD(EventHttp, setAllowedMethods)
 {
-	zval             *zhttp   = getThis();
 	php_event_http_t *http;
-	zend_long             methods;
+	zend_long         methods;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
-				&methods) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &methods) == FAILURE) {
 		return;
 	}
 
-	http = Z_EVENT_HTTP_OBJ_P(zhttp);
+	http = Z_EVENT_HTTP_OBJ_P(getThis());
 
 	evhttp_set_allowed_methods(http->ptr, methods);
 }

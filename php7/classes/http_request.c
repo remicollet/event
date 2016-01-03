@@ -62,61 +62,59 @@ static zend_always_inline struct evkeyvalq *_get_http_req_headers(const php_even
 /* {{{ _req_handler */
 static void _req_handler(struct evhttp_request *req, void *arg)
 {
-	php_event_http_req_t *http_req = (php_event_http_req_t *) arg;
-	zend_fcall_info       *pfci;
-	zend_fcall_info_cache *pfcc;
-	zval  *arg_data;
-	zval  *arg_req;
-	zval **args[2];
-	zval  *retval_ptr = NULL;
-	PHP_EVENT_TSRM_DECL
+	php_event_http_req_t *http_req  = (php_event_http_req_t *) arg;
+	zend_fcall_info       fci;
+	zval                  args[2];
+	zval                  retval;
+	zend_string          *func_name;
 
 	PHP_EVENT_ASSERT(http_req && http_req->ptr);
-	PHP_EVENT_ASSERT(http_req->fci && http_req->fcc);
-	PHP_EVENT_ASSERT(http_req->self);
 
-	pfci = http_req->fci;
-	pfcc = http_req->fcc;
-	PHP_EVENT_ASSERT(pfci && pfcc);
+	if (!zend_is_callable(e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+		zend_string_release(func_name);
+		return;
+	}
+	zend_string_release(func_name);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data); */
 
-	arg_data = http_req->data;
-
-	arg_req = http_req->self;
 	/* req == NULL means timeout */
 	if (req == NULL || !arg_req) {
-		ALLOC_INIT_ZVAL(arg_req);
+		ZVAL_NULL(&argv[0]);
 	} else {
-		Z_TRY_ADDREF_P(arg_req);
+		ZVAL_COPY(&argv[0], &http_req->self);
 	}
-	args[0] = &arg_req;
 
-	if (arg_data) {
-		Z_TRY_ADDREF_P(arg_data);
+	if (Z_ISUNDEF(http_req->data)) {
+		ZVAL_NULL(&argv[1]);
 	} else {
-		ALLOC_INIT_ZVAL(arg_data);
+		ZVAL_COPY(&argv[1], &http_req->data);
 	}
-	args[1] = &arg_data;
 
-	pfci->params		 = args;
-	pfci->retval_ptr_ptr = &retval_ptr;
-	pfci->param_count	 = 2;
-	pfci->no_separation  = 1;
+	fci.size = sizeof(fci);
+	fci.function_table = EG(function_table);
+	ZVAL_COPY_VALUE(&fci.function_name, &http_req->cb.func_name);
+	fci.object = NULL;
+	fci.retval = &retval;
+	fci.params = argv;
+	fci.param_count = 2;
+	fci.no_separation  = 1;
+	fci.symbol_table = NULL;
 
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)*/
 	/*evhttp_request_own(http_req->ptr);*/
 
-	if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
-		zval_ptr_dtor(&retval_ptr);
+	if (zend_call_function(&fci, &http_req->cb.fci_cache) == SUCCESS) {
+		if (Z_ISUNDEF(retval)) {
+			zval_ptr_dtor(&retval);
+		}
 	} else {
-		php_error_docref(NULL, E_WARNING,
-				"An error occurred while invoking the http request callback");
+		php_error_docref(NULL, E_WARNING, "Failed to invoke http request handler");
 	}
 
-	zval_ptr_dtor(&arg_req);
-	zval_ptr_dtor(&arg_data);
+	zval_ptr_dtor(&argv[0]);
+	zval_ptr_dtor(&argv[1]);
 }
 /* }}} */
 
@@ -128,20 +126,18 @@ PHP_METHOD(EventHttpRequest, __construct)
 {
 	zval                  *zself    = getThis();
 	php_event_http_req_t  *http_req;
-	zend_fcall_info        fci      = empty_fcall_info;
-	zend_fcall_info_cache  fcc      = empty_fcall_info_cache;
+	zval                  *zcb;
 	zval                  *zarg     = NULL;
 	struct evhttp_request *req;
 
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f|z",
-				&fci, &fcc, &zarg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z!", &zcb, &zarg) == FAILURE) {
 		return;
 	}
 
 	http_req = Z_EVENT_HTTP_REQ_OBJ_P(zself);
 
-	req = evhttp_request_new(_req_handler, (void *) http_req);
+	req = evhttp_request_new(_req_handler, (void *)http_req);
 	PHP_EVENT_ASSERT(req);
 
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)
@@ -149,17 +145,9 @@ PHP_METHOD(EventHttpRequest, __construct)
 	/*evhttp_request_own(req);*/
 	http_req->ptr = req;
 
-	if (zarg) {
-		Z_TRY_ADDREF_P(zarg);
-	}
-	http_req->data = zarg;
-
-	http_req->self = zself;
-	Z_TRY_ADDREF_P(zself);
-
-	PHP_EVENT_COPY_FCALL_INFO(http_req->fci, http_req->fcc, &fci, &fcc);
-
-	TSRMLS_SET_CTX(http_req->thread_ctx);
+	php_event_copy_zval(&http_req->data, zarg);
+	php_event_copy_zval(&http_req->self, zself);
+	php_event_copy_callback(&http_req->cb, zcb);
 }
 /* }}} */
 
@@ -167,10 +155,10 @@ PHP_METHOD(EventHttpRequest, __construct)
  * Frees the object and removes associated events. */
 PHP_METHOD(EventHttpRequest, free)
 {
-	zval                 *zself    = getThis();
 	php_event_http_req_t *http_req;
 
-	http_req = Z_EVENT_HTTP_REQ_OBJ_P(zself);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(getThis());
+	PHP_EVENT_ASSERT(http_req);
 
 	if (!http_req->ptr || http_req->internal) {
 		return;

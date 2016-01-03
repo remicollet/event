@@ -23,55 +23,48 @@
 
 static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 {
-	php_event_http_conn_t *evcon = (php_event_http_conn_t *) arg;
-	zend_fcall_info       *pfci;
-	zend_fcall_info_cache *pfcc;
-	zval  *arg_data;
-	zval  *arg_conn;
-	zval **args[2];
-	zval  *retval_ptr = NULL;
-	PHP_EVENT_TSRM_DECL
+	php_event_http_conn_t *evcon   = (php_event_http_conn_t *)arg;
+	zend_fcall_info        fci;
+	zval                   argv[2];
+	zval                   retval;
 
 	PHP_EVENT_ASSERT(evcon && conn);
-
-	pfci = evcon->fci_closecb;
-	pfcc = evcon->fcc_closecb;
-	PHP_EVENT_ASSERT(pfci && pfcc);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpConnection conn, mixed data); */
 
-	arg_data = evcon->data_closecb;
-
-	arg_conn = evcon->self;
 	if (conn == NULL || !arg_conn) {
-		ALLOC_INIT_ZVAL(arg_conn);
+		ZVAL_NULL(&argv[0]);
 	} else {
-		Z_TRY_ADDREF_P(arg_conn);
+		ZVAL_COPY(&argv[0], evcon->self);
 	}
-	args[0] = &arg_conn;
 
-	if (arg_data) {
-		Z_TRY_ADDREF_P(arg_data);
+	if (Z_ISUNDEF(evcon->data_closecb)) {
+		ZVAL_NULL(&argv[1]);
 	} else {
-		ALLOC_INIT_ZVAL(arg_data);
+		ZVAL_COPY(&argv[1], evcon->data_closecb);
 	}
-	args[1] = &arg_data;
 
-	pfci->params		 = args;
-	pfci->retval_ptr_ptr = &retval_ptr;
-	pfci->param_count	 = 2;
-	pfci->no_separation  = 1;
+	fci.size = sizeof(fci);
+	fci.function_table = EG(function_table); /* XXX fetch TSRMLS_CACHE? */
+	ZVAL_COPY_VALUE(&fci.function_name, &evcon->cb_close.func_name);
+	fci.object        = NULL;
+	fci.retval        = &retval;
+	fci.param_count   = 2;
+	fci.params        = argv;
+	fci.no_separation = 1;
+	fci.symbol_table  = NULL;
 
-    if (zend_call_function(pfci, pfcc) == SUCCESS && retval_ptr) {
-        zval_ptr_dtor(&retval_ptr);
-    } else {
-        php_error_docref(NULL, E_WARNING,
-                "An error occurred while invoking the http connection close callback");
-    }
+	if (zend_call_function(&fci, &evcon->cb_close.fci_cache) == SUCCESS) {
+		if (!Z_ISUNDEF(retval)) {
+			zval_ptr_dtor(&retval);
+		}
+	} else {
+		php_error_docref(NULL, E_WARNING, "Failed to invoke http connection close callback");
+	}
 
-    zval_ptr_dtor(&arg_conn);
-    zval_ptr_dtor(&arg_data);
+	zval_ptr_dtor(&argv[0]);
+	zval_ptr_dtor(&argv[1]);
 }/* }}} */
 
 /* Private }}} */
@@ -396,31 +389,24 @@ PHP_METHOD(EventHttpConnection, makeRequest)
  * Set callback for connection close. */
 PHP_METHOD(EventHttpConnection, setCloseCallback)
 {
-	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
-	zend_fcall_info        fci    = empty_fcall_info;
-	zend_fcall_info_cache  fcc    = empty_fcall_info_cache;
-	zval                  *zarg   = NULL;
+	zval                  *zcb;
+	zval                  *zarg  = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f|z",
-				&fci, &fcc, &zarg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z!", &zcb, &zarg) == FAILURE) {
 		return;
 	}
 
-	evcon = Z_EVENT_HTTP_CONN_OBJ_P(zevcon);
+	evcon = Z_EVENT_HTTP_CONN_OBJ_P(getThis());
+	PHP_EVENT_ASSERT(evcon);
 
-	PHP_EVENT_FREE_FCALL_INFO(evcon->fci_closecb, evcon->fcc_closecb);
-	PHP_EVENT_COPY_FCALL_INFO(evcon->fci_closecb, evcon->fcc_closecb, &fci, &fcc);
+	php_event_replace_callback(&evcon->cb_close, zcb);
 
 	if (zarg) {
-		if (evcon->data_closecb) {
-			zval_ptr_dtor(&evcon->data_closecb);
-		}
-		evcon->data_closecb = zarg;
-		Z_TRY_ADDREF_P(zarg);
+		php_event_copy_zval(&evcon->data_closecb, zarg);
 	}
 
-	evhttp_connection_set_closecb(evcon->conn, _conn_close_cb, (void *) evcon);
+	evhttp_connection_set_closecb(evcon->conn, _conn_close_cb, (void *)evcon);
 }
 /* }}} */
 

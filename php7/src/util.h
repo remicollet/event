@@ -21,6 +21,33 @@
 php_socket_t php_event_zval_to_fd(zval *pfd);
 int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport);
 
+static zend_always_inline void php_event_free_callback(php_event_callback_t *cb) {/*{{{*/
+	if (!Z_ISUNDEF(cb->func_name)) {
+		zval_ptr_dtor(&cb->func_name);
+	}
+}/*}}}*/
+
+static zend_always_inline void php_event_copy_callback(php_event_callback_t *cb, zval *zcb)/*{{{*/
+{
+	ZVAL_COPY(cb->func_name, zcb);
+	cb->fci_cache = empty_fcall_info_cache;
+}/*}}}*/
+
+static zend_always_inline void php_event_replace_callback(php_event_callback_t *cb, zval *zcb)/*{{{*/
+{
+	php_event_free_callback(cb);
+	php_event_copy_callback(cb, zcb);
+}/*}}}*/
+
+static zend_always_inline void php_event_copy_zval(zval *zdst, zval *zsrc) {/*{{{*/
+	if (zsrc) {
+		if (!Z_ISUNDEF_P(zdst)) {
+			zval_ptr_dtor(zdst);
+		}
+		ZVAL_COPY(zdst, zsrc);
+	}
+}/*}}}*/
+
 #define php_event_is_pending(e) \
 	event_pending((e), EV_READ | EV_WRITE | EV_SIGNAL | EV_TIMEOUT, NULL)
 
@@ -148,7 +175,6 @@ static zend_always_inline HashTable * find_prop_handler(const zend_class_entry *
 	} while (0)
 
 #endif /* PHP_EVENT_UTIL_H */
-
 /*
  * Local variables:
  * tab-width: 4

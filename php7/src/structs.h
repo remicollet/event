@@ -15,7 +15,6 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-
 #ifndef PHP_EVENT_STRUCTS_H
 #define PHP_EVENT_STRUCTS_H
 
@@ -27,67 +26,67 @@
 # define FALSE 0
 #endif
 
+/* Object's internal struct name */
+#define Z_EVENT_X_OBJ_T(x) php_event_ ## x ## _t
+
 #define PHP_EVENT_OBJECT_TAIL \
 	HashTable   *prop_handler; \
 	zend_object  zo
 
-/* Represents EventBase object */
+typedef struct _php_event_callback_t {
+	zval                  func_name;
+	zend_fcall_info_cache fci_cache;
+} php_event_callback_t;
+
+/* EventBase object */
 typedef struct _php_event_base_t {
 	struct event_base *base;
-	zend_bool          internal;   /* Whether is an internal pointer, e.g. obtained with evconnlistener_get_base() */
+	zend_bool          internal;   /* Whether is obtained with evconnlistener_get_base() */
 
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_base_t;
+} Z_EVENT_X_OBJ_T(base);
 
-/* Represents Event object */
+/* Event object */
 typedef struct _php_event_t {
-	struct event  *event;       /* Pointer returned by event_new     */
-	zend_resource *steam_res;   /* Resource with the file descriptor */
-	zval           data;        /* User custom data                  */
-
-	/* fci and fcc represent userspace callback */
-	zend_fcall_info       *fci;
-	zend_fcall_info_cache *fcc;
+	struct event         *event;       /* Pointer returned by event_new     */
+	zend_resource        *steam_res;   /* Resource with the file descriptor */
+	zval                  data;        /* User custom data                  */
+	php_event_callback_t  cb;
 
 	PHP_EVENT_OBJECT_TAIL;
 } php_event_t;
-typedef php_event_t php_event_event_t;
+typedef php_event_t Z_EVENT_X_OBJ_T(event);
 
-/* Represents EventConfig object */
+/* EventConfig object */
 typedef struct _php_event_config_t {
 	struct event_config *ptr;
 
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_config_t;
+} Z_EVENT_X_OBJ_T(config);
 
-/* Represents EventBufferEvent object */
+/* EventBufferEvent object */
 typedef struct _php_event_bevent_t {
-	struct bufferevent    *bevent;
+	struct bufferevent   *bevent;
 	int                   _internal;
-	zval                  self;        /* Object itself. For callbacks                   */
-	zval                  data;        /* User custom data                               */
-	zval                  input;       /* Input buffer */
-	zval                  output;      /* Output buffer */
+	zval                  self;        /* Object itself. For callbacks */
+	zval                  data;        /* User callback data           */
+	zval                  input;       /* Input buffer                 */
+	zval                  output;      /* Output buffer                */
 	zval                  base;
-
-    /* fci and fcc members represent userspace callbacks */
-	zend_fcall_info       *fci_read;
-	zend_fcall_info_cache *fcc_read;
-	zend_fcall_info       *fci_write;
-	zend_fcall_info_cache *fcc_write;
-	zend_fcall_info       *fci_event;
-	zend_fcall_info_cache *fcc_event;
+	php_event_callback_t  cb_read;
+	php_event_callback_t  cb_write;
+	php_event_callback_t  cb_event;
 
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_bevent_t;
+} Z_EVENT_X_OBJ_T(bevent);
 
-/* Represents EventBuffer object */
+/* EventBuffer object */
 typedef struct _php_event_buffer_t {
 	zend_bool internal; /* Whether is an internal buffer of a bufferevent */
 	struct evbuffer *buf;
 
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_buffer_t;
+} Z_EVENT_X_OBJ_T(buffer);
 
 #ifdef HAVE_EVENT_EXTRA_LIB/* {{{ */
 enum {
@@ -95,85 +94,65 @@ enum {
 	PHP_EVENT_REQ_HEADER_OUTPUT = 2,
 };
 
-/* Represents EventDnsBase object */
+/* EventDnsBase object */
 typedef struct _php_event_dns_base_t {
 	struct evdns_base *dns_base;
 
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_dns_base_t;
+} Z_EVENT_X_OBJ_T(dns_base);
 
-/* Represents EventListener object */
+/* EventListener object */
 typedef struct _php_event_listener_t {
 	struct evconnlistener *listener;
-	zval                  self;        /* Object itself. For callbacks              */
-	zval                  data;        /* User custom data passed to callback       */
-
-	/* Accept callback */
-	zend_fcall_info       *fci;
-	zend_fcall_info_cache *fcc;
-
-	/* Error callback */
-	zend_fcall_info       *fci_err;
-	zend_fcall_info_cache *fcc_err;
+	zval                   self;       /* Object itself. For callbacks        */
+	zval                   data;       /* User custom data passed to callback */
+	php_event_callback_t   cb;         /* Accept callback                     */
+	php_event_callback_t   cb_err;     /* Error callback                      */
 
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_listener_t;
+} Z_EVENT_X_OBJ_T(listener);
 
 /* Type for an HTTP server callback */
 typedef struct _php_event_http_cb_t {
-	php_event_http_cb_t   *next;   /* Linked list                         */
-	zval                   data;   /* User custom data passed to callback */
-	zend_fcall_info       *fci;
-	zend_fcall_info_cache *fcc;
-	zval                   base;
-
+	php_event_http_cb_t  *next;   /* Linked list                         */
+	zval                  data;   /* User custom data passed to callback */
+	zval                  base;
+	php_event_callback_t  cb;
 } php_event_http_cb_t;
 
-/* Represents EventHttp object */
+/* EventHttp object */
 typedef struct _php_event_http_t {
-	struct evhttp         *ptr;
-	zval                  base;        /* Event base associated with the listener              */
-	zval                  data;        /* User custom data passed to the gen(default) callback */
-
-	/* General(default) callback for evhttp_gencb() */
-	zend_fcall_info       *fci;
-	zend_fcall_info_cache *fcc;
-
-	/* Linked list of attached callbacks */
-	php_event_http_cb_t   *cb_head;
+	struct evhttp        *ptr;
+	zval                  base;      /* Event base associated with the listener              */
+	zval                  data;      /* User custom data passed to the gen(default) callback */
+	php_event_callback_t  cb;        /* Callback for evhttp_gencb()                          */
+	php_event_http_cb_t  *cb_head;   /* Linked list of attached callbacks                    */
 
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_http_t;
+} Z_EVENT_X_OBJ_T(http);
 
-/* Represents EventHttpConnection object */
+/* EventHttpConnection object */
 typedef struct _php_event_http_conn_t {
 	struct evhttp_connection *conn;
-	zval                     base;       /* Event base associated with the listener */
-	zval                     dns_base;   /* Associated EventDnsBase                 */
-	zval                     self;
-
-	/* User custom data passed to the callback for connection close */
-	zval                  data_closecb;
-	/* Callback for connection close */
-	zend_fcall_info       *fci_closecb;
-	zend_fcall_info_cache *fcc_closecb;
+	zval                      base;           /* Event base associated with the listener */
+	zval                      dns_base;       /* Associated EventDnsBase                 */
+	zval                      self;           /* $this                                   */
+	zval                      data_closecb;   /* User data for cb_close                  */
+	php_event_callback_t      cb_close;       /* Connection close callback               */
 
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_http_conn_t;
+} Z_EVENT_X_OBJ_T(http_conn);
 
+/* EventHttpRequest object */
 typedef struct {
 	struct evhttp_request *ptr;
-	/* Whether is artificially created object that must not free 'ptr' */
-	zend_bool              internal;
-	zval                  self;
-	/* User custom data passed to the gen(default) callback */
-	zval                  data;
-	/* General(default) callback for evhttp_gencb() */
-	zend_fcall_info       *fci;
-	zend_fcall_info_cache *fcc;
+	zend_bool              internal;   /* Whether is created internally(must not free 'ptr') */
+	zval                   self;       /* $this                                              */
+	zval                   data;       /* User data for cb                                   */
+	php_event_callback_t   cb;         /* Callback for evhttp_gencb()                        */
 
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_http_req_t;
+} Z_EVENT_X_OBJ_T(http_req);
 
 #endif/* HAVE_EVENT_EXTRA_LIB }}} */
 
@@ -211,27 +190,23 @@ enum {
 	PHP_EVENT_TLSv12_SERVER_METHOD = 12
 };
 
+/* EventSslContext object */
 typedef struct _php_event_ssl_context_t {
 	SSL_CTX   *ctx;
 	HashTable *ht;
+
 	PHP_EVENT_OBJECT_TAIL;
-} php_event_ssl_context_t;
+} Z_EVENT_X_OBJ_T(ssl_context);
 #endif /* HAVE_EVENT_OPENSSL_LIB }}} */
 
 typedef double php_event_timestamp_t;
 
-/* Object's internal struct name */
-#define Z_EVENT_X_OBJ_T(x) php_event_ ## x ## _t
-
-
 /* Property handler types */
-
 typedef zval *(*php_event_prop_read_t)(void *obj, zval *retval);
 typedef int (*php_event_prop_write_t)(void *obj, zval *newval);
 typedef zval *(*php_event_prop_get_ptr_ptr_t)(void *obj);
 
-/* Property entry type */
-
+/* Property entry */
 typedef struct _php_event_property_entry_t {
 	const char                   *name;
 	size_t                        name_length;
@@ -240,8 +215,7 @@ typedef struct _php_event_property_entry_t {
 	php_event_prop_get_ptr_ptr_t  get_ptr_ptr_func;
 } php_event_property_entry_t;
 
-/* Property entry handler type  */
-
+/* Property entry handler */
 typedef struct _php_event_prop_handler_t {
 	zend_string                  *name;
 	php_event_prop_read_t         read_func;
@@ -260,7 +234,6 @@ typedef void (*bufferevent_event_cb)(struct bufferevent *bev, short events, void
 #endif
 
 #endif /* PHP_EVENT_STRUCTS_H */
-
 /*
  * Local variables:
  * tab-width: 4
