@@ -38,16 +38,17 @@ extern zend_class_entry *php_event_dns_base_ce;
 static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_event_bevent_t *bev, php_event_callback_t *pcb)
 {
 
-	zval             argv[2];
-	zval              retval_ptr;
-	php_event_base_t  *b;
-	zend_string       *func_name;
+	zval              argv[2];
+	zval              retval;
+	php_event_base_t *b;
+	zend_string      *func_name;
+	zend_fcall_info   fci;
 
 	PHP_EVENT_ASSERT(bev);
 	PHP_EVENT_ASSERT(bevent);
 	PHP_EVENT_ASSERT(bevent == bev->bevent);
 
-	if (!zend_is_callable(pcb->func_name, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&pcb->func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -61,7 +62,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 	if (Z_ISUNDEF(bev->self)) {
 		ZVAL_NULL(&argv[0]);
 	} else {
-		ZVAL_COPY(&argv[0], &bev->self):
+		ZVAL_COPY(&argv[0], &bev->self);
 	}
 
 	if (Z_ISUNDEF(bev->data)) {
@@ -72,7 +73,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, pcb->func_name);
+	ZVAL_COPY_VALUE(&fci.function_name, &pcb->func_name);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -86,8 +87,8 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 		}
 	} else {
 		if (EG(exception)) {
-			PHP_EVENT_ASSERT(bev->base);
-			b = Z_EVENT_BASE_OBJ_P(bev->base);
+			PHP_EVENT_ASSERT(!Z_ISUNDEF(bev->base));
+			b = Z_EVENT_BASE_OBJ_P(&bev->base);
 			event_base_loopbreak(b->base);
 
 			if (!Z_ISUNDEF(argv[0])) {
@@ -139,7 +140,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	PHP_EVENT_ASSERT(bevent);
 	PHP_EVENT_ASSERT(bev->bevent == bevent);
 
-	if (!zend_is_callable(bev->cb_event.func_name, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&bev->cb_event.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -154,7 +155,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	if (Z_ISUNDEF(bev->self)) {
 		ZVAL_NULL(&argv[0]);
 	} else {
-		ZVAL_COPY(&argv[0], &bev->self):
+		ZVAL_COPY(&argv[0], &bev->self);
 	}
 
 	ZVAL_LONG(&argv[1], events);
@@ -175,20 +176,20 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	fci.no_separation  = 1;
 	fci.symbol_table = NULL;
 
-	if (zend_call_function(&fci, &bev->cb.fci_cache) == SUCCESS) {
+	if (zend_call_function(&fci, &bev->cb_event.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
 			zval_ptr_dtor(&retval);
 		}
 	} else {
 		if (EG(exception)) {
-			PHP_EVENT_ASSERT(bev->base);
-			b = Z_EVENT_BASE_OBJ_P(bev->base);
+			PHP_EVENT_ASSERT(!Z_ISUNDEF(bev->base));
+			b = Z_EVENT_BASE_OBJ_P(&bev->base);
 			event_base_loopbreak(b->base);
 
-			if (!Z_ISUNDEF(&argv[0])) {
+			if (!Z_ISUNDEF(argv[0])) {
 				zval_ptr_dtor(&argv[0]);
 			}
-			if (!Z_ISUNDEF(&argv[1])) {
+			if (!Z_ISUNDEF(argv[1])) {
 				zval_ptr_dtor(&argv[1]);
 			}
 		} else {
@@ -196,7 +197,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 		}
 	}
 
-	if (!Z_ISUNDEF(&argv[0])) {
+	if (!Z_ISUNDEF(argv[0])) {
 		zval_ptr_dtor(&argv[0]);
 	}
 
@@ -206,7 +207,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	}
 #endif
 
-	if (!Z_ISUNDEF(&argv[1])) {
+	if (!Z_ISUNDEF(argv[1])) {
 		zval_ptr_dtor(&argv[1]);
 	}
 }
@@ -358,13 +359,13 @@ PHP_METHOD(EventBufferEvent, free)
 		bev->bevent = 0;
 
 		/* Do it once */
-		if (bev->self) {
+		if (!Z_ISUNDEF(bev->self)) {
 			zval_ptr_dtor(&bev->self);
-			bev->self = NULL;
+			ZVAL_UNDEF(&bev->self);
 		}
-		if (bev->base) {
+		if (!Z_ISUNDEF(bev->base)) {
 			zval_ptr_dtor(&bev->base);
-			bev->base = NULL;
+			ZVAL_UNDEF(&bev->base);
 		}
 	}
 }
@@ -405,7 +406,7 @@ PHP_METHOD(EventBufferEvent, createPair)
 	zval               *zbase;
 	php_event_base_t   *base;
 	zend_long               options        = 0;
-	zval               *zbev[2];
+	zval               zbev[2];
 	php_event_bevent_t *b[2];
 	struct bufferevent *bevent_pair[2];
 	int                 i;
@@ -426,13 +427,12 @@ PHP_METHOD(EventBufferEvent, createPair)
 	array_init(return_value);
 
 	for (i = 0; i < 2; i++) {
-		MAKE_STD_ZVAL(zbev[i]);
-		PHP_EVENT_INIT_CLASS_OBJECT(zbev[i], php_event_bevent_ce);
-		b[i] = Z_EVENT_BEVENT_OBJ_P(zbev[i]);
+		PHP_EVENT_INIT_CLASS_OBJECT(&zbev[i], php_event_bevent_ce);
+		b[i] = Z_EVENT_BEVENT_OBJ_P(&zbev[i]);
 
-		b[i]->bevent    = bevent_pair[i];
+		b[i]->bevent = bevent_pair[i];
 
-		add_next_index_zval(return_value, zbev[i]);
+		add_next_index_zval(return_value, &zbev[i]);
 	}
 }
 /* }}} */
@@ -622,7 +622,7 @@ PHP_METHOD(EventBufferEvent, getDnsErrorString)
 	if (err == 0) {
 		RETURN_EMPTY_STRING();
 	}
-	RETVAL_STRING(evutil_gai_strerror(err), 1);
+	RETVAL_STRING(evutil_gai_strerror(err));
 }
 /* }}} */
 
@@ -911,7 +911,7 @@ PHP_METHOD(EventBufferEvent, read)
 	ret = bufferevent_read(bev->bevent, data, size);
 
 	if (ret > 0) {
-		RETVAL_STRINGL(data, ret, 1);
+		RETVAL_STRINGL(data, ret);
 	} else {
 		RETVAL_NULL();
 	}
@@ -1065,11 +1065,8 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 	}
 	bev->bevent = bevent;
 
-	bev->self = return_value;
-	Z_TRY_ADDREF_P(return_value);
-
-	bev->base = zbase;
-	Z_TRY_ADDREF_P(zbase);
+	ZVAL_COPY(&bev->self, return_value);
+	ZVAL_COPY(&bev->base, zbase);
 }
 /* }}} */
 
@@ -1144,11 +1141,8 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	}
 	bev->bevent = bevent;
 
-	bev->self = return_value;
-	Z_TRY_ADDREF_P(return_value);
-
-	bev->base = zbase;
-	Z_TRY_ADDREF_P(zbase);
+	ZVAL_COPY(&bev->self, return_value);
+	ZVAL_COPY(&bev->base, zbase);
 }
 /* }}} */
 
@@ -1172,7 +1166,7 @@ PHP_METHOD(EventBufferEvent, sslError)
 
 	e = bufferevent_get_openssl_error(bev->bevent);
 	if (e) {
-		RETURN_STRING(ERR_error_string(e, buf), 1);
+		RETURN_STRING(ERR_error_string(e, buf));
 	}
 
 	RETVAL_FALSE;
@@ -1229,7 +1223,7 @@ PHP_METHOD(EventBufferEvent, sslGetCipherInfo)
 		cipher = SSL_get_current_cipher(ssl);
 		if (cipher) {
 			desc = SSL_CIPHER_description(cipher, NULL, 128);
-			RETVAL_STRING(desc, 1);
+			RETVAL_STRING(desc);
 			OPENSSL_free(desc);
 			return;
 		}
@@ -1258,7 +1252,7 @@ PHP_METHOD(EventBufferEvent, sslGetCipherName)
 
 	ssl = bufferevent_openssl_get_ssl(bev->bevent);
 	if (ssl) {
-		RETURN_STRING(SSL_get_cipher_name(ssl), 1);
+		RETURN_STRING(SSL_get_cipher_name(ssl));
 	}
 	RETVAL_FALSE;
 }
@@ -1283,7 +1277,7 @@ PHP_METHOD(EventBufferEvent, sslGetCipherVersion)
 
 	ssl = bufferevent_openssl_get_ssl(bev->bevent);
 	if (ssl) {
-		RETURN_STRING(SSL_get_cipher_version(ssl), 1);
+		RETURN_STRING(SSL_get_cipher_version(ssl));
 	}
 	RETVAL_FALSE;
 }
@@ -1308,7 +1302,7 @@ PHP_METHOD(EventBufferEvent, sslGetProtocol)
 
 	ssl = bufferevent_openssl_get_ssl(bev->bevent);
 	if (ssl) {
-		RETURN_STRING(SSL_get_version(ssl), 1);
+		RETURN_STRING(SSL_get_version(ssl));
 	}
 	RETVAL_FALSE;
 }

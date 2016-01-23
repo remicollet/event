@@ -76,7 +76,7 @@ PHP_METHOD(EventBase, getMethod)
 
 	b = Z_EVENT_BASE_OBJ_P(zbase);
 
-	RETURN_STRING((char *)event_base_get_method(b->base), 1);
+	RETURN_STRING((char *)event_base_get_method(b->base));
 }
 /* }}} */
 
@@ -123,9 +123,10 @@ PHP_METHOD(EventBase, priorityInit)
  * Wait for events to become active, and run their callbacks. */
 PHP_METHOD(EventBase, loop)
 {
-	zval             *zbase = getThis();
-	zend_long             flags = -1;
+	zval             *zbase            = getThis();
+	zend_long         flags            = -1;
 	php_event_base_t *b;
+	zval              exception_object;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|l",
 				&flags) == FAILURE) {
@@ -144,7 +145,8 @@ PHP_METHOD(EventBase, loop)
 	}
 
 	if (EG(exception)) {
-		zend_throw_exception_object(EG(exception));
+		ZVAL_OBJ(&exception_object, EG(exception));
+		zend_throw_exception_object(&exception_object);
 	}
 	/* Since 2.1.2-alpha we can call event_base_loopcontinue(b->base);*/
 
@@ -157,7 +159,8 @@ PHP_METHOD(EventBase, loop)
  * The same as EventBase::loop() with no flags set*/
 PHP_METHOD(EventBase, dispatch)
 {
-	zval             *zbase = getThis();
+	zval             *zbase            = getThis();
+	zval              exception_object;
 	php_event_base_t *b;
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -171,7 +174,8 @@ PHP_METHOD(EventBase, dispatch)
 	}
 
 	if (EG(exception)) {
-		zend_throw_exception_object(EG(exception));
+		ZVAL_OBJ(&exception_object, EG(exception));
+		zend_throw_exception_object(&exception_object);
 	}
 
 	RETVAL_TRUE;
