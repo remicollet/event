@@ -306,7 +306,8 @@ PHP_METHOD(EventBufferEvent, __construct)
 	php_event_copy_zval(&bev->self, zself);
 	php_event_copy_zval(&bev->base, zbase);
 
-	bev->input = bev->output = NULL;
+	ZVAL_UNDEF(&bev->input);
+	ZVAL_UNDEF(&bev->output);
 
 	if (zcb_read) {
 		read_cb = bevent_read_cb;

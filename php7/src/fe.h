@@ -205,10 +205,9 @@ PHP_METHOD(EventHttpRequest, getConnection);
 PHP_METHOD(EventHttpRequest, closeConnection);
 
 /* Extra API END }}} */
-#endif
+#endif /* HAVE_EVENT_EXTRA_LIB */
 
 #endif /* PHP_EVENT_FE_H */
-
 /*
  * Local variables:
  * tab-width: 4

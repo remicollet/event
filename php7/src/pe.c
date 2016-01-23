@@ -162,17 +162,17 @@ static zval * event_bevent_input_prop_read(void *obj, zval *retval)/*{{{*/
 
 	PHP_EVENT_PROP_REQUIRE(bev->bevent);
 
-	if (!bev->input) {
+	if (Z_ISUNDEF(bev->input)) {
 		php_event_buffer_t *b;
 
-		PHP_EVENT_INIT_CLASS_OBJECT(bev->input, php_event_buffer_ce);
-		b = Z_EVENT_BUFFER_OBJ_P(bev->input);
+		PHP_EVENT_INIT_CLASS_OBJECT(&bev->input, php_event_buffer_ce);
+		b = Z_EVENT_BUFFER_OBJ_P(&bev->input);
 
 		b->buf      = bufferevent_get_input(bev->bevent);
 		b->internal = 1;
 	}
 
-	ZVAL_ZVAL(retval, bev->input, 1, 0);
+	ZVAL_ZVAL(retval, &bev->input, 1, 0);
 	ZVAL_MAKE_REF(retval);
 	Z_TRY_ADDREF_P(retval);
 	return retval;
@@ -184,17 +184,17 @@ static zval * event_bevent_output_prop_read(void *obj, zval *retval)/*{{{*/
 
 	PHP_EVENT_PROP_REQUIRE(bev->bevent);
 
-	if (!bev->output) {
+	if (Z_ISUNDEF(bev->output)) {
 		php_event_buffer_t *b;
 
-		PHP_EVENT_INIT_CLASS_OBJECT(bev->output, php_event_buffer_ce);
-		b = Z_EVENT_BUFFER_OBJ_P(bev->output);
+		PHP_EVENT_INIT_CLASS_OBJECT(&bev->output, php_event_buffer_ce);
+		b = Z_EVENT_BUFFER_OBJ_P(&bev->output);
 
 		b->buf      = bufferevent_get_output(bev->bevent);
 		b->internal = 1;
 	}
 
-	ZVAL_ZVAL(retval, bev->output, 1, 0);
+	ZVAL_ZVAL(retval, &bev->output, 1, 0);
 	ZVAL_MAKE_REF(retval);
 	Z_TRY_ADDREF_P(retval);
 	return retval;

@@ -29,7 +29,7 @@ static zend_always_inline void php_event_free_callback(php_event_callback_t *cb)
 
 static zend_always_inline void php_event_copy_callback(php_event_callback_t *cb, zval *zcb)/*{{{*/
 {
-	ZVAL_COPY(cb->func_name, zcb);
+	ZVAL_COPY(&cb->func_name, zcb);
 	cb->fci_cache = empty_fcall_info_cache;
 }/*}}}*/
 
@@ -64,12 +64,14 @@ static zend_always_inline void php_event_copy_zval(zval *zdst, zval *zsrc) {/*{{
 
 #define PHP_EVENT_INIT_CLASS_OBJECT(pz, pce) object_init_ex((pz), (pce))
 
-#define REGISTER_EVENT_CLASS_CONST_LONG(pce, const_name, value) \
-	zend_declare_class_constant_long((pce), #const_name,        \
-			sizeof(#const_name) - 1, (zend_long) value)
+
+#define PHP_EVENT_REG_CLASS_CONST_LONG(pce, const_name, value) \
+	zend_declare_class_constant_long((pce), #const_name, sizeof(#const_name) - 1, (zend_long) value)
+
+#define PHP_EVENT_X_OBJ_HANDLERS(x) event_ ## x ## _object_handlers
 
 #define PHP_EVENT_SET_X_OBJ_HANDLER(x, name) \
-	event_ ## x ## _object_handlers = php_event_ ## x ## _ ## name
+	PHP_EVENT_X_OBJ_HANDLERS(x).name = php_event_ ## x ## _ ## name
 
 #define PHP_EVENT_SET_X_OBJ_HANDLERS(x) do { \
 	PHP_EVENT_X_OBJ_HANDLERS(x).offset = XtOffsetOf(Z_EVENT_X_OBJ_T(x), zo); \
@@ -83,17 +85,19 @@ static zend_always_inline void php_event_copy_zval(zval *zdst, zval *zsrc) {/*{{
 } while (0)
 
 /* php_event_x_fetch_object(zend_object *obj) */
+#define Z_EVENT_X_FETCH_OBJ(x, pzo) php_event_ ## x ## _fetch_object(pzo)
 #define Z_EVENT_X_FETCH_OBJ_DECL(x) \
-	static zend_always_inline php_event_ ## x ## _t * php_event_ ## x ## _fetch_object(zend_object *obj) { \
-		return (EXPECTED(obj) ? (php_event_ ## x ## _t *)((char *)obj - XtOffsetOf(php_event_ ## x ## _t, zo)) : NULL); \
+	static zend_always_inline Z_EVENT_X_OBJ_T(x) * Z_EVENT_X_FETCH_OBJ(x, zend_object *obj) { \
+		return (EXPECTED(obj) ? (Z_EVENT_X_OBJ_T(x) *)((char *)obj - XtOffsetOf(Z_EVENT_X_OBJ_T(x), zo)) : NULL); \
 	}
 
-#define Z_EVENT_X_OBJ_P(x, zv) (EXPECTED(zv) ? php_event_ # x # _fetch_object(Z_OBJ_P(zv)) : NULL)
+#define Z_EVENT_X_OBJ_P(x, zv) (EXPECTED(zv) ? Z_EVENT_X_FETCH_OBJ(x, Z_OBJ_P(zv)) : NULL)
 
 Z_EVENT_X_FETCH_OBJ_DECL(base)
 Z_EVENT_X_FETCH_OBJ_DECL(event)
 Z_EVENT_X_FETCH_OBJ_DECL(config)
 Z_EVENT_X_FETCH_OBJ_DECL(buffer)
+Z_EVENT_X_FETCH_OBJ_DECL(bevent)
 
 #define Z_EVENT_BASE_OBJ_P(zv)   Z_EVENT_X_OBJ_P(base,   zv)
 #define Z_EVENT_EVENT_OBJ_P(zv)  Z_EVENT_X_OBJ_P(event,  zv)
@@ -123,13 +127,13 @@ Z_EVENT_X_FETCH_OBJ_DECL(ssl_context)
 #define Z_EVENT_SSL_CONTEXT_OBJ_P(zv) Z_EVENT_X_OBJ_P(ssl_context, zv)
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
-static zend_always_inline void init_properties(zend_object *pzo)/*{{{*/
+static zend_always_inline void init_properties(zend_object *pzo, zend_class_entry *ce)/*{{{*/
 {
 	zend_object_std_init(pzo, ce);
 	object_properties_init(pzo, ce);
 }/*}}}*/
 
-static zend_always_inline HashTable * find_prop_handler(const zend_class_entry *ce)/*{{{*/
+static zend_always_inline HashTable * find_prop_handler(HashTable *classes, zend_class_entry *ce)/*{{{*/
 {
 	zend_class_entry *ce_parent = ce;
 
@@ -137,15 +141,15 @@ static zend_always_inline HashTable * find_prop_handler(const zend_class_entry *
 		ce_parent = ce_parent->parent;
 	}
 
-	return zend_hash_find_ptr(&classes, ce_parent->name);
+	return zend_hash_find_ptr(classes, ce_parent->name);
 } /*}}}*/
 
 #define PHP_EVENT_OBJ_ALLOC(obj, ce, t)                                \
 	do {                                                               \
 		obj = ecalloc(1, sizeof(t) + zend_object_properties_size(ce)); \
 		PHP_EVENT_ASSERT(obj);                                         \
-		obj->prop_handler = find_prop_handler(ce);                     \
-		init_properties(&obj->zo);                                     \
+		obj->prop_handler = find_prop_handler(&classes, ce);           \
+		init_properties(&obj->zo, ce);                                 \
 	} while (0)
 
 #define PHP_EVENT_TIMEVAL_SET(tv, t)                     \

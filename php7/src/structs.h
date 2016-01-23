@@ -49,7 +49,7 @@ typedef struct _php_event_base_t {
 /* Event object */
 typedef struct _php_event_t {
 	struct event         *event;       /* Pointer returned by event_new     */
-	zend_resource        *steam_res;   /* Resource with the file descriptor */
+	zend_resource        *stream_res;  /* Resource with the file descriptor */
 	zval                  data;        /* User custom data                  */
 	php_event_callback_t  cb;
 
@@ -113,12 +113,13 @@ typedef struct _php_event_listener_t {
 } Z_EVENT_X_OBJ_T(listener);
 
 /* Type for an HTTP server callback */
-typedef struct _php_event_http_cb_t {
+typedef struct _php_event_http_cb_t php_event_http_cb_t;
+struct _php_event_http_cb_t {
 	php_event_http_cb_t  *next;   /* Linked list                         */
 	zval                  data;   /* User custom data passed to callback */
 	zval                  base;
 	php_event_callback_t  cb;
-} php_event_http_cb_t;
+};
 
 /* EventHttp object */
 typedef struct _php_event_http_t {

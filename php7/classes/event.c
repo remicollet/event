@@ -51,7 +51,7 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	PHP_EVENT_ASSERT(e);
 	PHP_EVENT_ASSERT(what & EV_TIMEOUT);
 
-	if (!zend_is_callable(e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -96,7 +96,7 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 
 	PHP_EVENT_ASSERT(e);
 
-	if (!zend_is_callable(e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -155,7 +155,7 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	PHP_EVENT_ASSERT(e);
 	PHP_EVENT_ASSERT(what & EV_SIGNAL);
 
-	if (!zend_is_callable(e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -166,7 +166,7 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	if (Z_ISUNDEF(e->data)) {
 		ZVAL_NULL(&argv[0]);
 	} else {
-		ZVAL_COPY(&argv[0], &e->data):
+		ZVAL_COPY(&argv[0], &e->data);
 	}
 
 	fci.size = sizeof(fci);
@@ -385,7 +385,7 @@ PHP_METHOD(Event, getSupportedMethods)
 	array_init(return_value);
 
 	for (i = 0; methods[i] != NULL; ++i) {
-		add_next_index_string(return_value, methods[i], 1);
+		add_next_index_string(return_value, methods[i]);
 	}
 }
 /* }}} */

@@ -96,7 +96,7 @@ php_socket_t php_event_zval_to_fd(zval *pfd)
 			return -1;
 		}
 	} else if (Z_TYPE_P(pfd) == IS_LONG) {
-		file_desc = Z_LVAL_PP(pfd);
+		file_desc = Z_LVAL_P(pfd);
 		if (file_desc < 0) {
 			zend_throw_exception(zend_exception_get_default(), invalid_fd_error, 0);
 			return -1;
@@ -172,7 +172,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport)/*{{{*
 			{
 				struct sockaddr_un *ua = (struct sockaddr_un *) sa;
 
-				if (!Z_ISUNDEF(pzaddr)) {
+				if (!Z_ISUNDEF_P(pzaddr)) {
 					zval_dtor(pzaddr);
 				}
 				ZVAL_STRING(pzaddr, ua->sun_path);
