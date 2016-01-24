@@ -163,20 +163,18 @@ PHP_METHOD(EventBuffer, enableLocking)
  */
 PHP_METHOD(EventBuffer, add)
 {
-	php_event_buffer_t  *b;
-	zval                *zbuf    = getThis();
-	zval               **ppzdata;
+	php_event_buffer_t *b;
+	char               *data;
+	size_t              data_length;
+	zval               *zbuf        = getThis();
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z",
-				&ppzdata) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &data, &data_length) == FAILURE) {
 		return;
 	}
 
 	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
-	convert_to_string_ex(ppzdata);
-
-	if (evbuffer_add(b->buf, (void *) Z_STRVAL_PP(ppzdata), Z_STRLEN_PP(ppzdata))) {
+	if (evbuffer_add(b->buf, (void *)data, data_length)) {
 		RETURN_FALSE;
 	}
 
@@ -209,7 +207,7 @@ PHP_METHOD(EventBuffer, read)
 
 	ret = evbuffer_remove(b->buf, data, max_bytes);
 	if (ret > 0) {
-		RETVAL_STRINGL(data, ret, 1);
+		RETVAL_STRINGL(data, ret);
 	} else {
 		RETVAL_NULL();
 	}
@@ -298,20 +296,18 @@ PHP_METHOD(EventBuffer, expand)
  */
 PHP_METHOD(EventBuffer, prepend)
 {
-	php_event_buffer_t  *b;
-	zval                *zbuf    = getThis();
-	zval               **ppzdata;
+	php_event_buffer_t *b;
+	char               *data;
+	size_t              data_length;
+	zval               *zbuf        = getThis();
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Z",
-				&ppzdata) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &data, &data_length) == FAILURE) {
 		return;
 	}
 
 	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
-	convert_to_string_ex(ppzdata);
-
-	if (evbuffer_prepend(b->buf, (void *) Z_STRVAL_PP(ppzdata), Z_STRLEN_PP(ppzdata))) {
+	if (evbuffer_prepend(b->buf, (void *)data, data_length)) {
 		RETURN_FALSE;
 	}
 
@@ -382,11 +378,11 @@ PHP_METHOD(EventBuffer, drain)
 PHP_METHOD(EventBuffer, copyout)
 {
 	php_event_buffer_t *b;
-	zval               *zbuf      = getThis();
-	zval               *zdata;
-	zend_long               max_bytes;
-	zend_long               ret;
+	zend_long           max_bytes;
+	zend_long           ret;
 	char               *data;
+	zval               *zdata;
+	zval               *zbuf      = getThis();
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zl",
 				&zdata, &max_bytes) == FAILURE) {
@@ -402,8 +398,12 @@ PHP_METHOD(EventBuffer, copyout)
 	if (ret > 0) {
 		convert_to_string(zdata);
 		zval_dtor(zdata);
+#if 0
 		Z_STRVAL_P(zdata) = estrndup(data, ret);
 		Z_STRLEN_P(zdata) = ret;
+#else
+		ZVAL_STRINGL(zdata, data, ret);
+#endif
 	}
 
 	efree(data);
@@ -444,7 +444,7 @@ PHP_METHOD(EventBuffer, readLine)
 		RETURN_NULL();
 	}
 
-	RETVAL_STRINGL(res, len, 1);
+	RETVAL_STRINGL(res, len);
 	free(res);
 }
 /* }}} */
@@ -574,7 +574,7 @@ PHP_METHOD(EventBuffer, pullup)
 		RETURN_NULL();
 	}
 
-	RETVAL_STRING((const char *)mem, 1);
+	RETVAL_STRING((const char *)mem);
 }
 /* }}} */
 
@@ -663,21 +663,23 @@ PHP_METHOD(EventBuffer, readFrom)
  */
 PHP_METHOD(EventBuffer, substr)
 {
-	zval               *zbuf   = getThis();
-	php_event_buffer_t *b;
-	zend_long               n_start;
-	zend_long               n_length = -1;
-
 	struct evbuffer_ptr    ptr;
-	struct evbuffer_iovec *pv;
+	zend_string           *str;
+	zval                  *zbuf;
+	php_event_buffer_t    *b;
 	int                    n_chunks;
-	zend_long                  n_read   = 0;
 	int                    i;
+	struct evbuffer_iovec *pv;
+	zend_long              n_start;
+	zend_long              n_length = -1;
+	zend_long              n_read   = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l|l",
 				&n_start, &n_length) == FAILURE) {
 		return;
 	}
+
+	zbuf = getThis();
 
 	b = Z_EVENT_BUFFER_OBJ_P(zbuf);
 
@@ -703,10 +705,7 @@ PHP_METHOD(EventBuffer, substr)
 		n_read += len;
 	}
 
-	/* Build result string */
-	Z_TYPE_P(return_value)   = IS_STRING;
-	Z_STRLEN_P(return_value) = n_read;
-	Z_STRVAL_P(return_value) = emalloc(n_read + 1);
+	str = zend_string_alloc(n_read, 0);
 
 	for (n_read = 0, i = 0; i < n_chunks; ++i) {
 		size_t len = pv[i].iov_len;
@@ -715,13 +714,14 @@ PHP_METHOD(EventBuffer, substr)
 			len = n_length - n_read;
 		}
 
-		memcpy(Z_STRVAL_P(return_value) + n_read, pv[i].iov_base, len);
+		memcpy(ZSTR_VAL(str) + n_read, pv[i].iov_base, len);
 
 		n_read += len;
 	}
-	Z_STRVAL_P(return_value)[n_read] = '\0';
-
 	efree(pv);
+
+	ZSTR_VAL(str)[n_read] = '\0';
+	RETVAL_NEW_STR(str);
 }
 /* }}} */
 

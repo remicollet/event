@@ -62,15 +62,15 @@ static zend_always_inline struct evkeyvalq *_get_http_req_headers(const php_even
 /* {{{ _req_handler */
 static void _req_handler(struct evhttp_request *req, void *arg)
 {
-	php_event_http_req_t *http_req  = (php_event_http_req_t *) arg;
+	php_event_http_req_t *http_req  = (php_event_http_req_t *)arg;
 	zend_fcall_info       fci;
-	zval                  args[2];
+	zval                  argv[2];
 	zval                  retval;
 	zend_string          *func_name;
 
 	PHP_EVENT_ASSERT(http_req && http_req->ptr);
 
-	if (!zend_is_callable(e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&http_req->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -80,7 +80,7 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	 * proto void callback(EventHttpRequest req, mixed data); */
 
 	/* req == NULL means timeout */
-	if (req == NULL || !arg_req) {
+	if (req == NULL || Z_ISUNDEF(http_req->self)) {
 		ZVAL_NULL(&argv[0]);
 	} else {
 		ZVAL_COPY(&argv[0], &http_req->self);
@@ -181,9 +181,9 @@ PHP_METHOD(EventHttpRequest, free)
 	}
 
 	/* Do it once */
-	if (http_req->self) {
+	if (!Z_ISUNDEF(http_req->self)) {
 		zval_ptr_dtor(&http_req->self);
-		http_req->self = NULL;
+		ZVAL_UNDEF(&http_req->self);
 	}
 }
 /* }}} */
@@ -220,7 +220,7 @@ PHP_METHOD(EventHttpRequest, getHost)
 
 	_check_http_req_ptr(http_req);
 
-	RETVAL_STRING(evhttp_request_get_host(http_req->ptr), 1);
+	RETVAL_STRING(evhttp_request_get_host(http_req->ptr));
 }
 /* }}} */
 
@@ -238,7 +238,7 @@ PHP_METHOD(EventHttpRequest, getUri)
 
 	_check_http_req_ptr(http_req);
 
-	RETVAL_STRING(evhttp_request_get_uri(http_req->ptr), 1);
+	RETVAL_STRING(evhttp_request_get_uri(http_req->ptr));
 }
 /* }}} */
 
@@ -281,7 +281,7 @@ PHP_METHOD(EventHttpRequest, getInputHeaders)
 	headers = evhttp_request_get_input_headers(http_req->ptr);
 	for (header = headers->tqh_first; header;
 			header = header->next.tqe_next) {
-		add_assoc_string(return_value, header->key, header->value, 1);
+		add_assoc_string(return_value, header->key, header->value);
 	}
 
 
@@ -309,7 +309,7 @@ PHP_METHOD(EventHttpRequest, getOutputHeaders)
 	headers = evhttp_request_get_output_headers(http_req->ptr);
 	for (header = headers->tqh_first; header;
 			header = header->next.tqe_next) {
-		add_assoc_string(return_value, header->key, header->value, 1);
+		add_assoc_string(return_value, header->key, header->value);
 	}
 }
 /* }}} */
@@ -384,10 +384,9 @@ PHP_METHOD(EventHttpRequest, getBufferEvent)
 	bev = Z_EVENT_BEVENT_OBJ_P(return_value);
 
 	bev->bevent = evhttp_connection_get_bufferevent(conn);
-	bev->self = return_value;
-	Z_TRY_ADDREF_P(return_value);
-	bev->input = NULL;
-	bev->output = NULL;
+	ZVAL_COPY(&bev->self, return_value);
+	ZVAL_UNDEF(&bev->input);
+	ZVAL_UNDEF(&bev->output);
 	bev->_internal = 1;
 }
 /* }}} */
@@ -427,16 +426,15 @@ PHP_METHOD(EventHttpRequest, getConnection)
 	evcon = Z_EVENT_HTTP_CONN_OBJ_P(return_value);
 
 	evcon->conn = conn;
-	evcon->self = return_value;
-	Z_TRY_ADDREF_P(return_value);
+	ZVAL_COPY(&evcon->self, return_value);
 
-	/* Set in ctor:
-	   evcon->base = NULL;
-	   evcon->dns_base = NULL;
-	   evcon->data_closecb = NULL;
-	   evcon->fci_closecb = NULL;
-	   evcon->fcc_closecb = NULL;
-	*/
+#if 0
+	ZVAL_UNDEF(&evcon->base);
+	ZVAL_UNDEF(&evcon->dns_base);
+	ZVAL_UNDEF(&evcon->data_closecb);
+	ZVAL_UNDEF(&evcon->cb_close.func_name);
+#endif
+
 	Z_TRY_ADDREF_P(return_value);
 }
 /* }}} */
@@ -747,7 +745,7 @@ PHP_METHOD(EventHttpRequest, findHeader)
 		RETURN_NULL();
 	}
 
-	RETVAL_STRING(val, 1);
+	RETVAL_STRING(val);
 }
 /* }}} */
 

@@ -62,9 +62,9 @@ PHP_METHOD(EventUtil, getLastSocketError)
 			RETURN_FALSE;
 		}
 
-		RETVAL_STRING(evutil_socket_error_to_string(evutil_socket_geterror(fd)), 1);
+		RETVAL_STRING(evutil_socket_error_to_string(evutil_socket_geterror(fd)));
 	} else {
-		RETVAL_STRING(evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()), 1);
+		RETVAL_STRING(evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
 	}
 }
 /* }}} */
@@ -96,7 +96,7 @@ PHP_METHOD(EventUtil, getSocketName)
 	evutil_socket_t  fd;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz|z",
-				&ppzfd, &zaddress, &zport) == FAILURE) {
+				&pzfd, &zaddress, &zport) == FAILURE) {
 		return;
 	}
 
@@ -117,87 +117,88 @@ PHP_METHOD(EventUtil, getSocketName)
    Sets socket options for the socket */
 PHP_METHOD(EventUtil, setSocketOption)
 {
-	zval             *pzfd    , *zoptval;
-	struct linger     lv;
-	int               ov;
-	int               optlen;
-	int               retval;
-	struct timeval    tv;
-	zend_long             level;
-	zend_long             optname;
-	void             *opt_ptr;
-	HashTable        *opt_ht;
-	zval            **l_onoff  , **l_linger;
-	zval            **sec      , **usec;
-	evutil_socket_t   fd;
+	zval            *zfd;
+	zval            *zoptval;
+	zend_long        level;
+	zend_long        optname;
+	evutil_socket_t  fd;
+	void            *opt_ptr;
+	HashTable       *opt_ht;
+	int              ov;
+	int              optlen;
+	int              retval;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zllz",
-				&pzfd, &level, &optname, &zoptval) == FAILURE) {
+				&zfd, &level, &optname, &zoptval) == FAILURE) {
 		return;
 	}
 
-	fd = php_event_zval_to_fd(pzfd);
+	fd = php_event_zval_to_fd(zfd);
 	if (fd == -1) {
 		RETURN_FALSE;
 	}
 
-	/*errno = 0;*/
-
 	switch (optname) {
-		case SO_LINGER: {
-			const char l_onoff_key[]  = "l_onoff";
-			const char l_linger_key[] = "l_linger";
+		case SO_LINGER:
+			{
+				zval          *l_onoff;
+				zval          *l_linger;
+				struct linger  lv;
 
-			convert_to_array_ex(zoptval);
-			opt_ht = HASH_OF(zoptval);
+				convert_to_array_ex(zoptval);
+				opt_ht = HASH_OF(zoptval);
 
-			if (zend_hash_find(opt_ht, l_onoff_key, sizeof(l_onoff_key), (void **) &l_onoff) == FAILURE) {
-				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", l_onoff_key);
-				RETURN_FALSE;
+				if ((l_onoff = zend_hash_str_find(opt_ht, "l_onoff", sizeof("l_onoff") - 1)) != NULL) {
+					php_error_docref(NULL, E_WARNING, "no key \"l_onoff\" passed in optval");
+					RETURN_FALSE;
+				}
+
+				if ((l_linger = zend_hash_str_find(opt_ht, "l_linger", sizeof("l_linger") - 1)) != NULL) {
+					php_error_docref(NULL, E_WARNING, "no key \"l_linger\" passed in optval");
+					RETURN_FALSE;
+				}
+
+				convert_to_long_ex(l_onoff);
+				convert_to_long_ex(l_linger);
+
+				lv.l_onoff  = (unsigned short)Z_LVAL_P(l_onoff);
+				lv.l_linger = (unsigned short)Z_LVAL_P(l_linger);
+
+				optlen = sizeof(lv);
+				opt_ptr = &lv;
+				break;
 			}
-			if (zend_hash_find(opt_ht, l_linger_key, sizeof(l_linger_key), (void **) &l_linger) == FAILURE) {
-				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", l_linger_key);
-				RETURN_FALSE;
-			}
-
-			convert_to_long_ex(l_onoff);
-			convert_to_long_ex(l_linger);
-
-			lv.l_onoff  = (unsigned short) Z_LVAL_PP(l_onoff);
-			lv.l_linger = (unsigned short) Z_LVAL_PP(l_linger);
-
-			optlen = sizeof(lv);
-			opt_ptr = &lv;
-			break;
-		}
 
 		case SO_RCVTIMEO:
-		case SO_SNDTIMEO: {
-			const char sec_key[]  = "sec";
-			const char usec_key[] = "usec";
+		case SO_SNDTIMEO:
+			{
+				zval           *sec;
+				zval           *usec;
+				struct timeval  tv;
 
-			convert_to_array_ex(zoptval);
-			opt_ht = HASH_OF(zoptval);
+				convert_to_array_ex(zoptval);
+				opt_ht = HASH_OF(zoptval);
 
-			if (zend_hash_find(opt_ht, sec_key, sizeof(sec_key), (void **) &sec) == FAILURE) {
-				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", sec_key);
-				RETURN_FALSE;
+				if ((sec = zend_hash_str_find(opt_ht, "sec", sizeof("sec") - 1)) != NULL) {
+					php_error_docref(NULL, E_WARNING, "no key \"sec\" passed in optval");
+					RETURN_FALSE;
+				}
+
+				if ((usec = zend_hash_str_find(opt_ht, "usec", sizeof("usec") - 1)) != NULL) {
+					php_error_docref(NULL, E_WARNING, "no key \"usec\" passed in optval");
+					RETURN_FALSE;
+				}
+
+				convert_to_long_ex(sec);
+				convert_to_long_ex(usec);
+
+				tv.tv_sec  = Z_LVAL_P(sec);
+				tv.tv_usec = Z_LVAL_P(usec);
+
+				optlen  = sizeof(tv);
+				opt_ptr = &tv;
+				break;
 			}
-			if (zend_hash_find(opt_ht, usec_key, sizeof(usec_key), (void **) &usec) == FAILURE) {
-				php_error_docref(NULL, E_WARNING, "no key \"%s\" passed in optval", usec_key);
-				RETURN_FALSE;
-			}
-
-			convert_to_long_ex(sec);
-			convert_to_long_ex(usec);
-
-			tv.tv_sec  = Z_LVAL_PP(sec);
-			tv.tv_usec = Z_LVAL_PP(usec);
-
-			optlen  = sizeof(tv);
-			opt_ptr = &tv;
-			break;
-		}
 
 		default:
 			convert_to_long_ex(zoptval);
@@ -209,10 +210,10 @@ PHP_METHOD(EventUtil, setSocketOption)
 	}
 
 	retval = setsockopt(fd, level, optname, opt_ptr, optlen);
+
 	if (retval != 0) {
 		if (retval != -2) { /* error, but message already emitted */
-			php_error_docref(NULL, E_WARNING,
-					"Unable to set socket option, errno: %d", errno);
+			php_error_docref(NULL, E_WARNING, "Unable to set socket option, errno: %d", errno);
 		}
 
 		RETURN_FALSE;

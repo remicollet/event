@@ -21,15 +21,14 @@
 
 /* {{{ Private */
 
-#define _ret_if_invalid_listener_ptr(l)              \
-{                                                    \
+#define _ret_if_invalid_listener_ptr(l) do {         \
     PHP_EVENT_ASSERT(l && l->listener);              \
     if (!l->listener) {                              \
-        php_error_docref(NULL, E_WARNING,  \
+        php_error_docref(NULL, E_WARNING,            \
                 "EventListener is not initialized"); \
         RETURN_FALSE;                                \
     }                                                \
-}
+} while (0)
 
 /* {{{ sockaddr_parse
  * Parse in_addr and fill out_arr with IP and port.
@@ -45,7 +44,7 @@ static int sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
 		case AF_INET:
 			if (evutil_inet_ntop(in_addr->sa_family, &((struct sockaddr_in *) in_addr)->sin_addr,
 						(void *) &buf, sizeof(buf))) {
-				add_next_index_string(out_zarr, (char *)&buf, 1);
+				add_next_index_string(out_zarr, (char *)&buf);
 				add_next_index_long(out_zarr,
 						ntohs(((struct sockaddr_in *) in_addr)->sin_port));
 
@@ -56,7 +55,7 @@ static int sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
 		case AF_INET6:
 			if (evutil_inet_ntop(in_addr->sa_family, &((struct sockaddr_in6 *) in_addr)->sin6_addr,
 						(void *) &buf, sizeof(buf))) {
-				add_next_index_string(out_zarr, (char *)&buf, 1);
+				add_next_index_string(out_zarr, (char *)&buf);
 				add_next_index_long(out_zarr,
 						ntohs(((struct sockaddr_in6 *) in_addr)->sin6_port));
 
@@ -71,16 +70,14 @@ static int sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
 
 				if (ua->sun_path[0] == '\0') {
 					/* abstract name */
- 					zval *tmp;
-					int len = strlen(ua->sun_path + 1) + 1;
+ 					zval tmp;
+					int len;
 
-    				MAKE_STD_ZVAL(tmp);
-    				ZVAL_STRINGL(tmp, ua->sun_path, len, 1);
-    				Z_STRVAL_P(tmp)[len] = '\0';
-
-    				zend_hash_next_index_insert(Z_ARRVAL_P(out_zarr), &tmp, sizeof(zval *), NULL);
+					len = strlen(ua->sun_path + 1) + 1;
+					ZVAL_STRINGL(&tmp, ua->sun_path, len);
+					add_next_index_zval(out_zarr, &tmp);
 				} else {
-					add_next_index_string(out_zarr, ua->sun_path, 1);
+					add_next_index_string(out_zarr, ua->sun_path);
 				}
 				add_next_index_long(out_zarr, 0);
 			}
@@ -102,7 +99,7 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 
 	PHP_EVENT_ASSERT(l);
 
-	if (!zend_is_callable(l->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&l->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -189,7 +186,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 
 	PHP_EVENT_ASSERT(l);
 
-	if (!zend_is_callable(l->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&l->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -208,7 +205,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &e->cb.func_name);
+	ZVAL_COPY_VALUE(&fci.function_name, &l->cb.func_name);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;

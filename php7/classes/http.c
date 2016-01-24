@@ -54,7 +54,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	php_event_base_t     *b;
 	php_event_http_req_t *http_req;
 	zend_fcall_info       fci;
-	zval pzreq;
+	zval                 *pzreq;
 	zval                  argv[2];
 	zval                  retval;
 
@@ -135,8 +135,6 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
-	arg_data = http->data;
-
 	pzreq = &argv[0];
 	PHP_EVENT_INIT_CLASS_OBJECT(pzreq, php_event_http_req_ce);
 	http_req = Z_EVENT_HTTP_REQ_OBJ_P(pzreq);
@@ -145,7 +143,7 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
 #endif
 
-	if (arg_data) {
+	if (!Z_ISUNDEF(http->data)) {
 		ZVAL_COPY(&argv[1], &http->data);
 	} else {
 		ZVAL_NULL(&argv[1]);
@@ -167,14 +165,14 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 		}
 	} else {
 		if (EG(exception)) {
-			PHP_EVENT_ASSERT(http && http->base);
-			b = Z_EVENT_BASE_OBJ_P(http->base);
+			PHP_EVENT_ASSERT(http && !Z_ISUNDEF(http->base));
+			b = Z_EVENT_BASE_OBJ_P(&http->base);
 			event_base_loopbreak(b->base);
 
-			if (!Z_ISUNDEF(&argv[0])) {
+			if (!Z_ISUNDEF(argv[0])) {
 				zval_ptr_dtor(&argv[0]);
 			}
-			if (!Z_ISUNDEF(&argv[1])) {
+			if (!Z_ISUNDEF(argv[1])) {
 				zval_ptr_dtor(&argv[1]);
 			}
 		} else {
@@ -182,10 +180,10 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 		}
 	}
 
-	if (!Z_ISUNDEF(&argv[0])) {
+	if (!Z_ISUNDEF(argv[0])) {
 		zval_ptr_dtor(&argv[0]);
 	}
-	if (!Z_ISUNDEF(&argv[1])) {
+	if (!Z_ISUNDEF(argv[1])) {
 		zval_ptr_dtor(&argv[1]);
 	}
 }
@@ -271,15 +269,11 @@ PHP_METHOD(EventHttp, __construct)
 	}
 	http->ptr = http_ptr;
 
-	http->base = zbase;
-	Z_TRY_ADDREF_P(zbase);
+	ZVAL_COPY(&http->base, zbase);
 
-	http->fci     = NULL;
-	http->fcc     = NULL;
-	http->data    = NULL;
+	ZVAL_UNDEF(&http->cb.func_name);
+	ZVAL_UNDEF(&http->data);
 	http->cb_head = NULL;
-
-	TSRMLS_SET_CTX(http->thread_ctx);
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
 	if (zctx) {
@@ -373,9 +367,9 @@ PHP_METHOD(EventHttp, setCallback)
 
 	http = Z_EVENT_HTTP_OBJ_P(getThis());
 
-	cb = _new_http_cb(http->base, zarg, zcb);
+	cb = _new_http_cb(&http->base, zarg, zcb);
 
-	res = evhttp_set_cb(http->ptr, path, _http_callback, (void *) cb);
+	res = evhttp_set_cb(http->ptr, path, _http_callback, (void *)cb);
 	if (res == -2) {
 		_php_event_free_http_cb(cb);
 		RETURN_FALSE;

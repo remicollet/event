@@ -35,7 +35,7 @@ static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 	int                       err;
 	int                       depth;
 	php_event_ssl_context_t  *ectx;
-	zval                    **ppzval   = NULL;
+	zval                     *pzval   = NULL;
 	HashTable                *ht;
 
 	ssl  = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
@@ -50,18 +50,16 @@ static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 
 	/* If OPT_ALLOW_SELF_SIGNED is set and is TRUE, ret = 1 */
 	if (err == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
-			&& zend_hash_index_find(ht, PHP_EVENT_OPT_ALLOW_SELF_SIGNED,
-				(void **) &ppzval) == SUCCESS
-			&& zval_is_true(*ppzval)) {
+			&& (pzval = zend_hash_index_find(ht, PHP_EVENT_OPT_ALLOW_SELF_SIGNED)) != NULL
+			&& zend_is_true(pzval)) {
 		ret = 1;
 	}
 
 	/* Verify depth, if OPT_VERIFY_DEPTH option is set */
-	if (zend_hash_index_find(ht, PHP_EVENT_OPT_VERIFY_DEPTH,
-				(void **) &ppzval) == SUCCESS) {
-		convert_to_long_ex(ppzval);
+	if ((pzval = zend_hash_index_find(ht, PHP_EVENT_OPT_VERIFY_DEPTH)) != NULL) {
+		convert_to_long_ex(pzval);
 
-		if (depth > Z_LVAL_PP(ppzval)) {
+		if (depth > Z_LVAL_P(pzval)) {
 			ret = 0;
 			X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_CHAIN_TOO_LONG);
 		}
@@ -74,18 +72,17 @@ static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 /* {{{ passwd_callback */
 static int passwd_callback(char *buf, int num, int verify, void *data)
 {
-    HashTable  *ht  = (HashTable *) data;
-    zval      **val = NULL;
+	HashTable *ht  = (HashTable *)data;
+	zval      *val = NULL;
 
-	if (zend_hash_index_find(ht, PHP_EVENT_OPT_PASSPHRASE,
-				(void **) &val) == SUCCESS) {
-        if (Z_STRLEN_PP(val) < num - 1) {
-            memcpy(buf, Z_STRVAL_PP(val), Z_STRLEN_PP(val) + 1);
-            return Z_STRLEN_PP(val);
-        }
-    }
+	if ((val = zend_hash_index_find(ht, PHP_EVENT_OPT_PASSPHRASE)) != NULL) {
+		if (Z_STRLEN_P(val) < num - 1) {
+			memcpy(buf, Z_STRVAL_P(val), Z_STRLEN_P(val) + 1);
+			return Z_STRLEN_P(val);
+		}
+	}
 
-    return 0;
+	return 0;
 }
 /* }}} */
 
@@ -164,77 +161,63 @@ int _php_event_ssl_ctx_set_local_cert(SSL_CTX *ctx, const char *certfile, const 
 /* {{{ set_ssl_ctx_options */
 static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 {
-	HashPosition  pos         = 0;
-	zend_bool     got_ciphers = 0;
-	char         *cafile      = NULL;
-	char         *capath      = NULL;
+	zend_string *key;
+	zval        *zv;
+	zend_ulong   idx;
+	zend_bool    got_ciphers = 0;
+	char        *cafile      = NULL;
+	char        *capath      = NULL;
 
-	for (zend_hash_internal_pointer_reset_ex(ht, &pos);
-			zend_hash_has_more_elements_ex(ht, &pos) == SUCCESS;
-			zend_hash_move_forward_ex(ht, &pos)) {
-		char        *key;
-		uint         keylen;
-		zend_ulong   idx;
-		int          type;
-		zval       **ppzval;
-
-		type = zend_hash_get_current_key_ex(ht, &key, &keylen,
-				&idx, 0, &pos);
-		if (type != HASH_KEY_IS_LONG) {
-			php_error_docref(NULL, E_WARNING,
-					"Invalid option `%s'", key);
+	ZEND_HASH_FOREACH_KEY_VAL(ht, idx, key, zv) {
+		if (key) {
 			continue;
 		}
-
-		if (zend_hash_get_current_data_ex(ht, (void **) &ppzval, &pos) == FAILURE) {
-			continue;
-		}
-
 		switch (idx) {
-			case PHP_EVENT_OPT_LOCAL_CERT: {
-				zval **ppz_private_key;
-				convert_to_string_ex(ppzval);
+			case PHP_EVENT_OPT_LOCAL_CERT:
+				{
+					zval *zpk;
 
-				if (zend_hash_index_find(ht, PHP_EVENT_OPT_LOCAL_PK,
-						(void **) &ppz_private_key) == SUCCESS) {
-					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), Z_STRVAL_PP(ppz_private_key));
-				} else {
-					_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_PP(ppzval), NULL);
+					zpk = zend_hash_index_find(ht, PHP_EVENT_OPT_LOCAL_PK);
+
+					if (zpk == NULL) {
+						_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_P(zv), NULL);
+					} else {
+						_php_event_ssl_ctx_set_local_cert(ctx, Z_STRVAL_P(zv), Z_STRVAL_P(zpk));
+					}
+					break;
 				}
-				break;
-			}
 			case PHP_EVENT_OPT_LOCAL_PK:
 				/* Skip. SSL_CTX_use_PrivateKey_file is applied in "local_cert". */
 				break;
 			case PHP_EVENT_OPT_PASSPHRASE:
-				convert_to_string_ex(ppzval);
+				convert_to_string_ex(zv);
 				SSL_CTX_set_default_passwd_cb_userdata(ctx, ht);
 				SSL_CTX_set_default_passwd_cb(ctx, passwd_callback);
 				break;
 			case PHP_EVENT_OPT_CA_FILE:
-				convert_to_string_ex(ppzval);
-				cafile = Z_STRVAL_PP(ppzval);
+				convert_to_string_ex(zv);
+				cafile = Z_STRVAL_P(zv);
 				break;
 			case PHP_EVENT_OPT_CA_PATH:
-				convert_to_string_ex(ppzval);
-				capath = Z_STRVAL_PP(ppzval);
+				convert_to_string_ex(zv);
+				capath = Z_STRVAL_P(zv);
 				break;
 			case PHP_EVENT_OPT_NO_SSLv2:
-				if (zval_is_true(*ppzval)) {
+				if (zend_is_true(zv)) {
 					SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
 				} else {
 					SSL_CTX_clear_options(ctx, SSL_OP_NO_SSLv2);
 				}
 				break;
 			case PHP_EVENT_OPT_NO_SSLv3:
-				if (zval_is_true(*ppzval)) {
+				if (zend_is_true(zv)) {
 					SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
 				} else {
 					SSL_CTX_clear_options(ctx, SSL_OP_NO_SSLv3);
 				}
 				break;
 			case PHP_EVENT_OPT_NO_TLSv1:
-				if (zval_is_true(*ppzval)) {
+				if (zend_is_true(zv)) {
 					SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
 				} else {
 					SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1);
@@ -242,7 +225,7 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 				break;
 #ifdef SSL_OP_NO_TLSv1_1
 			case PHP_EVENT_OPT_NO_TLSv1_1:
-				if (zval_is_true(*ppzval)) {
+				if (zend_is_true(zv)) {
 					SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
 				} else {
 					SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1_1);
@@ -251,7 +234,7 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 #endif
 #ifdef SSL_OP_NO_TLSv1_2
 			case PHP_EVENT_OPT_NO_TLSv1_2:
-				if (zval_is_true(*ppzval)) {
+				if (zend_is_true(zv)) {
 					SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_2);
 				} else {
 					SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1_2);
@@ -259,7 +242,7 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 				break;
 #endif
 			case PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE:
-				if (zval_is_true(*ppzval)) {
+				if (zend_is_true(zv)) {
 					SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
 				} else {
 					SSL_CTX_clear_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
@@ -269,26 +252,25 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 				/* Skip */
 				break;
 			case PHP_EVENT_OPT_VERIFY_PEER:
-				if (zval_is_true(*ppzval)) {
+				if (zend_is_true(zv)) {
 					SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
 				} else {
 					SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
 				}
 				break;
 			case PHP_EVENT_OPT_VERIFY_DEPTH:
-				convert_to_long_ex(ppzval);
-				SSL_CTX_set_verify_depth(ctx, Z_LVAL_PP(ppzval));
+				convert_to_long_ex(zv);
+				SSL_CTX_set_verify_depth(ctx, Z_LVAL_P(zv));
 				break;
 			case PHP_EVENT_OPT_CIPHERS:
 				got_ciphers = 1;
-				convert_to_string_ex(ppzval);
-				set_ciphers(ctx, Z_STRVAL_PP(ppzval));
+				convert_to_string_ex(zv);
+				set_ciphers(ctx, Z_STRVAL_P(zv));
 				break;
 			default:
-				php_error_docref(NULL, E_WARNING,
-						"Unknown option %ld", idx);
+				php_error_docref(NULL, E_WARNING, "Unknown option %ld", idx);
 		}
-	}
+	} ZEND_HASH_FOREACH_END();
 
 	if (got_ciphers == 0) {
 		set_ciphers(ctx, "DEFAULT");
@@ -405,10 +387,10 @@ PHP_METHOD(EventSslContext, __construct)
 {
 	php_event_ssl_context_t *ectx;
 	HashTable               *ht_options;
-	zend_long                    in_method;
+	zend_long                in_method;
 	SSL_METHOD              *method;
 	SSL_CTX                 *ctx;
-	zend_long                    options    = SSL_OP_ALL;
+	zend_long                options    = SSL_OP_ALL;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "lh",
 				&in_method, &ht_options) == FAILURE) {
@@ -417,15 +399,13 @@ PHP_METHOD(EventSslContext, __construct)
 
 	method = get_ssl_method(in_method);
 	if (method == NULL) {
-		php_error_docref(NULL, E_WARNING,
-			"Invalid method passed: %ld", in_method);
+		php_error_docref(NULL, E_WARNING, "Invalid method passed: %ld", in_method);
 		return;
 	}
 
 	ctx = SSL_CTX_new(method);
 	if (ctx == NULL) {
-		php_error_docref(NULL, E_WARNING,
-				"Creation of a new SSL_CTX object failed");
+		php_error_docref(NULL, E_WARNING, "Creation of a new SSL_CTX object failed");
 		return;
 	}
 
@@ -433,14 +413,8 @@ PHP_METHOD(EventSslContext, __construct)
 	ectx->ctx = ctx;
 
 	ALLOC_HASHTABLE(ectx->ht);
-	if (zend_hash_init_ex(ectx->ht, zend_hash_num_elements(ht_options), NULL, ZVAL_PTR_DTOR, 0, 0) == FAILURE) {
-		php_error_docref(NULL, E_WARNING,
-				"Failed to allocate hashtable for options");
-		FREE_HASHTABLE(ectx->ht);
-		return;
-	}
-	zend_hash_copy(ectx->ht, ht_options, (copy_ctor_func_t) zval_add_ref,
-			(void *) NULL, sizeof(zval *));
+	zend_hash_init(ectx->ht, zend_hash_num_elements(ht_options), NULL, ZVAL_PTR_DTOR, 0);
+	zend_hash_copy(ectx->ht, ht_options, (copy_ctor_func_t) zval_add_ref);
 
 	SSL_CTX_set_options(ectx->ctx, options);
 	set_ssl_ctx_options(ectx->ctx, ectx->ht);

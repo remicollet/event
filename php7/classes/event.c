@@ -580,7 +580,7 @@ PHP_METHOD(Event, setTimer)
 
 	b = Z_EVENT_BASE_OBJ_P(zbase);
 
-	php_event_copy_callback(&e->cb, zcb);
+	php_event_replace_callback(&e->cb, zcb);
 	php_event_copy_zval(&e->data, zarg);
 
 	e->stream_res = NULL; /* stdin fd = 0 */

@@ -33,16 +33,16 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	/* Call userspace function according to
 	 * proto void callback(EventHttpConnection conn, mixed data); */
 
-	if (conn == NULL || !arg_conn) {
+	if (conn == NULL || Z_ISUNDEF(evcon->self)) {
 		ZVAL_NULL(&argv[0]);
 	} else {
-		ZVAL_COPY(&argv[0], evcon->self);
+		ZVAL_COPY(&argv[0], &evcon->self);
 	}
 
 	if (Z_ISUNDEF(evcon->data_closecb)) {
 		ZVAL_NULL(&argv[1]);
 	} else {
-		ZVAL_COPY(&argv[1], evcon->data_closecb);
+		ZVAL_COPY(&argv[1], &evcon->data_closecb);
 	}
 
 	fci.size = sizeof(fci);
@@ -163,15 +163,13 @@ PHP_METHOD(EventHttpConnection, __construct)
 	}
 	evcon->conn = conn;
 
-	evcon->self = zself;
-	Z_TRY_ADDREF_P(zself);
+	ZVAL_COPY(&evcon->self, zself);
+	ZVAL_COPY(&evcon->base, zbase);
 
-	evcon->base = zbase;
-	Z_TRY_ADDREF_P(zbase);
-
-	evcon->dns_base = zdns_base;
 	if (zdns_base) {
-		Z_TRY_ADDREF_P(zdns_base);
+		ZVAL_COPY(&evcon->dns_base, zdns_base);
+	} else {
+		ZVAL_UNDEF(&evcon->dns_base);
 	}
 }
 /* }}} */
@@ -196,8 +194,8 @@ PHP_METHOD(EventHttpConnection, getBase)
 	 * base = evhttp_connection_get_base(evcon->con);
 	 */
 
-	if (evcon->base) {
-		RETURN_ZVAL(evcon->base, 1, 0);
+	if (!Z_ISUNDEF(evcon->base)) {
+		RETURN_ZVAL(&evcon->base, 1, 0);
 	}
 
 	RETVAL_FALSE;
@@ -230,7 +228,7 @@ PHP_METHOD(EventHttpConnection, getPeer)
 
 	evhttp_connection_get_peer(evcon->conn, &address, &port);
 
-	ZVAL_STRING(zaddress, address, 1);
+	ZVAL_STRING(zaddress, address);
 	ZVAL_LONG(zport, port);
 }
 /* }}} */

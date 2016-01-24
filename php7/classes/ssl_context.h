@@ -19,8 +19,8 @@
 #ifndef PHP_EVENT_SSL_CONTEXT_H
 #define PHP_EVENT_SSL_CONTEXT_H
 
-int _php_event_ssl_ctx_set_private_key(SSL_CTX *ctx, const char *private_key TSRMLS_DC);
-int _php_event_ssl_ctx_set_local_cert(SSL_CTX *ctx, const char *certfile, const char *private_key TSRMLS_DC);
+int _php_event_ssl_ctx_set_private_key(SSL_CTX *ctx, const char *private_key);
+int _php_event_ssl_ctx_set_local_cert(SSL_CTX *ctx, const char *certfile, const char *private_key);
 
 #endif /* PHP_EVENT_SSL_CONTEXT_H */
 /*

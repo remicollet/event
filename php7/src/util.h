@@ -170,13 +170,8 @@ static zend_always_inline HashTable * find_prop_handler(HashTable *classes, zend
 		RETURN_FALSE;                     \
 	} while (0)
 
-#define PHP_EVENT_REQUIRE_BASE_BY_REF(zbase)                  \
-	do {                                                      \
-		if (!Z_ISREF_P((zbase)) || Z_REFCOUNT_P(zbase) < 2) { \
-			php_error_docref(NULL, E_ERROR,                   \
-					"EventBase must be passed by reference"); \
-		}                                                     \
-	} while (0)
+/* Obsolete */
+#define PHP_EVENT_REQUIRE_BASE_BY_REF(zbase)
 
 #endif /* PHP_EVENT_UTIL_H */
 /*
