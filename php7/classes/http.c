@@ -326,8 +326,8 @@ PHP_METHOD(EventHttp, bind)
 	zval             *zhttp       = getThis();
 	php_event_http_t *http;
 	char             *address;
-	int               address_len;
-	zend_long             port;
+	size_t            address_len;
+	zend_long         port;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sl",
 				&address, &address_len, &port) == FAILURE) {
@@ -353,7 +353,7 @@ PHP_METHOD(EventHttp, setCallback)
 {
 	php_event_http_t    *http;
 	char                *path;
-	int                  path_len;
+	size_t               path_len;
 	int                  res;
 	zval                *zcb;
 	zval                *zarg     = NULL;
@@ -506,7 +506,7 @@ PHP_METHOD(EventHttp, addServerAlias)
 	zval             *zhttp     = getThis();
 	php_event_http_t *http;
 	char             *alias;
-	int               alias_len;
+	size_t            alias_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&alias, &alias_len) == FAILURE) {
@@ -530,7 +530,7 @@ PHP_METHOD(EventHttp, removeServerAlias)
 	zval             *zhttp     = getThis();
 	php_event_http_t *http;
 	char             *alias;
-	int               alias_len;
+	size_t            alias_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&alias, &alias_len) == FAILURE) {

@@ -44,7 +44,7 @@ PHP_METHOD(EventConfig, avoidMethod)
 {
 	zval               *zcfg       = getThis();
 	char               *method;
-	int                 method_len;
+	size_t              method_len;
 	php_event_config_t *cfg;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",

@@ -56,10 +56,10 @@ PHP_METHOD(EventDnsBase, __construct)
 PHP_METHOD(EventDnsBase, parseResolvConf)
 {
 	php_event_dns_base_t *dnsb;
-	zval                 *zdns_base = getThis();
-	zend_long                 flags;
+	zval                 *zdns_base    = getThis();
+	zend_long             flags;
 	char                 *filename;
-	int                   filename_len;
+	size_t                filename_len;
 	int                   ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ls",
@@ -119,7 +119,7 @@ PHP_METHOD(EventDnsBase, addNameserverIp)
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();
 	char                 *ip;
-	int                   ip_len;
+	size_t                ip_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&ip, &ip_len) == FAILURE) {
@@ -144,7 +144,7 @@ PHP_METHOD(EventDnsBase, loadHosts)
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();
 	char                 *hosts;
-	int                   hosts_len;
+	size_t                hosts_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&hosts, &hosts_len) == FAILURE) {
@@ -185,9 +185,9 @@ PHP_METHOD(EventDnsBase, clearSearch)
 PHP_METHOD(EventDnsBase, addSearch)
 {
 	php_event_dns_base_t *dnsb;
-	zval                 *zdns_base = getThis();
+	zval                 *zdns_base  = getThis();
 	char                 *domain;
-	int                   domain_len;
+	size_t                domain_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&domain, &domain_len) == FAILURE) {
@@ -224,11 +224,11 @@ PHP_METHOD(EventDnsBase, setSearchNdots)
 PHP_METHOD(EventDnsBase, setOption)
 {
 	php_event_dns_base_t *dnsb;
-	zval                 *zdns_base = getThis();
+	zval                 *zdns_base  = getThis();
 	char                 *option;
-	int                   option_len;
+	size_t                option_len;
 	char                 *value;
-	int                   value_len;
+	size_t                value_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ss",
 				&option, &option_len, &value, &value_len) == FAILURE) {

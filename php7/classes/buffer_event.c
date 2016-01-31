@@ -210,6 +210,9 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	if (!Z_ISUNDEF(argv[1])) {
 		zval_ptr_dtor(&argv[1]);
 	}
+	if (!Z_ISUNDEF(argv[2])) {
+		zval_ptr_dtor(&argv[2]);
+	}
 }
 /* }}} */
 
@@ -247,9 +250,9 @@ PHP_METHOD(EventBufferEvent, __construct)
 	zend_long             options   = 0;
 	php_event_bevent_t   *bev;
 	struct bufferevent   *bevent;
-	zval                 *zcb_read;
-	zval                 *zcb_write;
-	zval                 *zcb_event;
+	zval                 *zcb_read  = NULL;
+	zval                 *zcb_write = NULL;
+	zval                 *zcb_event = NULL;
 	zval                 *zarg      = NULL;
 	bufferevent_data_cb   read_cb;
 	bufferevent_data_cb   write_cb;
@@ -304,8 +307,8 @@ PHP_METHOD(EventBufferEvent, __construct)
 	bev->_internal = 0;
 	bev->bevent = bevent;
 
-	php_event_copy_zval(&bev->self, zself);
-	php_event_copy_zval(&bev->base, zbase);
+	ZVAL_COPY(&bev->self, zself);
+	ZVAL_COPY(&bev->base, zbase);
 
 	ZVAL_UNDEF(&bev->input);
 	ZVAL_UNDEF(&bev->output);
@@ -314,7 +317,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 		read_cb = bevent_read_cb;
 		php_event_replace_callback(&bev->cb_read, zcb_read);
 	} else {
-		php_event_free_callback(&bev->cb_read);
+		php_event_init_callback(&bev->cb_read);
 		read_cb = NULL;
 	}
 
@@ -322,7 +325,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 		write_cb = bevent_write_cb;
 		php_event_replace_callback(&bev->cb_write, zcb_write);
 	} else {
-		php_event_free_callback(&bev->cb_write);
+		php_event_init_callback(&bev->cb_write);
 		write_cb = NULL;
 	}
 
@@ -330,12 +333,14 @@ PHP_METHOD(EventBufferEvent, __construct)
 		event_cb = bevent_event_cb;
 		php_event_replace_callback(&bev->cb_event, zcb_event);
 	} else {
-		php_event_free_callback(&bev->cb_event);
+		php_event_init_callback(&bev->cb_event);
 		event_cb = NULL;
 	}
 
 	if (zarg) {
-		php_event_copy_zval(&bev->data, zarg);
+		ZVAL_COPY(&bev->data, zarg);
+	} else {
+		ZVAL_UNDEF(&bev->data);
 	}
 
 	if (read_cb || write_cb || event_cb || zarg) {
@@ -457,7 +462,7 @@ PHP_METHOD(EventBufferEvent, connect)
 	php_event_bevent_t      *bev;
 	zval                    *zbevent  = getThis();
 	char                    *addr;
-	int                      addr_len;
+	size_t                   addr_len;
 	struct sockaddr_storage  ss;
 	int                      ss_len   = sizeof(ss);
 
@@ -532,16 +537,17 @@ PHP_METHOD(EventBufferEvent, connectHost)
 #else
 	php_event_bevent_t *bev;
 	zval               *zbevent      = getThis();
-	zval               *zdns_base    = NULL;
 	char               *hostname;
-	int                 hostname_len;
-	zend_long               port;
-	zend_long               family       = AF_UNSPEC;
+	size_t              hostname_len;
+	zend_long           port;
+	zend_long           family       = AF_UNSPEC;
 #ifdef HAVE_EVENT_EXTRA_LIB
 	php_event_dns_base_t *dnsb;
 #endif
 
 #ifdef HAVE_EVENT_EXTRA_LIB
+	zval *zdns_base    = NULL;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O!sl|l",
 				&zdns_base, php_event_dns_base_ce, &hostname, &hostname_len,
 				&port, &family) == FAILURE) {
@@ -889,9 +895,9 @@ PHP_METHOD(EventBufferEvent, read)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
-	zend_long               size;
+	zend_long           size;
 	char               *data;
-	zend_long               ret;
+	zend_long           ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&size) == FAILURE) {

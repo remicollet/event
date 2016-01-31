@@ -192,8 +192,8 @@ PHP_METHOD(EventBuffer, read)
 {
 	php_event_buffer_t *b;
 	zval               *zbuf      = getThis();
-	zend_long               max_bytes;
-	zend_long               ret;
+	zend_long           max_bytes;
+	zend_long           ret;
 	char               *data;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
@@ -464,10 +464,10 @@ PHP_METHOD(EventBuffer, readLine)
 PHP_METHOD(EventBuffer, search)
 {
 	zval               *zbuf      = getThis();
-	zend_long               start_pos = -1;
-	zend_long               end_pos   = -1;
+	zend_long           start_pos = -1;
+	zend_long           end_pos   = -1;
 	char               *what;
-	int                 what_len;
+	size_t              what_len;
 	php_event_buffer_t *b;
 
 	struct evbuffer_ptr ptr_start, ptr_end, ptr_res;

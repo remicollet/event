@@ -106,7 +106,6 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 		ZVAL_LONG(&argv[0], fd);
 	} else if (e->stream_res) {
 		ZVAL_RES(&argv[0], e->stream_res);
-		Z_TRY_ADDREF(argv[0]);
 	} else {
 		ZVAL_NULL(&argv[0]);
 	}
@@ -137,9 +136,9 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 		php_error_docref(NULL, E_WARNING, "Failed to invoke event callback");
 	}
 
-	zval_ptr_dtor(&argv[0]);
-	zval_ptr_dtor(&argv[1]);
 	zval_ptr_dtor(&argv[2]);
+	zval_ptr_dtor(&argv[1]);
+	zval_ptr_dtor(&argv[0]);
 }
 /* }}} */
 
@@ -219,7 +218,6 @@ PHP_METHOD(Event, __construct)
 
 	if (what & ~(EV_TIMEOUT | EV_READ | EV_WRITE | EV_SIGNAL | EV_PERSIST | EV_ET)) {
 		php_error_docref(NULL, E_WARNING, "Invalid mask");
-		ZVAL_NULL(zself);
 		return;
 	}
 
@@ -227,7 +225,6 @@ PHP_METHOD(Event, __construct)
 		fd = zval_to_signum(pzfd);
 		if (fd == -1) {
 			php_error_docref(NULL, E_WARNING, "Invalid signal passed");
-			ZVAL_NULL(zself);
 			return;
 		}
 	} else if (what & EV_TIMEOUT) {
@@ -235,7 +232,6 @@ PHP_METHOD(Event, __construct)
 	} else {
 		fd = (evutil_socket_t) php_event_zval_to_fd(pzfd);
 		if (fd < 0) {
-			ZVAL_NULL(zself);
 			return;
 		}
 	}
@@ -249,14 +245,13 @@ PHP_METHOD(Event, __construct)
 	event = event_new(b->base, fd, what, event_cb, (void *)e);
 	if (UNEXPECTED(!event)) {
 		php_error_docref(NULL, E_ERROR, "event_new failed");
-		ZVAL_NULL(zself);
 		return;
 	}
 
 	e->event = event;
 	php_event_copy_zval(&e->data, zarg);
 	php_event_copy_callback(&e->cb, zcb);
-	e->stream_res = what & EV_SIGNAL ? NULL : Z_RES_P(pzfd);
+	e->stream_res = fd == -1 || (what & EV_SIGNAL) ? NULL : Z_RES_P(pzfd);
 }
 /* }}} */
 
@@ -585,10 +580,10 @@ PHP_METHOD(Event, setTimer)
 
 	e->stream_res = NULL; /* stdin fd = 0 */
 
-    if (evtimer_assign(e->event, b->base, timer_cb, (void *) e)) {
-    	RETURN_FALSE;
-    }
-    RETVAL_TRUE;
+	if (evtimer_assign(e->event, b->base, timer_cb, (void *) e)) {
+		RETURN_FALSE;
+	}
+	RETVAL_TRUE;
 }
 /* }}} */
 

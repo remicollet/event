@@ -21,6 +21,11 @@
 php_socket_t php_event_zval_to_fd(zval *pfd);
 int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport);
 
+static zend_always_inline void php_event_init_callback(php_event_callback_t *cb) {/*{{{*/
+	ZVAL_UNDEF(&cb->func_name);
+	cb->fci_cache = empty_fcall_info_cache;
+}/*}}}*/
+
 static zend_always_inline void php_event_free_callback(php_event_callback_t *cb) {/*{{{*/
 	if (!Z_ISUNDEF(cb->func_name)) {
 		zval_ptr_dtor(&cb->func_name);
@@ -76,6 +81,7 @@ static zend_always_inline void php_event_copy_zval(zval *zdst, zval *zsrc) {/*{{
 #define PHP_EVENT_SET_X_OBJ_HANDLERS(x) do { \
 	PHP_EVENT_X_OBJ_HANDLERS(x).offset = XtOffsetOf(Z_EVENT_X_OBJ_T(x), zo); \
 	PHP_EVENT_SET_X_OBJ_HANDLER(x, free_obj); \
+	PHP_EVENT_SET_X_OBJ_HANDLER(x, dtor_obj); \
 	PHP_EVENT_SET_X_OBJ_HANDLER(x, read_property); \
 	PHP_EVENT_SET_X_OBJ_HANDLER(x, write_property); \
 	PHP_EVENT_SET_X_OBJ_HANDLER(x, get_property_ptr_ptr); \

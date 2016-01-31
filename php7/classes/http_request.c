@@ -468,9 +468,9 @@ PHP_METHOD(EventHttpRequest, closeConnection)
 PHP_METHOD(EventHttpRequest, sendError)
 {
 	php_event_http_req_t *http_req;
-	zend_long                 error;
-	char                 *reason = NULL;
-	int                   reason_len;
+	zend_long             error;
+	char                 *reason     = NULL;
+	size_t                reason_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l|s!",
 				&error, &reason, &reason_len) == FAILURE) {
@@ -492,10 +492,10 @@ PHP_METHOD(EventHttpRequest, sendError)
 PHP_METHOD(EventHttpRequest, sendReply)
 {
 	php_event_http_req_t *http_req;
-	zend_long                 code;
+	zend_long             code;
 	char                 *reason;
-	int                   reason_len;
-	zval                 *zbuf = NULL;
+	size_t                reason_len;
+	zval                 *zbuf       = NULL;
 	php_event_buffer_t   *b;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ls|O!",
@@ -579,9 +579,9 @@ PHP_METHOD(EventHttpRequest, sendReplyEnd)
 PHP_METHOD(EventHttpRequest, sendReplyStart)
 {
 	php_event_http_req_t *http_req;
-	zend_long                 code;
+	zend_long             code;
 	char                 *reason;
-	int                   reason_len;
+	size_t                reason_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ls",
 				&code, &reason, &reason_len) == FAILURE) {
@@ -634,10 +634,10 @@ PHP_METHOD(EventHttpRequest, addHeader)
 	php_event_http_req_t *http_req;
 	char                 *key;
 	char                 *value;
-	int                   key_len;
-	int                   value_len;
+	size_t                key_len;
+	size_t                value_len;
 	struct evkeyvalq     *headers;
-	zend_long                 type;
+	zend_long             type;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ssl",
 				&key, &key_len, &value, &value_len, &type) == FAILURE) {
@@ -689,9 +689,9 @@ PHP_METHOD(EventHttpRequest, removeHeader)
 {
 	php_event_http_req_t *http_req;
 	char                 *key;
-	int                   key_len;
+	size_t                key_len;
 	struct evkeyvalq     *headers;
-	zend_long                 type;
+	zend_long             type;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sl",
 				&key, &key_len, &type) == FAILURE) {
@@ -722,10 +722,10 @@ PHP_METHOD(EventHttpRequest, findHeader)
 {
 	php_event_http_req_t *http_req;
 	char                 *key;
-	int                   key_len;
+	size_t                key_len;
 	struct evkeyvalq     *headers;
-	zend_long                 type;
-	const char *val;
+	zend_long             type;
+	const char           *val;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sl",
 				&key, &key_len, &type) == FAILURE) {

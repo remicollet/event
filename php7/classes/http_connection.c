@@ -81,10 +81,10 @@ PHP_METHOD(EventHttpConnection, __construct)
 	zval                     *zbase;
 	php_event_base_t         *b;
 	zval                     *zdns_base   = NULL;
-	php_event_dns_base_t     *dnsb = NULL;
+	php_event_dns_base_t     *dnsb        = NULL;
 	char                     *address;
-	int                       address_len;
-	zend_long                     port;
+	size_t                    address_len;
+	zend_long                 port;
 	php_event_http_conn_t    *evcon;
 	struct evhttp_connection *conn;
 
@@ -240,7 +240,7 @@ PHP_METHOD(EventHttpConnection, setLocalAddress)
 	zval                  *zevcon      = getThis();
 	php_event_http_conn_t *evcon;
 	char                  *address;
-	int                    address_len;
+	size_t                 address_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
 				&address, &address_len) == FAILURE) {
@@ -358,9 +358,9 @@ PHP_METHOD(EventHttpConnection, makeRequest)
 	php_event_http_conn_t *evcon;
 	zval                  *zreq;
 	php_event_http_req_t  *http_req;
-	zend_long                  type;
+	zend_long              type;
 	char                  *uri;
-	int                    uri_len;
+	size_t                 uri_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ols",
 				&zreq, php_event_http_req_ce, &type, &uri, &uri_len) == FAILURE) {

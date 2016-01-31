@@ -84,7 +84,7 @@ zend_module_entry event_module_entry = {
 	PHP_MINIT(event),
 	PHP_MSHUTDOWN(event),
 	PHP_RINIT(event),
-	NULL, /*PHP_RSHUTDOWN(event),*/
+	PHP_RSHUTDOWN(event),
 	PHP_MINFO(event),
 	PHP_EVENT_VERSION,
 	STANDARD_MODULE_PROPERTIES
@@ -106,105 +106,150 @@ static void free_prop_handler(zval *el)/*{{{*/
 	pefree(Z_PTR_P(el), 1);
 }/*}}}*/
 
+static void php_event_event_dtor_obj(zend_object *object)/*{{{*/
+{
+	Z_EVENT_X_OBJ_T(event) *intern = Z_EVENT_X_FETCH_OBJ(event, object);
+	PHP_EVENT_ASSERT(intern);
+
+	if (!Z_ISUNDEF(intern->data)) {
+		zval_ptr_dtor(&intern->data);
+	}
+
+	zend_objects_destroy_object(object);
+}/*}}}*/
+
+static void php_event_base_dtor_obj(zend_object *object)/*{{{*/
+{
+#if 0
+	Z_EVENT_X_OBJ_T(base) *intern = Z_EVENT_X_FETCH_OBJ(base, object);
+	PHP_EVENT_ASSERT(intern);
+#endif
+
+	zend_objects_destroy_object(object);
+}/*}}}*/
+
+static void php_event_config_dtor_obj(zend_object *object)/*{{{*/
+{
+#if 0
+	Z_EVENT_X_OBJ_T(config) *intern = Z_EVENT_X_FETCH_OBJ(config, object);
+	PHP_EVENT_ASSERT(intern);
+#endif
+
+	zend_objects_destroy_object(object);
+}/*}}}*/
+
+static void php_event_bevent_dtor_obj(zend_object *object)/*{{{*/
+{
+	Z_EVENT_X_OBJ_T(bevent) *intern = Z_EVENT_X_FETCH_OBJ(bevent, object);
+	PHP_EVENT_ASSERT(intern);
+
+	if (!Z_ISUNDEF(intern->data)) {
+		zval_ptr_dtor(&intern->data);
+	}
+
+	if (!Z_ISUNDEF(intern->self)) {
+		if (Z_REFCOUNT(intern->self) > 1) {
+			zval_ptr_dtor(&intern->self);
+		}
+	}
+
+	if (!Z_ISUNDEF(intern->base)) {
+		zval_ptr_dtor(&intern->base);
+	}
+
+	if (!Z_ISUNDEF(intern->input)) {
+		zval_ptr_dtor(&intern->input);
+	}
+
+	if (!Z_ISUNDEF(intern->output)) {
+		zval_ptr_dtor(&intern->output);
+	}
+
+	zend_objects_destroy_object(object);
+}/*}}}*/
+
+static void php_event_buffer_dtor_obj(zend_object *object)/*{{{*/
+{
+#if 0
+	Z_EVENT_X_OBJ_T(buffer) *intern = Z_EVENT_X_FETCH_OBJ(buffer, object);
+	PHP_EVENT_ASSERT(intern);
+#endif
+
+	zend_objects_destroy_object(object);
+}/*}}}*/
+
+
 static void php_event_event_free_obj(zend_object *object)/*{{{*/
 {
-	php_event_t *e = Z_EVENT_X_FETCH_OBJ(event, object);
+	Z_EVENT_X_OBJ_T(event) *intern = Z_EVENT_X_FETCH_OBJ(event, object);
+	PHP_EVENT_ASSERT(intern);
 
-	PHP_EVENT_ASSERT(e);
+	zend_object_std_dtor(&intern->zo);
 
-	if (e->event) {
+	if (intern->event) {
 		/* No need in event_del(e->event) since event_free makes event non-pending internally */
-		event_free(e->event);
-		e->event = NULL;
+		event_free(intern->event);
+		intern->event = NULL;
 	}
 
 #if 0
-	if (e->stream_res) { /* stdin fd == 0 */
+	if (intern->stream_res) { /* stdin fd == 0 */
 		/* In php5 we had decremented resource reference counter */
-		e->stream_res = NULL;
+		intern->stream_res = NULL;
 	}
 #endif
 
-	if (!Z_ISUNDEF(e->data)) {
-		zval_ptr_dtor(&e->data);
-	}
-
-	php_event_free_callback(&e->cb);
-
-	Z_EVENT_STD_OBJ_DTOR(e);
+	php_event_free_callback(&intern->cb);
 }/*}}}*/
 
 static void php_event_base_free_obj(zend_object *object)/*{{{*/
 {
-	php_event_base_t *b = Z_EVENT_X_FETCH_OBJ(base, object);
-
+	Z_EVENT_X_OBJ_T(base) *b = Z_EVENT_X_FETCH_OBJ(base, object);
 	PHP_EVENT_ASSERT(b);
+
+	zend_object_std_dtor(object);
 
 	if (!b->internal && b->base) {
 		event_base_free(b->base);
 		b->base = NULL;
 	}
-
-	Z_EVENT_STD_OBJ_DTOR(b);
 }/*}}}*/
 
 static void php_event_config_free_obj(zend_object *object)/*{{{*/
 {
-	php_event_config_t *cfg = Z_EVENT_X_FETCH_OBJ(config, object);
+	Z_EVENT_X_OBJ_T(config) *intern = Z_EVENT_X_FETCH_OBJ(config, object);
+	PHP_EVENT_ASSERT(intern);
 
-	PHP_EVENT_ASSERT(cfg);
+	zend_object_std_dtor(object);
 
-	if (cfg->ptr) {
-		event_config_free(cfg->ptr);
-		cfg->ptr = NULL;
+	if (intern->ptr) {
+		event_config_free(intern->ptr);
+		intern->ptr = NULL;
 	}
-
-	Z_EVENT_STD_OBJ_DTOR(cfg);
 }/*}}}*/
 
 static void php_event_bevent_free_obj(zend_object *object)/*{{{*/
 {
-	php_event_bevent_t *b = Z_EVENT_X_FETCH_OBJ(bevent, object);
+	Z_EVENT_X_OBJ_T(bevent) *b = Z_EVENT_X_FETCH_OBJ(bevent, object);
 
-	if (EXPECTED(b)) {
-		if (!Z_ISUNDEF(b->data)) {
-			zval_ptr_dtor(&b->data);
-		}
+	zend_object_std_dtor(object);
 
-		php_event_free_callback(&b->cb_read);
-		php_event_free_callback(&b->cb_write);
-		php_event_free_callback(&b->cb_event);
-
-		if (Z_REFCOUNT(b->self) > 1) {
-			zval_ptr_dtor(&b->self);
-		}
-
-		if (!Z_ISUNDEF(b->base)) {
-			zval_ptr_dtor(&b->base);
-		}
-
-		if (b->bevent) {
-			bufferevent_free(b->bevent);
-			b->bevent = NULL;
-		}
-
-		if (!Z_ISUNDEF(b->input)) {
-			zval_ptr_dtor(&b->input);
-		}
-
-		if (!Z_ISUNDEF(b->output)) {
-			zval_ptr_dtor(&b->output);
-		}
+	if (b->bevent) {
+		bufferevent_free(b->bevent);
+		b->bevent = NULL;
 	}
 
-	Z_EVENT_STD_OBJ_DTOR(b);
+	php_event_free_callback(&b->cb_read);
+	php_event_free_callback(&b->cb_write);
+	php_event_free_callback(&b->cb_event);
 }/*}}}*/
 
 static void php_event_buffer_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_buffer_t *b = Z_EVENT_X_FETCH_OBJ(buffer, object);
-
 	PHP_EVENT_ASSERT(b);
+
+	zend_object_std_dtor(object);
 
 	/* If we got the buffer in, say, a read callback the buffer
 	 * is destroyed when the callback is done as any normal variable.
@@ -216,8 +261,6 @@ static void php_event_buffer_free_obj(zend_object *object)/*{{{*/
 		evbuffer_free(b->buf);
 		b->buf = NULL;
 	}
-
-	Z_EVENT_STD_OBJ_DTOR(b);
 }/*}}}*/
 
 #ifdef HAVE_EVENT_EXTRA_LIB
@@ -236,7 +279,7 @@ static void php_event_dns_base_free_obj(zend_object *object)/*{{{*/
 		dnsb->dns_base = NULL;
 	}
 
-	Z_EVENT_STD_OBJ_DTOR(dnsb);
+	zend_object_std_dtor(object);
 }/*}}}*/
 
 static void php_event_listener_free_obj(zend_object *object)/*{{{*/
@@ -261,7 +304,7 @@ static void php_event_listener_free_obj(zend_object *object)/*{{{*/
 		l->listener = NULL;
 	}
 
-	Z_EVENT_STD_OBJ_DTOR(l);
+	zend_object_std_dtor(object);
 }/*}}}*/
 
 static void php_event_http_conn_free_obj(zend_object *object)/*{{{*/
@@ -293,7 +336,7 @@ static void php_event_http_conn_free_obj(zend_object *object)/*{{{*/
 		evcon->conn = NULL;
 	}
 
-	Z_EVENT_STD_OBJ_DTOR(evcon);
+	zend_object_std_dtor(object);
 }/*}}}*/
 
 static void php_event_http_free_obj(zend_object *object)/*{{{*/
@@ -326,7 +369,7 @@ static void php_event_http_free_obj(zend_object *object)/*{{{*/
 		http->ptr = NULL;
 	}
 
-	Z_EVENT_STD_OBJ_DTOR(http);
+	zend_object_std_dtor(object);
 }/*}}}*/
 
 static void php_event_http_req_free_obj(zend_object *object)/*{{{*/
@@ -357,7 +400,7 @@ static void php_event_http_req_free_obj(zend_object *object)/*{{{*/
 	}
 #endif
 
-	Z_EVENT_STD_OBJ_DTOR(http_req);
+	zend_object_std_dtor(object);
 }/*}}}*/
 
 #endif /* HAVE_EVENT_EXTRA_LIB */
@@ -379,16 +422,16 @@ static void php_event_ssl_context_free_obj(zend_object *object)/*{{{*/
 		ectx->ht = NULL;
 	}
 
-	Z_EVENT_STD_OBJ_DTOR(ectx);
+	zend_object_std_dtor(object);
 }/*}}}*/
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
 
 static zend_object * event_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_t *intern;
+	Z_EVENT_X_OBJ_T(event) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_t);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(event));
 	intern->zo.handlers = &event_event_object_handlers;
 
 	return &intern->zo;
@@ -396,9 +439,9 @@ static zend_object * event_object_create(zend_class_entry *ce)/*{{{*/
 
 static zend_object * event_base_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_base_t *intern;
+	Z_EVENT_X_OBJ_T(base) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_base_t);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(base));
 	intern->zo.handlers = &event_base_object_handlers;
 
 	return &intern->zo;
@@ -406,9 +449,9 @@ static zend_object * event_base_object_create(zend_class_entry *ce)/*{{{*/
 
 static zend_object * event_config_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_config_t *intern;
+	Z_EVENT_X_OBJ_T(config) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_config_t);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(config));
 	intern->zo.handlers = &event_config_object_handlers;
 
 	return &intern->zo;
@@ -417,9 +460,9 @@ static zend_object * event_config_object_create(zend_class_entry *ce)/*{{{*/
 
 static zend_object * event_bevent_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_bevent_t *intern;
+	Z_EVENT_X_OBJ_T(bevent) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_bevent_ce);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(bevent));
 	intern->zo.handlers = &event_bevent_object_handlers;
 
 	return &intern->zo;
@@ -427,9 +470,9 @@ static zend_object * event_bevent_object_create(zend_class_entry *ce)/*{{{*/
 
 static zend_object * event_buffer_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_buffer_t *intern;
+	Z_EVENT_X_OBJ_T(buffer) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_buffer_ce);
+	PHP_EVENT_OBJ_ALLOC(intern, ce,  Z_EVENT_X_OBJ_T(buffer));
 	intern->zo.handlers = &event_buffer_object_handlers;
 
 	return &intern->zo;
@@ -445,9 +488,9 @@ static zend_object * event_util_object_create(zend_class_entry *ce)/*{{{*/
 #ifdef HAVE_EVENT_OPENSSL_LIB
 static zend_object * event_ssl_context_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_ssl_context_t *intern;
+	Z_EVENT_X_OBJ_T(ssl_context) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_ssl_context_ce);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(ssl_context));
 	intern->zo.handlers = &event_ssl_context_object_handlers;
 
 	return &intern->zo;
@@ -457,9 +500,9 @@ static zend_object * event_ssl_context_object_create(zend_class_entry *ce)/*{{{*
 #if HAVE_EVENT_EXTRA_LIB
 static zend_object * event_dns_base_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_dns_base_t *intern;
+	Z_EVENT_X_OBJ_T(dns_base) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_dns_base_t);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(dns_base));
 	intern->zo.handlers = &event_dns_base_object_handlers;
 
 	return &intern->zo;
@@ -467,9 +510,9 @@ static zend_object * event_dns_base_object_create(zend_class_entry *ce)/*{{{*/
 
 static zend_object * event_listener_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_listener_t *intern;
+	Z_EVENT_X_OBJ_T(listener) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_listener_t);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(listener));
 	intern->zo.handlers = &event_listener_object_handlers;
 
 	return &intern->zo;
@@ -477,9 +520,9 @@ static zend_object * event_listener_object_create(zend_class_entry *ce)/*{{{*/
 
 static zend_object * event_http_conn_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_http_conn_t *intern;
+	Z_EVENT_X_OBJ_T(http_conn) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_http_conn_t);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(http_conn));
 	intern->zo.handlers = &event_http_conn_object_handlers;
 
 	return &intern->zo;
@@ -487,9 +530,9 @@ static zend_object * event_http_conn_object_create(zend_class_entry *ce)/*{{{*/
 
 static zend_object * event_http_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_http_t *intern;
+	Z_EVENT_X_OBJ_T(http) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_http_t);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(http));
 	intern->zo.handlers = &event_http_object_handlers;
 
 	return &intern->zo;
@@ -497,9 +540,9 @@ static zend_object * event_http_object_create(zend_class_entry *ce)/*{{{*/
 
 static zend_object * event_http_req_object_create(zend_class_entry *ce)/*{{{*/
 {
-	php_event_http_req_t *intern;
+	Z_EVENT_X_OBJ_T(http_req) *intern;
 
-	PHP_EVENT_OBJ_ALLOC(intern, ce, php_event_http_req_t);
+	PHP_EVENT_OBJ_ALLOC(intern, ce, Z_EVENT_X_OBJ_T(http_req));
 	intern->zo.handlers = &event_http_req_object_handlers;
 
 	return &intern->zo;
@@ -1214,12 +1257,10 @@ PHP_RINIT_FUNCTION(event)
 /*}}}*/
 
 /*{{{ PHP_RSHUTDOWN_FUNCTION */
-#if 0
 PHP_RSHUTDOWN_FUNCTION(event)
 {
 	return SUCCESS;
 }
-#endif
 /*}}}*/
 
 /* {{{ PHP_MINFO_FUNCTION */
