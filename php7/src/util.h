@@ -34,7 +34,11 @@ static zend_always_inline void php_event_free_callback(php_event_callback_t *cb)
 
 static zend_always_inline void php_event_copy_callback(php_event_callback_t *cb, zval *zcb)/*{{{*/
 {
+#if 0
 	ZVAL_COPY(&cb->func_name, zcb);
+#else
+	ZVAL_ZVAL(&cb->func_name, zcb, 1, 0);
+#endif
 	cb->fci_cache = empty_fcall_info_cache;
 }/*}}}*/
 
@@ -153,9 +157,9 @@ static zend_always_inline HashTable * find_prop_handler(HashTable *classes, zend
 #define PHP_EVENT_OBJ_ALLOC(obj, ce, t)                                \
 	do {                                                               \
 		obj = ecalloc(1, sizeof(t) + zend_object_properties_size(ce)); \
-		PHP_EVENT_ASSERT(obj);                                         \
 		obj->prop_handler = find_prop_handler(&classes, ce);           \
-		init_properties(&obj->zo, ce);                                 \
+		zend_object_std_init(&obj->zo, ce);                            \
+		object_properties_init(&obj->zo, ce);                          \
 	} while (0)
 
 #define PHP_EVENT_TIMEVAL_SET(tv, t)                     \

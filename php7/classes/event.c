@@ -249,8 +249,15 @@ PHP_METHOD(Event, __construct)
 	}
 
 	e->event = event;
-	php_event_copy_zval(&e->data, zarg);
+
+	if (zarg) {
+		ZVAL_COPY(&e->data, zarg);
+	} else {
+		ZVAL_UNDEF(&e->data);
+	}
+
 	php_event_copy_callback(&e->cb, zcb);
+
 	e->stream_res = fd == -1 || (what & EV_SIGNAL) ? NULL : Z_RES_P(pzfd);
 }
 /* }}} */
@@ -539,7 +546,11 @@ PHP_METHOD(Event, timer)
 	}
 
 	e->event = event;
-	php_event_copy_zval(&e->data, zarg);
+	if (zarg) {
+		ZVAL_COPY(&e->data, zarg);
+	} else {
+		ZVAL_UNDEF(&e->data);
+	}
 	php_event_copy_callback(&e->cb, zcb);
 	e->stream_res = NULL; /* stdin fd = 0 */
 }

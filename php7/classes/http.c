@@ -213,8 +213,7 @@ static struct bufferevent* _bev_ssl_callback(struct event_base *base, void *arg)
 
 /* }}} */
 
-/* {{{  _php_event_free_http_cb */
-void _php_event_free_http_cb(php_event_http_cb_t *http_cb)
+void _php_event_free_http_cb(php_event_http_cb_t *http_cb)/*{{{*/
 {
 	if (!Z_ISUNDEF(http_cb->data)) {
 		zval_ptr_dtor(&http_cb->data);
@@ -226,8 +225,7 @@ void _php_event_free_http_cb(php_event_http_cb_t *http_cb)
 	php_event_free_callback(&http_cb->cb);
 
 	efree(http_cb);
-}
-/* }}} */
+} /*}}}*/
 
 /* {{{ proto EventHttp EventHttp::__construct(EventBase base[, EventSslContext ctx = NULL]);
  * Creates new http server object.

@@ -1,5 +1,7 @@
 --TEST--
 Check for SEGFAULT with serialization functions
+--SKIPIF--
+<?php if (!class_exists("EventListener")) print "skip Event extra functions are disabled"; ?>
 --FILE--
 <?php
 $base = new EventBase();
