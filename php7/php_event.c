@@ -299,26 +299,7 @@ static void php_event_listener_free_obj(zend_object *object)/*{{{*/
 static void php_event_http_conn_free_obj(zend_object *object)/*{{{*/
 {
 	php_event_http_conn_t *evcon = Z_EVENT_X_FETCH_OBJ(http_conn, object);
-
 	PHP_EVENT_ASSERT(evcon);
-
-	php_event_free_callback(&evcon->cb_close);
-
-	if (Z_REFCOUNT(evcon->self) > 1) {
-		zval_ptr_dtor(&evcon->self);
-	}
-
-	if (!Z_ISUNDEF(evcon->data_closecb)) {
-		zval_ptr_dtor(&evcon->data_closecb);
-	}
-
-	if (!Z_ISUNDEF(evcon->base)) {
-		zval_ptr_dtor(&evcon->base);
-	}
-
-	if (!Z_ISUNDEF(evcon->dns_base)) {
-		zval_ptr_dtor(&evcon->dns_base);
-	}
 
 	if (evcon->conn) {
 		evhttp_connection_free(evcon->conn);
@@ -344,18 +325,10 @@ static void php_event_http_free_obj(zend_object *object)/*{{{*/
 
 static void php_event_http_req_free_obj(zend_object *object)/*{{{*/
 {
+#if 0
 	php_event_http_req_t *http_req = Z_EVENT_X_FETCH_OBJ(http_req, object);
-
 	PHP_EVENT_ASSERT(http_req);
-
-	php_event_free_callback(&http_req->cb);
-
-	if (Z_REFCOUNT(http_req->self) > 1) {
-		zval_ptr_dtor(&http_req->self);
-	}
-	if (!Z_ISUNDEF(http_req->data)) {
-		zval_ptr_dtor(&http_req->data);
-	}
+#endif
 
 #if 0
 	/*
@@ -463,9 +436,12 @@ static void php_event_http_req_dtor_obj(zend_object *object)/*{{{*/
 
 	php_event_free_callback(&intern->cb);
 
-	if (Z_REFCOUNT(intern->self) > 1) {
-		zval_ptr_dtor(&intern->self);
+	if (!Z_ISUNDEF(intern->self)) {
+		if (Z_REFCOUNT(intern->self) > 1) {
+			zval_ptr_dtor(&intern->self);
+		}
 	}
+
 	if (!Z_ISUNDEF(intern->data)) {
 		zval_ptr_dtor(&intern->data);
 	}
@@ -889,7 +865,7 @@ static HashTable * php_event_ ## x ## _get_debug_info(zval *object, int *is_temp
 {                                                                                                                           \
 	HashTable *retval;                                                                                                      \
 	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
-	if (EXPECTED(obj)) {                                                                                                    \
+	if (EXPECTED(obj) && obj->prop_handler) {                                                                               \
 		retval = object_get_debug_info(object, is_temp, (void *)obj, obj->prop_handler);                                    \
 	} else {                                                                                                                \
 		ALLOC_HASHTABLE(retval);                                                                                            \

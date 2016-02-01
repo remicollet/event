@@ -57,8 +57,15 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	zval                 *pzreq;
 	zval                  argv[2];
 	zval                  retval;
+	zend_string          *func_name;
 
 	PHP_EVENT_ASSERT(cb);
+
+	if (!zend_is_callable(&cb->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+		zend_string_release(func_name);
+		return;
+	}
+	zend_string_release(func_name);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
