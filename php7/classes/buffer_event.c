@@ -1019,8 +1019,8 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 	php_event_bevent_t      *bev_underlying;
 	zval                    *zctx;
 	php_event_ssl_context_t *ectx;
-	zend_long                    state;
-	zend_long                    options        = 0;
+	zend_long                state;
+	zend_long                options        = 0;
 	php_event_bevent_t      *bev;
 	struct bufferevent      *bevent;
 	SSL                     *ssl;
@@ -1036,8 +1036,7 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
 	if (!is_valid_ssl_state(state)) {
-		php_error_docref(NULL, E_WARNING,
-				"Invalid state specified");
+		php_error_docref(NULL, E_WARNING, "Invalid state specified");
 		RETURN_FALSE;
 	}
 
@@ -1073,6 +1072,10 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 
 	ZVAL_COPY(&bev->self, return_value);
 	ZVAL_COPY(&bev->base, zbase);
+
+	ZVAL_UNDEF(&bev->input);
+	ZVAL_UNDEF(&bev->output);
+	ZVAL_UNDEF(&bev->data);
 }
 /* }}} */
 

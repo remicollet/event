@@ -249,8 +249,6 @@ static void php_event_buffer_free_obj(zend_object *object)/*{{{*/
 	php_event_buffer_t *b = Z_EVENT_X_FETCH_OBJ(buffer, object);
 	PHP_EVENT_ASSERT(b);
 
-	zend_object_std_dtor(object);
-
 	/* If we got the buffer in, say, a read callback the buffer
 	 * is destroyed when the callback is done as any normal variable.
 	 * Zend MM calls destructor which eventually calls this function.
@@ -261,6 +259,8 @@ static void php_event_buffer_free_obj(zend_object *object)/*{{{*/
 		evbuffer_free(b->buf);
 		b->buf = NULL;
 	}
+
+	zend_object_std_dtor(object);
 }/*}}}*/
 
 #ifdef HAVE_EVENT_EXTRA_LIB
@@ -330,7 +330,6 @@ static void php_event_http_conn_free_obj(zend_object *object)/*{{{*/
 
 static void php_event_http_free_obj(zend_object *object)/*{{{*/
 {
-	php_event_http_cb_t *cb, *cb_next;
 	php_event_http_t *http = Z_EVENT_X_FETCH_OBJ(http, object);
 
 	PHP_EVENT_ASSERT(http);
@@ -375,6 +374,14 @@ static void php_event_http_req_free_obj(zend_object *object)/*{{{*/
 }/*}}}*/
 
 
+static void php_event_dns_base_dtor_obj(zend_object *object)/*{{{*/
+{
+	Z_EVENT_X_OBJ_T(dns_base) *intern = Z_EVENT_X_FETCH_OBJ(dns_base, object);
+	PHP_EVENT_ASSERT(intern);
+
+	zend_objects_destroy_object(object);
+}/*}}}*/
+
 static void php_event_listener_dtor_obj(zend_object *object)/*{{{*/
 {
 	Z_EVENT_X_OBJ_T(listener) *intern = Z_EVENT_X_FETCH_OBJ(listener, object);
@@ -384,8 +391,10 @@ static void php_event_listener_dtor_obj(zend_object *object)/*{{{*/
 		zval_ptr_dtor(&intern->data);
 	}
 
-	if (Z_REFCOUNT(intern->self) > 1) {
-		zval_ptr_dtor(&intern->self);
+	if (!Z_ISUNDEF(intern->self)) {
+		if (Z_REFCOUNT(intern->self) > 1) {
+			zval_ptr_dtor(&intern->self);
+		}
 	}
 
 	php_event_free_callback(&intern->cb);
@@ -441,7 +450,7 @@ static void php_event_http_dtor_obj(zend_object *object)/*{{{*/
 	}
 
 	if (!Z_ISUNDEF(intern->base)) {
-		zval_ptr_dtor(&ttp->base);
+		zval_ptr_dtor(&intern->base);
 	}
 
 	zend_objects_destroy_object(object);
@@ -449,7 +458,6 @@ static void php_event_http_dtor_obj(zend_object *object)/*{{{*/
 
 static void php_event_http_req_dtor_obj(zend_object *object)/*{{{*/
 {
-	php_event_http_req_t *http_req = Z_EVENT_X_FETCH_OBJ(http_req, object);
 	Z_EVENT_X_OBJ_T(http_req) *intern = Z_EVENT_X_FETCH_OBJ(http_req, object);
 	PHP_EVENT_ASSERT(intern);
 
@@ -485,6 +493,16 @@ static void php_event_ssl_context_free_obj(zend_object *object)/*{{{*/
 	}
 
 	zend_object_std_dtor(object);
+}/*}}}*/
+
+static void php_event_ssl_context_dtor_obj(zend_object *object)/*{{{*/
+{
+#if 0
+	Z_EVENT_X_OBJ_T(ssl_context) *intern = Z_EVENT_X_FETCH_OBJ(ssl_context, object);
+	PHP_EVENT_ASSERT(intern);
+#endif
+
+	zend_objects_destroy_object(object);
 }/*}}}*/
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 

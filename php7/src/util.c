@@ -38,7 +38,7 @@ php_socket_t php_event_zval_to_fd(zval *pfd)
 		/* PHP stream or PHP socket resource  */
 		if ((stream = (php_stream *)zend_fetch_resource2(Z_RES_P(pfd), NULL, php_file_le_stream(), php_file_le_pstream())) != NULL) {
 			if (php_stream_is(stream, PHP_STREAM_IS_MEMORY) || php_stream_is(stream, PHP_STREAM_IS_TEMP)) {
-				zend_throw_exception(zend_exception_get_default(),
+				zend_throw_exception(zend_ce_exception,
 						"Cannot fetch file descriptor from memory based stream", 0);
 				return -1;
 			}
@@ -46,7 +46,7 @@ php_socket_t php_event_zval_to_fd(zval *pfd)
 			php_stream_from_zval_no_verify(stream, pfd);
 
 			if (stream == NULL) {
-				zend_throw_exception(zend_exception_get_default(), "Failed obtaining fd", 0);
+				zend_throw_exception(zend_ce_exception, "Failed obtaining fd", 0);
 				return -1;
 			}
 
@@ -85,12 +85,12 @@ php_socket_t php_event_zval_to_fd(zval *pfd)
 				}
 				return php_sock->bsd_socket;
 			} else {
-				zend_throw_exception(zend_exception_get_default(),
+				zend_throw_exception(zend_ce_exception,
 						"Expected either valid PHP stream or valid PHP socket resource", 0);
 				return -1;
 			}
 #else
-			zend_throw_exception(zend_exception_get_default(),
+			zend_throw_exception(zend_ce_exception,
 					"valid PHP stream resource expected", 0);
 #endif
 			return -1;
@@ -98,16 +98,16 @@ php_socket_t php_event_zval_to_fd(zval *pfd)
 	} else if (Z_TYPE_P(pfd) == IS_LONG) {
 		file_desc = Z_LVAL_P(pfd);
 		if (file_desc < 0) {
-			zend_throw_exception(zend_exception_get_default(), invalid_fd_error, 0);
+			zend_throw_exception(zend_ce_exception, invalid_fd_error, 0);
 			return -1;
 		}
 	} else {
-		zend_throw_exception(zend_exception_get_default(), invalid_fd_error, 0);
+		zend_throw_exception(zend_ce_exception, invalid_fd_error, 0);
 		return -1;
 	}
 
 	if (!ZEND_VALID_SOCKET(file_desc)) {
-		zend_throw_exception(zend_exception_get_default(), invalid_fd_error, 0);
+		zend_throw_exception(zend_ce_exception, invalid_fd_error, 0);
 		return -1;
 	}
 

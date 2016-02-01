@@ -16,19 +16,36 @@ $sock_paths = array (
 	"/tmp/".mt_rand().".sock"      => FALSE,
 );
 
-foreach ($sock_paths as $path => $expect) {
-	$listener = @new EventListener($base, function() {}, NULL, 0, -1, $path);
-	if (file_exists($path)) unlink($path);
+if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
+	foreach ($sock_paths as $path => $expect) {
+		$res = true;
 
-	var_dump(is_null($listener) != $expect);
+		try {
+			$listener = @new EventListener($base, function() {}, NULL, 0, -1, $path);
+		} catch (Exception $e) {
+			$res = false;
+		}
+
+		if (file_exists($path)) {
+			unlink($path);
+		}
+
+		var_dump($expect == $res);
+	}
+} else { // PHP5
+	foreach ($sock_paths as $path => $expect) {
+		$listener = @new EventListener($base, function() {}, NULL, 0, -1, $path);
+
+		if (file_exists($path)) {
+			unlink($path);
+		}
+
+		var_dump(is_null($listener) != $expect);
+	}
 }
-
-$l = new EventListener(new EventBase(), function() {}, NULL, EventUtil::AF_UNIX, 0, 'unix:/tmp/1.sock');
 ?>
 --EXPECTF--
 bool(true)
 bool(true)
 bool(true)
 bool(true)
-
-Fatal error: EventListener::__construct(): EventBase must be passed by reference in %s on line %d

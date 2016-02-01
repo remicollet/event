@@ -1,5 +1,11 @@
 --TEST--
-Check for Event::set() error behavior
+Check for Event::set() error behavior in PHP 5
+--SKIPIF--
+<?php
+if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
+	die('skip target is PHP version < 7');
+}
+?>
 --FILE--
 <?php
 $b = new EventBase();

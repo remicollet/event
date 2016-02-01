@@ -16,11 +16,7 @@ $pair[0]->disable(Event::WRITE);
 $pair[0]->write("xyz");
 echo $pair[1]->read(10) == "" ? "ok" : 'failed', PHP_EOL;
 $base->loop();
-
-EventBufferEvent::createPair(new EventBase());
 ?>
 --EXPECTF--
 ok
 ok
-
-Fatal error: EventBufferEvent::createPair(): EventBase must be passed by reference in %s on line %d

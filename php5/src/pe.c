@@ -79,6 +79,7 @@ static inline void _prop_read_zval(zval *pz, zval **retval)
 
 
 
+#ifdef HAVE_EVENT_OPENSSL_LIB
 /* {{{ get_ssl_option */
 static zval **get_ssl_option(const HashTable *ht, ulong idx)
 {
@@ -91,6 +92,7 @@ static zval **get_ssl_option(const HashTable *ht, ulong idx)
 	return NULL;
 }
 /* }}} */
+#endif
 
 
 /* {{{ event_pending_prop_read */

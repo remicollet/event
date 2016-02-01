@@ -302,6 +302,7 @@ PHP_METHOD(Event, set)
 	}
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
+	php_printf("Event::set(): zbase rc: %d\n", Z_REFCOUNT_P(zbase));
 
 	if (what != -1) {
 		if (what & ~(EV_TIMEOUT | EV_READ | EV_WRITE | EV_SIGNAL | EV_PERSIST | EV_ET)) {

@@ -18,6 +18,7 @@
 #include "src/common.h"
 #include "src/util.h"
 #include "src/priv.h"
+#include "zend_exceptions.h"
 
 /* {{{ Private */
 
@@ -252,7 +253,7 @@ PHP_METHOD(EventListener, __construct)
 	php_event_base_t      *base;
 	php_event_listener_t  *l;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ofz!llz",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ozz!llz",
 				&zbase, php_event_base_ce,
 				&zcb, &zdata, &flags, &backlog, &pztarget) == FAILURE) {
 		return;
@@ -282,7 +283,8 @@ PHP_METHOD(EventListener, __construct)
 #endif
 			if (php_network_parse_network_address_with_port(Z_STRVAL_P(pztarget),
 						Z_STRLEN_P(pztarget), (struct sockaddr *)&ss, &ss_len) != SUCCESS) {
-				ZVAL_NULL(zself);
+				zend_throw_exception_ex(zend_ce_exception, 0,
+						"Failed to parse network address %s", Z_STRVAL_P(pztarget));
 				return;
 			}
 
@@ -294,11 +296,8 @@ PHP_METHOD(EventListener, __construct)
 	} else { /* pztarget is not string */
 		evutil_socket_t fd = -1;
 
-		/* php_event_zval_to_fd reports error
-	 	 * in case if it is not a valid socket resource */
 		fd = php_event_zval_to_fd(pztarget);
 		if (fd < 0) {
-			ZVAL_NULL(zself);
 			return;
 		}
 
@@ -314,7 +313,6 @@ PHP_METHOD(EventListener, __construct)
 	}
 
 	if (!listener) {
-		ZVAL_NULL(zself);
 		return;
 	}
 

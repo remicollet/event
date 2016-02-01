@@ -555,16 +555,14 @@ PHP_METHOD(EventBufferEvent, connectHost)
 #else
 	php_event_bevent_t *bev;
 	zval               *zbevent      = getThis();
-	zval               *zdns_base    = NULL;
 	char               *hostname;
 	int                 hostname_len;
 	long                port;
 	long                family       = AF_UNSPEC;
 #ifdef HAVE_EVENT_EXTRA_LIB
 	php_event_dns_base_t *dnsb;
-#endif
+	zval                 *zdns_base = NULL;
 
-#ifdef HAVE_EVENT_EXTRA_LIB
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O!sl|l",
 				&zdns_base, php_event_dns_base_ce, &hostname, &hostname_len,
 				&port, &family) == FAILURE) {
