@@ -106,7 +106,7 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	/*evhttp_request_own(http_req->ptr);*/
 
 	if (zend_call_function(&fci, &http_req->cb.fci_cache) == SUCCESS) {
-		if (Z_ISUNDEF(retval)) {
+		if (!Z_ISUNDEF(retval)) {
 			zval_ptr_dtor(&retval);
 		}
 	} else {
@@ -142,11 +142,15 @@ PHP_METHOD(EventHttpRequest, __construct)
 
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)
 	 * XXX Not sure if it's really needed here though. */
-	/*evhttp_request_own(req);*/
+	evhttp_request_own(req);
 	http_req->ptr = req;
 
-	php_event_copy_zval(&http_req->data, zarg);
-	php_event_copy_zval(&http_req->self, zself);
+	ZVAL_COPY(&http_req->self, zself);
+	if (zarg) {
+		ZVAL_COPY(&http_req->data, zarg);
+	} else {
+		ZVAL_UNDEF(&http_req->data);
+	}
 	php_event_copy_callback(&http_req->cb, zcb);
 }
 /* }}} */

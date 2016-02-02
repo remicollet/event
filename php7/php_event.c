@@ -776,8 +776,6 @@ static HashTable * object_get_debug_info(zval *object, int *is_temp, void *obj, 
 		}
 	} ZEND_HASH_FOREACH_END();
 
-	*is_temp = 1;
-
 	return retval;
 }/*}}}*/
 
@@ -835,14 +833,12 @@ static HashTable * get_properties(zval *object, void *obj, HashTable *prop_handl
 
 	return props;
 }/*}}}*/
-#if 0
 static HashTable * get_gc(zval *object, zval **gc_data, int *gc_count)/*{{{*/
 {
 	*gc_data = NULL;
 	*gc_count = 0;
 	return zend_std_get_properties(object);
 }/*}}}*/
-#endif
 
 #define PHP_EVENT_X_PROP_HND_DECL(x)                                                                                        \
 static zval * php_event_ ## x ## _read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv) {        \
@@ -861,17 +857,19 @@ static int php_event_ ## x ## _has_property(zval *object, zval *member, int has_
 	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
 	return (obj ? object_has_property(object, member, has_set_exists, cache_slot, (void *)obj, obj->prop_handler) : 0);     \
 }                                                                                                                           \
-static HashTable * php_event_ ## x ## _get_debug_info(zval *object, int *is_temp)                                           \
-{                                                                                                                           \
-	HashTable *retval;                                                                                                      \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
-	if (EXPECTED(obj) && obj->prop_handler) {                                                                               \
-		retval = object_get_debug_info(object, is_temp, (void *)obj, obj->prop_handler);                                    \
-	} else {                                                                                                                \
-		ALLOC_HASHTABLE(retval);                                                                                            \
-	}                                                                                                                       \
-	return retval;                                                                                                          \
-}                                                                                                                           \
+static HashTable * php_event_ ## x ## _get_debug_info(zval *object, int *is_temp)        \
+{                                                                                        \
+	HashTable *retval;                                                                   \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                \
+	if (EXPECTED(obj) && obj->prop_handler) {                                            \
+		retval = object_get_debug_info(object, is_temp, (void *)obj, obj->prop_handler); \
+	} else {                                                                             \
+		ALLOC_HASHTABLE(retval);                                                         \
+		ZEND_INIT_SYMTABLE_EX(retval, 1, 0);                                             \
+	}                                                                                    \
+	*is_temp = 1;                                                                        \
+	return retval;                                                                       \
+}                                                                                        \
 static zval * php_event_ ## x ## _get_property_ptr_ptr(zval *object, zval *member, int type, void **cache_slot)             \
 {                                                                                                                           \
 	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
@@ -1033,17 +1031,15 @@ static zend_always_inline void register_classes()/*{{{*/
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
 {
-	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
-
-	memcpy(&event_event_object_handlers, std_hnd, sizeof(zend_object_handlers));
-	event_event_object_handlers.clone_obj = NULL;
 #if 0
-	event_event_object_handlers.get_gc    = get_gc;
+	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 #endif
+
+	memcpy(&event_event_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	PHP_EVENT_SET_X_OBJ_HANDLERS(event);
 
 #define PHP_EVENT_INIT_X_OBJ_HANDLERS(x) do { \
-	memcpy(&PHP_EVENT_X_OBJ_HANDLERS(x), &event_event_object_handlers, sizeof(zend_object_handlers)); \
+	memcpy(&PHP_EVENT_X_OBJ_HANDLERS(x), zend_get_std_object_handlers(), sizeof(zend_object_handlers)); \
 	PHP_EVENT_SET_X_OBJ_HANDLERS(x); \
 } while (0)
 
@@ -1061,7 +1057,7 @@ PHP_MINIT_FUNCTION(event)
 #if 0
 	PHP_EVENT_INIT_X_OBJ_HANDLERS(util);
 #else
-	memcpy(&PHP_EVENT_X_OBJ_HANDLERS(util), std_hnd, sizeof(zend_object_handlers));
+	memcpy(&PHP_EVENT_X_OBJ_HANDLERS(util), zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	PHP_EVENT_X_OBJ_HANDLERS(util).clone_obj = NULL;
 #if 0
 	PHP_EVENT_X_OBJ_HANDLERS(util).get_gc    = get_gc;

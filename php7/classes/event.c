@@ -74,7 +74,7 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	fci.symbol_table = NULL;
 
 	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
-		if (Z_ISUNDEF(retval)) {
+		if (!Z_ISUNDEF(retval)) {
 			zval_ptr_dtor(&retval);
 		}
 	} else {
@@ -129,7 +129,7 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	fci.symbol_table = NULL;
 
 	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
-		if (Z_ISUNDEF(retval)) {
+		if (!Z_ISUNDEF(retval)) {
 			zval_ptr_dtor(&retval);
 		}
 	} else {
@@ -179,7 +179,7 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	fci.symbol_table = NULL;
 
 	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
-		if (Z_ISUNDEF(retval)) {
+		if (!Z_ISUNDEF(retval)) {
 			zval_ptr_dtor(&retval);
 		}
 	} else {
@@ -302,7 +302,6 @@ PHP_METHOD(Event, set)
 	}
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
-	php_printf("Event::set(): zbase rc: %d\n", Z_REFCOUNT_P(zbase));
 
 	if (what != -1) {
 		if (what & ~(EV_TIMEOUT | EV_READ | EV_WRITE | EV_SIGNAL | EV_PERSIST | EV_ET)) {

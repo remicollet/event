@@ -84,6 +84,8 @@ static zend_always_inline void php_event_copy_zval(zval *zdst, zval *zsrc) {/*{{
 
 #define PHP_EVENT_SET_X_OBJ_HANDLERS(x) do { \
 	PHP_EVENT_X_OBJ_HANDLERS(x).offset = XtOffsetOf(Z_EVENT_X_OBJ_T(x), zo); \
+	PHP_EVENT_X_OBJ_HANDLERS(x).get_gc = get_gc; \
+	PHP_EVENT_X_OBJ_HANDLERS(x).clone_obj = NULL; \
 	PHP_EVENT_SET_X_OBJ_HANDLER(x, free_obj); \
 	PHP_EVENT_SET_X_OBJ_HANDLER(x, dtor_obj); \
 	PHP_EVENT_SET_X_OBJ_HANDLER(x, read_property); \

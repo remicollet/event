@@ -50,15 +50,15 @@ static zend_always_inline php_event_http_cb_t * _new_http_cb(zval *zbase, zval *
 /* {{{ _http_callback */
 static void _http_callback(struct evhttp_request *req, void *arg)
 {
-	php_event_http_cb_t  *cb       = (php_event_http_cb_t *)arg;
-	php_event_base_t     *b;
-	php_event_http_req_t *http_req;
-	zend_fcall_info       fci;
-	zval                 *pzreq;
-	zval                  argv[2];
-	zval                  retval;
-	zend_string          *func_name;
+	php_event_http_cb_t *cb;
+	zend_fcall_info      fci;
+	zval                 argv[2];
+	zval                 retval;
+	zend_string         *func_name;
+	Z_EVENT_X_OBJ_T(base) *b;
+	Z_EVENT_X_OBJ_T(http_req) *http_req;
 
+	cb = (php_event_http_cb_t *)arg;
 	PHP_EVENT_ASSERT(cb);
 
 	if (!zend_is_callable(&cb->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
@@ -70,14 +70,14 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
-	pzreq = &argv[0];
-	PHP_EVENT_INIT_CLASS_OBJECT(pzreq, php_event_http_req_ce);
-	http_req = Z_EVENT_HTTP_REQ_OBJ_P(pzreq);
+	PHP_EVENT_INIT_CLASS_OBJECT(&argv[0], php_event_http_req_ce);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(&argv[0]);
 	http_req->ptr = req;
-#if 0
+	ZVAL_UNDEF(&http_req->self);
+	ZVAL_UNDEF(&http_req->data);
+	php_event_init_callback(&http_req->cb);
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
-	Z_TRY_ADDREF_P(pzreq);
-#endif
+	Z_TRY_ADDREF_P(&argv[0]);
 
 	if (Z_ISUNDEF(cb->data)) {
 		ZVAL_NULL(&argv[1]);
@@ -112,8 +112,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 				zval_ptr_dtor(&argv[1]);
 			}
 		} else {
-			php_error_docref(NULL, E_WARNING,
-					"An error occurred while invoking the http request callback");
+			php_error_docref(NULL, E_WARNING, "Failed to invoke the http request callback");
 		}
 	}
 
@@ -129,31 +128,37 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 /* {{{ _http_default_callback */
 static void _http_default_callback(struct evhttp_request *req, void *arg)
 {
-	php_event_http_t     *http     = (php_event_http_t *) arg;
-	php_event_http_req_t *http_req;
-	zend_fcall_info       fci;
-	zval                  argv[2];
-	zval                 *pzreq;
-	zval                  retval;
-	php_event_base_t     *b;
+	php_event_http_t *http      = (php_event_http_t *) arg;
+	zend_fcall_info   fci;
+	zval              argv[2];
+	zval              retval;
+	zend_string      *func_name;
+	Z_EVENT_X_OBJ_T(base) *b;
+	Z_EVENT_X_OBJ_T(http_req) *http_req;
 
 	PHP_EVENT_ASSERT(http);
+
+	if (!zend_is_callable(&http->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+		zend_string_release(func_name);
+		return;
+	}
+	zend_string_release(func_name);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpRequest req, mixed data);*/
 
-	pzreq = &argv[0];
-	PHP_EVENT_INIT_CLASS_OBJECT(pzreq, php_event_http_req_ce);
-	http_req = Z_EVENT_HTTP_REQ_OBJ_P(pzreq);
-	http_req->ptr      = req;
-#if 0
+	PHP_EVENT_INIT_CLASS_OBJECT(&argv[0], php_event_http_req_ce);
+	http_req = Z_EVENT_HTTP_REQ_OBJ_P(&argv[0]);
+	http_req->ptr = req;
+	ZVAL_UNDEF(&http_req->self);
+	ZVAL_UNDEF(&http_req->data);
+	php_event_init_callback(&http_req->cb);
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
-#endif
 
-	if (!Z_ISUNDEF(http->data)) {
-		ZVAL_COPY(&argv[1], &http->data);
-	} else {
+	if (Z_ISUNDEF(http->data)) {
 		ZVAL_NULL(&argv[1]);
+	} else {
+		ZVAL_COPY(&argv[1], &http->data);
 	}
 
 	fci.size = sizeof(fci);

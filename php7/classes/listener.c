@@ -163,7 +163,7 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	fci.symbol_table = NULL;
 
 	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
-		if (Z_ISUNDEF(retval)) {
+		if (!Z_ISUNDEF(retval)) {
 			zval_ptr_dtor(&retval);
 		}
 	} else {
@@ -215,7 +215,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	fci.symbol_table = NULL;
 
 	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
-		if (Z_ISUNDEF(retval)) {
+		if (!Z_ISUNDEF(retval)) {
 			zval_ptr_dtor(&retval);
 		}
 	} else {

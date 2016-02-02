@@ -169,6 +169,7 @@
         <file role="test" name="tests/23-php5-listener-error.phpt"/>
         <file role="test" name="tests/24-php5-bevent-sslfilter-error.phpt"/>
         <file role="test" name="tests/25-php5-bevent-sslsocket-error.phpt"/>
+        <file role="test" name="tests/26-http-debug-info.phpt"/>
       </dir>
     </dir>
   </contents>
