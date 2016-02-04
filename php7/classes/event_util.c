@@ -148,12 +148,12 @@ PHP_METHOD(EventUtil, setSocketOption)
 				convert_to_array_ex(zoptval);
 				opt_ht = HASH_OF(zoptval);
 
-				if ((l_onoff = zend_hash_str_find(opt_ht, "l_onoff", sizeof("l_onoff") - 1)) != NULL) {
+				if ((l_onoff = zend_hash_str_find(opt_ht, "l_onoff", sizeof("l_onoff") - 1)) == NULL) {
 					php_error_docref(NULL, E_WARNING, "no key \"l_onoff\" passed in optval");
 					RETURN_FALSE;
 				}
 
-				if ((l_linger = zend_hash_str_find(opt_ht, "l_linger", sizeof("l_linger") - 1)) != NULL) {
+				if ((l_linger = zend_hash_str_find(opt_ht, "l_linger", sizeof("l_linger") - 1)) == NULL) {
 					php_error_docref(NULL, E_WARNING, "no key \"l_linger\" passed in optval");
 					RETURN_FALSE;
 				}
@@ -179,12 +179,12 @@ PHP_METHOD(EventUtil, setSocketOption)
 				convert_to_array_ex(zoptval);
 				opt_ht = HASH_OF(zoptval);
 
-				if ((sec = zend_hash_str_find(opt_ht, "sec", sizeof("sec") - 1)) != NULL) {
+				if ((sec = zend_hash_str_find(opt_ht, "sec", sizeof("sec") - 1)) == NULL) {
 					php_error_docref(NULL, E_WARNING, "no key \"sec\" passed in optval");
 					RETURN_FALSE;
 				}
 
-				if ((usec = zend_hash_str_find(opt_ht, "usec", sizeof("usec") - 1)) != NULL) {
+				if ((usec = zend_hash_str_find(opt_ht, "usec", sizeof("usec") - 1)) == NULL) {
 					php_error_docref(NULL, E_WARNING, "no key \"usec\" passed in optval");
 					RETURN_FALSE;
 				}
