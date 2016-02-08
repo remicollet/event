@@ -32,19 +32,20 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2015-09-15</date>
+  <date>2016-02-08</date>
   <!--{{{ Current version -->
   <version>
-    <release>1.11.3</release>
-    <api>1.10.0</api>
+    <release>2.0.0RC1</release>
+    <api>2.0.0</api>
   </version>
   <stability>
-    <release>stable</release>
+    <release>beta</release>
     <api>stable</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Issue #20: SSL_GET_PREV_SESSION:session id context uninitialized
+    Added PHP7 support
+    In PHP7 EventUtil::createSocket method added
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -56,23 +57,65 @@
       <file role="doc" name="README.md"/>
       <file role="src" name="config.m4"/>
       <file role="src" name="config.w32"/>
-      <file role="src" name="php_event.c"/>
-      <file role="src" name="php_event.h"/>
-      <dir name="classes">
-        <file role="src" name="base.c"/>
-        <file role="src" name="buffer.c"/>
-        <file role="src" name="buffer_event.c"/>
-        <file role="src" name="dns.c"/>
-        <file role="src" name="event.c"/>
-        <file role="src" name="event_config.c"/>
-        <file role="src" name="event_util.c"/>
-        <file role="src" name="http.c"/>
-        <file role="src" name="http.h"/>
-        <file role="src" name="http_connection.c"/>
-        <file role="src" name="http_request.c"/>
-        <file role="src" name="listener.c"/>
-        <file role="src" name="ssl_context.h"/>
-        <file role="src" name="ssl_context.c"/>
+      <dir name="php5">
+        <file role="src" name="php_event.c"/>
+        <file role="src" name="php_event.h"/>
+        <dir name="classes">
+          <file role="src" name="base.c"/>
+          <file role="src" name="buffer.c"/>
+          <file role="src" name="buffer_event.c"/>
+          <file role="src" name="dns.c"/>
+          <file role="src" name="event.c"/>
+          <file role="src" name="event_config.c"/>
+          <file role="src" name="event_util.c"/>
+          <file role="src" name="http.c"/>
+          <file role="src" name="http.h"/>
+          <file role="src" name="http_connection.c"/>
+          <file role="src" name="http_request.c"/>
+          <file role="src" name="listener.c"/>
+          <file role="src" name="ssl_context.h"/>
+          <file role="src" name="ssl_context.c"/>
+        </dir>
+        <dir name="src">
+          <file role="src" name="common.h"/>
+          <file role="src" name="fe.c"/>
+          <file role="src" name="fe.h"/>
+          <file role="src" name="pe.c"/>
+          <file role="src" name="priv.h"/>
+          <file role="src" name="structs.h"/>
+          <file role="src" name="util.c"/>
+          <file role="src" name="util.h"/>
+        </dir>
+      </dir>
+      <dir name="php7">
+        <file role="src" name="php_event.c"/>
+        <file role="src" name="php_event.h"/>
+        <dir name="classes">
+          <file role="src" name="base.c"/>
+          <file role="src" name="buffer.c"/>
+          <file role="src" name="buffer_event.c"/>
+          <file role="src" name="dns.c"/>
+          <file role="src" name="event.c"/>
+          <file role="src" name="event_config.c"/>
+          <file role="src" name="event_util.c"/>
+          <file role="src" name="http.c"/>
+          <file role="src" name="http.h"/>
+          <file role="src" name="http_connection.c"/>
+          <file role="src" name="http_request.c"/>
+          <file role="src" name="listener.c"/>
+          <file role="src" name="ssl_context.h"/>
+          <file role="src" name="ssl_context.c"/>
+        </dir>
+        <dir name="src">
+          <file role="src" name="common.h"/>
+          <file role="src" name="fe.c"/>
+          <file role="src" name="fe.h"/>
+          <file role="src" name="pe.c"/>
+          <file role="src" name="priv.h"/>
+          <file role="src" name="structs.h"/>
+          <file role="src" name="util.c"/>
+          <file role="src" name="util.h"/>
+        </dir>
       </dir>
       <dir name="examples">
         <file role="doc" name="buffer_proxy.php"/>
@@ -99,16 +142,6 @@
         <file role="doc" name="timer.php"/>
         <file role="doc" name="uppercase_proxy.php"/>
       </dir>
-      <dir name="src">
-        <file role="src" name="common.h"/>
-        <file role="src" name="fe.c"/>
-        <file role="src" name="fe.h"/>
-        <file role="src" name="pe.c"/>
-        <file role="src" name="priv.h"/>
-        <file role="src" name="structs.h"/>
-        <file role="src" name="util.c"/>
-        <file role="src" name="util.h"/>
-      </dir>
       <dir name="tests">
         <file role="test" name="01-load.phpt"/>
         <file role="test" name="02-features.phpt"/>
@@ -116,23 +149,29 @@
         <file role="test" name="04-bevent-socket.phpt"/>
         <file role="test" name="05-buffer-pos.phpt"/>
         <file role="test" name="06-timer.phpt"/>
-        <file role="test" name="07-listener-error.phpt"/>
         <file role="test" name="07-listener-error-win32.phpt"/>
+        <file role="test" name="07-listener-error.phpt"/>
         <file role="test" name="08-buffer.phpt"/>
         <file role="test" name="09-gc-cycles.phpt"/>
         <file role="test" name="10-event-data-dtor.phpt"/>
         <file role="test" name="11-gc-cycles.phpt"/>
         <file role="test" name="12-serialization.phpt"/>
         <file role="test" name="13-bevent-pair.phpt"/>
-        <file role="test" name="14-httpconn-error.phpt"/>
-        <file role="test" name="15-dnsbase-error.phpt"/>
-        <file role="test" name="16-http-error.phpt"/>
+        <file role="test" name="14-php5-httpconn-error.phpt"/>
+        <file role="test" name="15-php5-dnsbase-error.phpt"/>
+        <file role="test" name="16-php5-http-error.phpt"/>
         <file role="test" name="17-event-settimer-error.phpt"/>
         <file role="test" name="18-timer-error.phpt"/>
         <file role="test" name="19-event-signal-error.phpt"/>
         <file role="test" name="20-bevent-error.phpt"/>
-        <file role="test" name="21-bevent-sslfilter-error.phpt"/>
-        <file role="test" name="21-bevent-sslsocket-error.phpt"/>
+        <file role="test" name="21-bevent-sslfilter.phpt"/>
+        <file role="test" name="21-bevent-sslsocket.phpt"/>
+        <file role="test" name="22-php5-bevent-pair-error.phpt"/>
+        <file role="test" name="23-php5-listener-error.phpt"/>
+        <file role="test" name="24-php5-bevent-sslfilter-error.phpt"/>
+        <file role="test" name="25-php5-bevent-sslsocket-error.phpt"/>
+        <file role="test" name="26-http-debug-info.phpt"/>
+        <file role="test" name="27-event-util-create-socket.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -169,8 +208,25 @@
     <configureoption default="no" name="with-openssl-dir" prompt="openssl installation prefix"/>
   </extsrcrelease>
   <!--{{{ changelog-->
-  <!--{{{ 1.11.3 -->
   <changelog>
+    <!--{{{ Current version -->
+    <release>
+      <version>
+        <release>2.0.0RC1</release>
+        <api>1.10.1</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Added PHP7 support
+    In PHP7 EventUtil::createSocket method added
+  ]]></notes>
+    </release>
+    <!--}}}-->
+    <!--{{{ 1.11.3 -->
     <release>
       <version>
         <release>1.11.3</release>
@@ -184,8 +240,8 @@
       <notes><![CDATA[
     Issue #20: SSL_GET_PREV_SESSION:session id context uninitialized
   ]]></notes>
-      <!--}}}-->
     </release>
+    <!--}}}-->
     <!--{{{ 1.11.2 -->
     <release>
       <version>

@@ -13,6 +13,7 @@
  * Content-Length: 4
  * Connection: close
  * (press Enter)
+ * a=12
  *
  * It will output
  * a=12
