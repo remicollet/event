@@ -106,6 +106,7 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 		ZVAL_LONG(&argv[0], fd);
 	} else if (e->stream_res) {
 		ZVAL_RES(&argv[0], e->stream_res);
+		Z_TRY_ADDREF(argv[0]);
 	} else {
 		ZVAL_NULL(&argv[0]);
 	}
