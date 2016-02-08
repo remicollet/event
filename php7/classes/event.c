@@ -164,9 +164,9 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	ZVAL_LONG(&argv[0], signum);
 
 	if (Z_ISUNDEF(e->data)) {
-		ZVAL_NULL(&argv[0]);
+		ZVAL_NULL(&argv[1]);
 	} else {
-		ZVAL_COPY(&argv[0], &e->data);
+		ZVAL_COPY(&argv[1], &e->data);
 	}
 
 	fci.size = sizeof(fci);
@@ -588,7 +588,11 @@ PHP_METHOD(Event, setTimer)
 	b = Z_EVENT_BASE_OBJ_P(zbase);
 
 	php_event_replace_callback(&e->cb, zcb);
-	php_event_copy_zval(&e->data, zarg);
+	if (zarg) {
+		ZVAL_COPY(&e->data, zarg);
+	} else {
+		ZVAL_UNDEF(&e->data);
+	}
 
 	e->stream_res = NULL; /* stdin fd = 0 */
 
@@ -612,7 +616,7 @@ PHP_METHOD(Event, signal)
 	zend_long         signum;
 
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Olz|z",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Olz|z!",
 				&zbase, php_event_base_ce, &signum, &zcb, &zarg) == FAILURE) {
 		return;
 	}
@@ -635,7 +639,11 @@ PHP_METHOD(Event, signal)
 	}
 
 	e->event = event;
-	php_event_copy_zval(&e->data, zarg);
+	if (zarg) {
+		ZVAL_COPY(&e->data, zarg);
+	} else {
+		ZVAL_UNDEF(&e->data);
+	}
 	php_event_copy_callback(&e->cb, zcb);
 	e->stream_res = NULL; /* stdin fd = 0 */
 }
