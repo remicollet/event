@@ -129,7 +129,7 @@ PHP_METHOD(EventUtil, setSocketOption)
 	void            *opt_ptr;
 	HashTable       *opt_ht;
 	int              ov;
-	int              optlen;
+	socklen_t        optlen;
 	int              retval;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zllz",
