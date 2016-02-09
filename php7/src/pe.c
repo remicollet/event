@@ -227,7 +227,10 @@ static int event_bevent_allow_ssl_dirty_shutdown_prop_write(void *obj, zval *val
 	php_event_bevent_t *bev = (php_event_bevent_t *)obj;
 
 	PHP_EVENT_PROP_WRITE_REQUIRE(bev && bev->bevent);
-	bufferevent_openssl_set_allow_dirty_shutdown(bev->bevent, (int)Z_BVAL_P(value));
+
+	convert_to_boolean(value);
+	bufferevent_openssl_set_allow_dirty_shutdown(bev->bevent, (int)(Z_TYPE_INFO_P(value) == IS_TRUE));
+
 	return SUCCESS;
 }/*}}}*/
 

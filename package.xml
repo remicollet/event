@@ -172,6 +172,7 @@
         <file role="test" name="25-php5-bevent-sslsocket-error.phpt"/>
         <file role="test" name="26-http-debug-info.phpt"/>
         <file role="test" name="27-event-util-create-socket.phpt"/>
+        <file role="test" name="28-bevent-ssl.phpt"/>
       </dir>
     </dir>
   </contents>
