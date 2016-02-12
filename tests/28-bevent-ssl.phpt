@@ -5,8 +5,10 @@ Check for EventBufferEvent SSL features
 if (!class_exists('EventBufferEvent')) {
 	die('skip Event is built without EventBufferEvent support');
 }
-if (!class_exists("EventSslContext")) {
-	die("skip Event extra functions are disabled");
+$class = 'EventBufferEvent';
+$prop = 'allow_ssl_dirty_shutdown';
+if (!(property_exists($class, "\"$prop\"") || property_exists($class, $prop))) {
+	die('skip Event SSL support is disabled');
 }
 if (version_compare(PHP_VERSION, '7.0.0') < 0) {
 	die('skip target is PHP version >= 7');
