@@ -140,6 +140,7 @@ typedef struct _php_event_http_conn_t {
 	zval                      self;           /* $this                                   */
 	zval                      data_closecb;   /* User data for cb_close                  */
 	php_event_callback_t      cb_close;       /* Connection close callback               */
+	zend_bool                 internal;       /* Whether to free conn pointer            */
 
 	PHP_EVENT_OBJECT_TAIL;
 } Z_EVENT_X_OBJ_T(http_conn);

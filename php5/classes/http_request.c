@@ -442,7 +442,8 @@ PHP_METHOD(EventHttpRequest, getConnection)
 
 	evcon->conn = conn;
 	evcon->self = return_value;
-	Z_ADDREF_P(return_value);
+	Z_ADDREF_P(evcon->self);
+	evcon->internal = 1;
 
 	/* Set in ctor:
 	   evcon->base = NULL;
@@ -451,7 +452,9 @@ PHP_METHOD(EventHttpRequest, getConnection)
 	   evcon->fci_closecb = NULL;
 	   evcon->fcc_closecb = NULL;
 	*/
+#if 0
 	Z_ADDREF_P(return_value);
+#endif
 }
 /* }}} */
 

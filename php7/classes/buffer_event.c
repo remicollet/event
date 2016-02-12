@@ -258,8 +258,8 @@ PHP_METHOD(EventBufferEvent, __construct)
 	bufferevent_data_cb   write_cb;
 	bufferevent_event_cb  event_cb;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O|z!lz!z!z!z!",
-				&zbase, php_event_base_ce, &pzfd, &options,
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "o|z!lz!z!z!z!",
+				&zbase, &pzfd, &options,
 				&zcb_read,
 				&zcb_write,
 				&zcb_event,
@@ -307,7 +307,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 	bev->_internal = 0;
 	bev->bevent = bevent;
 
-	ZVAL_COPY(&bev->self, zself);
+	ZVAL_COPY_VALUE(&bev->self, zself);
 	ZVAL_COPY(&bev->base, zbase);
 
 	ZVAL_UNDEF(&bev->input);
@@ -1070,7 +1070,7 @@ PHP_METHOD(EventBufferEvent, sslFilter)
 	}
 	bev->bevent = bevent;
 
-	ZVAL_COPY(&bev->self, return_value);
+	ZVAL_COPY_VALUE(&bev->self, return_value);
 	ZVAL_COPY(&bev->base, zbase);
 
 	ZVAL_UNDEF(&bev->input);
@@ -1150,7 +1150,7 @@ PHP_METHOD(EventBufferEvent, sslSocket)
 	}
 	bev->bevent = bevent;
 
-	ZVAL_COPY(&bev->self, return_value);
+	ZVAL_COPY_VALUE(&bev->self, return_value);
 	ZVAL_COPY(&bev->base, zbase);
 }
 /* }}} */

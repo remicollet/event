@@ -212,6 +212,7 @@ static void php_event_base_free_obj(zend_object *object)/*{{{*/
 	PHP_EVENT_ASSERT(b);
 
 	if (!b->internal && b->base) {
+		event_base_loopexit(b->base, NULL);
 		event_base_free(b->base);
 		b->base = NULL;
 	}
@@ -301,7 +302,7 @@ static void php_event_http_conn_free_obj(zend_object *object)/*{{{*/
 	php_event_http_conn_t *evcon = Z_EVENT_X_FETCH_OBJ(http_conn, object);
 	PHP_EVENT_ASSERT(evcon);
 
-	if (evcon->conn) {
+	if (evcon->conn && !evcon->internal) {
 		evhttp_connection_free(evcon->conn);
 		evcon->conn = NULL;
 	}
@@ -630,14 +631,19 @@ static void log_cb(int severity, const char *msg)
 	switch (severity) {
 		case PHP_EVENT_LOG_CONST(EVENT_LOG_DEBUG):
 			error_type = E_STRICT;
+			break;
 		case PHP_EVENT_LOG_CONST(EVENT_LOG_MSG):
 			error_type = E_NOTICE;
+			break;
 		case PHP_EVENT_LOG_CONST(EVENT_LOG_WARN):
 			error_type = E_WARNING;
+			break;
 		case PHP_EVENT_LOG_CONST(EVENT_LOG_ERR):
 			error_type = E_ERROR;
+			break;
 		default:
 			error_type = E_NOTICE;
+			break;
 	}
 
 	php_error_docref(NULL, error_type, "%s", msg);

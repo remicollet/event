@@ -176,6 +176,9 @@ typedef struct _php_event_http_conn_t {
 	zend_fcall_info       *fci_closecb;
 	zend_fcall_info_cache *fcc_closecb;
 
+	/* Whether is artificially created object that must not free 'conn' */
+	zend_bool              internal;
+
 	PHP_EVENT_COMMON_THREAD_CTX
 } php_event_http_conn_t;
 

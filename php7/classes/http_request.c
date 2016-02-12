@@ -430,6 +430,7 @@ PHP_METHOD(EventHttpRequest, getConnection)
 	evcon = Z_EVENT_HTTP_CONN_OBJ_P(return_value);
 
 	evcon->conn = conn;
+	evcon->internal = TRUE;
 	ZVAL_COPY(&evcon->self, return_value);
 
 #if 0
@@ -439,7 +440,9 @@ PHP_METHOD(EventHttpRequest, getConnection)
 	ZVAL_UNDEF(&evcon->cb_close.func_name);
 #endif
 
+#if 0
 	Z_TRY_ADDREF_P(return_value);
+#endif
 }
 /* }}} */
 

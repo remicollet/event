@@ -77,7 +77,6 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	ZVAL_UNDEF(&http_req->data);
 	php_event_init_callback(&http_req->cb);
 	http_req->internal = 1; /* Don't evhttp_request_free(req) */
-	Z_TRY_ADDREF_P(&argv[0]);
 
 	if (Z_ISUNDEF(cb->data)) {
 		ZVAL_NULL(&argv[1]);

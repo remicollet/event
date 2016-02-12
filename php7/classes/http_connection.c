@@ -36,7 +36,7 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	if (conn == NULL || Z_ISUNDEF(evcon->self)) {
 		ZVAL_NULL(&argv[0]);
 	} else {
-		ZVAL_COPY(&argv[0], &evcon->self);
+		ZVAL_COPY_VALUE(&argv[0], &evcon->self);
 	}
 
 	if (Z_ISUNDEF(evcon->data_closecb)) {
@@ -163,7 +163,7 @@ PHP_METHOD(EventHttpConnection, __construct)
 	}
 	evcon->conn = conn;
 
-	ZVAL_COPY(&evcon->self, zself);
+	ZVAL_COPY_VALUE(&evcon->self, zself);
 	ZVAL_COPY(&evcon->base, zbase);
 
 	if (zdns_base) {
