@@ -66,9 +66,9 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 	}
 
 	if (Z_ISUNDEF(bev->data)) {
-		ZVAL_COPY(&argv[1], &bev->data);
-	} else {
 		ZVAL_NULL(&argv[1]);
+	} else {
+		ZVAL_COPY(&argv[1], &bev->data);
 	}
 
 	fci.size = sizeof(fci);
@@ -225,7 +225,81 @@ static zend_always_inline zend_bool is_valid_ssl_state(zend_long state)
 			|| state == BUFFEREVENT_SSL_ACCEPTING);
 }
 /* }}} */
+
+static void _create_ssl_filter(INTERNAL_FUNCTION_PARAMETERS, zend_bool deprecated)
+{
+	php_event_base_t        *base;
+	zval                    *zunused;
+	zval                    *zunderlying;
+	php_event_bevent_t      *bev_underlying;
+	zval                    *zctx;
+	php_event_ssl_context_t *ectx;
+	zend_long                state;
+	zend_long                options        = 0;
+	php_event_bevent_t      *bev;
+	struct bufferevent      *bevent;
+	SSL                     *ssl;
+
+	if (!deprecated) {
+		if (zend_parse_parameters(ZEND_NUM_ARGS(), "OOl|l",
+					&zunderlying, php_event_bevent_ce,
+					&zctx, php_event_ssl_context_ce,
+					&state, &options) == FAILURE) {
+			return;
+		}
+	} else {
+		if (zend_parse_parameters(ZEND_NUM_ARGS(), "zOOl|l",
+					&zunused,
+					&zunderlying, php_event_bevent_ce,
+					&zctx, php_event_ssl_context_ce,
+					&state, &options) == FAILURE) {
+			return;
+		}
+	}
+
+	if (!is_valid_ssl_state(state)) {
+		php_error_docref(NULL, E_WARNING, "Invalid state specified");
+		RETURN_FALSE;
+	}
+
+	bev_underlying = Z_EVENT_BEVENT_OBJ_P(zunderlying);
+	_ret_if_invalid_bevent_ptr(bev_underlying);
+
+	/* Must also be the base for the underlying bufferevent. See Libevent reference. */
+	base = Z_EVENT_BASE_OBJ_P(&bev_underlying->base);
+
+	ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(zctx);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
+	bev = Z_EVENT_BEVENT_OBJ_P(return_value);
+
+	PHP_EVENT_ASSERT(ectx->ctx);
+	ssl = SSL_new(ectx->ctx);
+	if (!ssl) {
+		php_error_docref(NULL, E_WARNING, "Event: Failed creating SSL handle");
+		RETURN_FALSE;
+	}
+
+#ifdef HAVE_EVENT_PTHREADS_LIB
+	options |= BEV_OPT_THREADSAFE;
 #endif
+	bevent = bufferevent_openssl_filter_new(base->base,
+			bev_underlying->bevent,
+			ssl, state, options);
+	if (bevent == NULL) {
+		php_error_docref(NULL, E_WARNING, "Failed to allocate bufferevent filter");
+		RETURN_FALSE;
+	}
+	bev->bevent = bevent;
+
+	ZVAL_COPY_VALUE(&bev->self, return_value);
+	ZVAL_COPY(&bev->base, &bev_underlying->base);
+
+	ZVAL_UNDEF(&bev->input);
+	ZVAL_UNDEF(&bev->output);
+	ZVAL_UNDEF(&bev->data);
+}
+#endif /* HAVE_EVENT_OPENSSL_LIB */
 
 /* Private }}} */
 
@@ -369,7 +443,8 @@ PHP_METHOD(EventBufferEvent, free)
 			ZVAL_UNDEF(&bev->self);
 		}
 		if (!Z_ISUNDEF(bev->base)) {
-			zval_ptr_dtor(&bev->base);
+			Z_TRY_DELREF(bev->base);
+			/*zval_ptr_dtor(&bev->base);*/
 			ZVAL_UNDEF(&bev->base);
 		}
 	}
@@ -1009,73 +1084,19 @@ PHP_METHOD(EventBufferEvent, setTimeouts)
 /* }}} */
 
 #ifdef HAVE_EVENT_OPENSSL_LIB /* {{{ */
-/* {{{ proto EventBufferEvent EventBufferEvent::sslFilter(EventBase base, EventBufferEvent underlying, EventSslContext ctx, int state[, int options = 0]);
+/* {{{ proto EventBufferEvent EventBufferEvent::sslFilter(zval unused, EventBufferEvent underlying, EventSslContext ctx, int state[, int options = 0]);
  */
 PHP_METHOD(EventBufferEvent, sslFilter)
 {
-	zval                    *zbase;
-	php_event_base_t        *base;
-	zval                    *zunderlying;
-	php_event_bevent_t      *bev_underlying;
-	zval                    *zctx;
-	php_event_ssl_context_t *ectx;
-	zend_long                state;
-	zend_long                options        = 0;
-	php_event_bevent_t      *bev;
-	struct bufferevent      *bevent;
-	SSL                     *ssl;
+	_create_ssl_filter(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
+}
+/* }}} */
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OOOl|l",
-				&zbase, php_event_base_ce,
-				&zunderlying, php_event_bevent_ce,
-				&zctx, php_event_ssl_context_ce,
-				&state, &options) == FAILURE) {
-		return;
-	}
-
-	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
-
-	if (!is_valid_ssl_state(state)) {
-		php_error_docref(NULL, E_WARNING, "Invalid state specified");
-		RETURN_FALSE;
-	}
-
-	base = Z_EVENT_BASE_OBJ_P(zbase);
-	bev_underlying = Z_EVENT_BEVENT_OBJ_P(zunderlying);
-	_ret_if_invalid_bevent_ptr(bev_underlying);
-
-	ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(zctx);
-
-	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
-	bev = Z_EVENT_BEVENT_OBJ_P(return_value);
-
-	PHP_EVENT_ASSERT(ectx->ctx);
-	ssl = SSL_new(ectx->ctx);
-	if (!ssl) {
-		php_error_docref(NULL, E_WARNING,
-				"Event: Failed creating SSL handle");
-		RETURN_FALSE;
-	}
-
-#ifdef HAVE_EVENT_PTHREADS_LIB
-	options |= BEV_OPT_THREADSAFE;
-#endif
-	bevent = bufferevent_openssl_filter_new(base->base,
-    		bev_underlying->bevent,
-    		ssl, state, options);
-	if (bevent == NULL) {
-		php_error_docref(NULL, E_WARNING,
-				"Failed to allocate bufferevent filter");
-		RETURN_FALSE;
-	}
-	bev->bevent = bevent;
-
-	ZVAL_COPY_VALUE(&bev->self, return_value);
-	ZVAL_COPY(&bev->base, zbase);
-
-	ZVAL_UNDEF(&bev->input);
-	ZVAL_UNDEF(&bev->output);
-	ZVAL_UNDEF(&bev->data);
+/* {{{ proto EventBufferEvent EventBufferEvent::createSslFilter(EventBufferEvent underlying, EventSslContext ctx, int state[, int options = 0]);
+ */
+PHP_METHOD(EventBufferEvent, createSslFilter)
+{
+	_create_ssl_filter(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 /* }}} */
 

@@ -156,7 +156,8 @@ static void php_event_bevent_dtor_obj(zend_object *object)/*{{{*/
 	}
 
 	if (!Z_ISUNDEF(intern->base)) {
-		zval_ptr_dtor(&intern->base);
+		Z_TRY_DELREF(intern->base);
+		/*zval_ptr_dtor(&intern->base);*/
 	}
 
 	if (!Z_ISUNDEF(intern->input)) {

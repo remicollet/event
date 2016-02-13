@@ -45,9 +45,15 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
     PHP7 support added.
-    Add: EventUtil::createSocket method added(PHP7)
-    Issue #23: memory leak in EventHttpConnection close callback + memory leaks in HTTP callbacks.
-    Fix: Libevent 'unrecoverable' fatal errors(fixed by stopping the loop in EventBase free-storage handler).
+
+    Fixes:
+      - issue #23: memory leak in EventHttpConnection close callback + memory leaks in HTTP callbacks.
+      - Libevent 'unrecoverable' fatal errors(fixed by stopping the loop in EventBase free-storage handler).
+
+    API changes:
+      - EventUtil::createSocket method added(PHP7)
+      - The first(EventBase) argument from EventBufferEvent::sslFilter method is deprecated, since the internal EventBase object must match EventBase object within the underlying EventBufferEvent
+      - Added EventBufferEvent::createSslFilter method as a replacement for the sslFilter method.
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -225,9 +231,14 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
     PHP7 support added.
-    Add: EventUtil::createSocket method added(PHP7)
-    Issue #23: memory leak in EventHttpConnection close callback + memory leaks in HTTP callbacks.
-    Fix: Libevent 'unrecoverable' fatal errors(fixed by stopping the loop in EventBase free-storage handler).
+
+    Fixes:
+      - issue #23: memory leak in EventHttpConnection close callback + memory leaks in HTTP callbacks.
+      - Libevent 'unrecoverable' fatal errors(fixed by stopping the loop in EventBase free-storage handler).
+
+    API changes:
+      - EventUtil::createSocket method added(PHP7)
+      - removed the first(EventBase) argument from EventBufferEvent::sslFilter method, since the internal EventBase object must match EventBase object within the underlying EventBufferEvent
   ]]></notes>
     </release>
     <!--}}}-->

@@ -84,6 +84,7 @@ PHP_METHOD(EventBufferEvent, setPriority);
 PHP_METHOD(EventBufferEvent, setTimeouts);
 #ifdef HAVE_EVENT_OPENSSL_LIB
 PHP_METHOD(EventBufferEvent, sslFilter);
+PHP_METHOD(EventBufferEvent, createSslFilter);
 PHP_METHOD(EventBufferEvent, sslSocket);
 PHP_METHOD(EventBufferEvent, sslError);
 PHP_METHOD(EventBufferEvent, sslRenegotiate);

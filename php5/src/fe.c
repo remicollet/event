@@ -182,7 +182,14 @@ ZEND_END_ARG_INFO();
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_ssl_filter, 0, 0, 4)
-	ZEND_ARG_INFO(1, base)
+	ZEND_ARG_INFO(0, unused)
+	ZEND_ARG_INFO(0, underlying)
+	ZEND_ARG_INFO(0, ctx)
+	ZEND_ARG_INFO(0, state)
+	ZEND_ARG_INFO(0, options)
+ZEND_END_ARG_INFO();
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_create_ssl_filter, 0, 0, 3)
 	ZEND_ARG_INFO(0, underlying)
 	ZEND_ARG_INFO(0, ctx)
 	ZEND_ARG_INFO(0, state)
@@ -573,14 +580,15 @@ const zend_function_entry php_event_bevent_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBufferEvent, setPriority,       arginfo_bufferevent_priority_set,  ZEND_ACC_PUBLIC)
 	PHP_ME(EventBufferEvent, setTimeouts,       arginfo_bufferevent_set_timeouts,  ZEND_ACC_PUBLIC)
 #ifdef HAVE_EVENT_OPENSSL_LIB
-	PHP_ME(EventBufferEvent, sslFilter,           arginfo_bufferevent_ssl_filter, ZEND_ACC_PUBLIC  | ZEND_ACC_STATIC)
-	PHP_ME(EventBufferEvent, sslSocket,           arginfo_bufferevent_ssl_socket, ZEND_ACC_PUBLIC  | ZEND_ACC_STATIC)
-	PHP_ME(EventBufferEvent, sslError,            arginfo_event__void,            ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, sslRenegotiate,      arginfo_event__void,            ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, sslGetCipherInfo,    arginfo_event__void,            ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, sslGetCipherName,    arginfo_event__void,            ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, sslGetCipherVersion, arginfo_event__void,            ZEND_ACC_PUBLIC)
-	PHP_ME(EventBufferEvent, sslGetProtocol,      arginfo_event__void,            ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, sslFilter,           arginfo_bufferevent_ssl_filter,        ZEND_ACC_PUBLIC  | ZEND_ACC_STATIC  | ZEND_ACC_DEPRECATED)
+	PHP_ME(EventBufferEvent, createSslFilter,     arginfo_bufferevent_create_ssl_filter, ZEND_ACC_PUBLIC  | ZEND_ACC_STATIC)
+	PHP_ME(EventBufferEvent, sslSocket,           arginfo_bufferevent_ssl_socket,        ZEND_ACC_PUBLIC  | ZEND_ACC_STATIC)
+	PHP_ME(EventBufferEvent, sslError,            arginfo_event__void,                   ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, sslRenegotiate,      arginfo_event__void,                   ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, sslGetCipherInfo,    arginfo_event__void,                   ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, sslGetCipherName,    arginfo_event__void,                   ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, sslGetCipherVersion, arginfo_event__void,                   ZEND_ACC_PUBLIC)
+	PHP_ME(EventBufferEvent, sslGetProtocol,      arginfo_event__void,                   ZEND_ACC_PUBLIC)
 #endif
 
 	PHP_FE_END

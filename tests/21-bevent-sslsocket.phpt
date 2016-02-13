@@ -11,7 +11,7 @@ if (version_compare(PHP_VERSION, '7.0.0') < 0) {
 <?php
 $base = new EventBase();
 $ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, []);
-EventBufferEvent::sslSocket($base, NULL, $ctx, EventBufferEvent::SSL_ACCEPTING);
+EventBufferEvent::sslSocket(new EventBase(), NULL, $ctx, EventBufferEvent::SSL_ACCEPTING);
 echo 'ok';
 ?>
 --EXPECT--

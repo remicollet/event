@@ -1,5 +1,5 @@
 --TEST--
-Check for EventBufferEvent::sslFilter() behavior
+Check for EventBufferEvent::createSslFilter() behavior
 --SKIPIF--
 <?php
 if (!class_exists("EventSslContext")) die("skip Event extra functions are disabled");
@@ -12,7 +12,7 @@ if (version_compare(PHP_VERSION, '7.0.0') < 0) {
 $base = new EventBase();
 $b = new EventBufferEvent($base);
 $ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, []);
-EventBufferEvent::sslFilter($base, $b, $ctx, EventBufferEvent::SSL_ACCEPTING);
+EventBufferEvent::createSslFilter($b, $ctx, EventBufferEvent::SSL_ACCEPTING);
 echo 'ok';
 ?>
 --EXPECT--

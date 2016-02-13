@@ -224,20 +224,20 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 		}
 		args[1] = &arg_data;
 
- 		/* Prepare callback */
-        pfci->params         = args;
-        pfci->retval_ptr_ptr = &retval_ptr;
-        pfci->param_count    = 2;
-        pfci->no_separation  = 1;
+		/* Prepare callback */
+		pfci->params         = args;
+		pfci->retval_ptr_ptr = &retval_ptr;
+		pfci->param_count    = 2;
+		pfci->no_separation  = 1;
 
-        if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
-            zval_ptr_dtor(&retval_ptr);
-        } else {
-            php_error_docref(NULL TSRMLS_CC, E_WARNING,
-                    "An error occurred while invoking the callback");
-        }
+		if (zend_call_function(pfci, pfcc TSRMLS_CC) == SUCCESS && retval_ptr) {
+			zval_ptr_dtor(&retval_ptr);
+		} else {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,
+					"An error occurred while invoking the callback");
+		}
 
-        zval_ptr_dtor(&arg_data);
+		zval_ptr_dtor(&arg_data);
 	}
 }
 /* }}} */

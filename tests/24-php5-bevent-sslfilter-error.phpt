@@ -1,5 +1,5 @@
 --TEST--
-Check for EventBufferEvent::sslFilter() error behavior
+Check for EventBufferEvent::createSslFilter() error behavior
 --SKIPIF--
 <?php
 if (!class_exists("EventSslContext")) {
@@ -14,8 +14,8 @@ if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
 $base = new EventBase();
 $b = new EventBufferEvent($base);
 $ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, []);
-EventBufferEvent::sslFilter(new EventBase(), $b, $ctx, EventBufferEvent::SSL_ACCEPTING);
+EventBufferEvent::createSslFilter($b, $ctx, EventBufferEvent::SSL_ACCEPTING);
+echo 'ok';
 ?>
---EXPECTF--
-
-Fatal error: EventBufferEvent::sslFilter(): EventBase must be passed by reference in %s on line %d
+--EXPECT--
+ok
