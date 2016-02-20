@@ -170,15 +170,9 @@ static zval * event_bevent_input_prop_read(void *obj, zval *retval)/*{{{*/
 
 		b->buf      = bufferevent_get_input(bev->bevent);
 		b->internal = 1;
-	} else {
-		zval_ptr_dtor(&bev->input);
 	}
 
 	ZVAL_COPY(retval, &bev->input);
-#if 0
-	ZVAL_MAKE_REF(retval);
-	Z_TRY_ADDREF_P(retval);
-#endif
 	return retval;
 }/*}}}*/
 
@@ -196,15 +190,9 @@ static zval * event_bevent_output_prop_read(void *obj, zval *retval)/*{{{*/
 
 		b->buf      = bufferevent_get_output(bev->bevent);
 		b->internal = 1;
-	} else {
-		zval_ptr_dtor(&bev->output);
 	}
 
 	ZVAL_COPY(retval, &bev->output);
-#if 0
-	ZVAL_MAKE_REF(retval);
-	Z_TRY_ADDREF_P(retval);
-#endif
 	return retval;
 }/*}}}*/
 

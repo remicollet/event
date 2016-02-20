@@ -34,11 +34,7 @@ static zend_always_inline void php_event_free_callback(php_event_callback_t *cb)
 
 static zend_always_inline void php_event_copy_callback(php_event_callback_t *cb, zval *zcb)/*{{{*/
 {
-#if 0
 	ZVAL_COPY(&cb->func_name, zcb);
-#else
-	ZVAL_ZVAL(&cb->func_name, zcb, 1, 0);
-#endif
 	cb->fci_cache = empty_fcall_info_cache;
 }/*}}}*/
 
