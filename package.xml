@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-02-12</date>
+  <date>2016-02-21</date>
   <!--{{{ Current version -->
   <version>
     <release>2.0.0RC1</release>
@@ -52,7 +52,7 @@
 
     API changes:
       - EventUtil::createSocket method added(PHP7)
-      - The first(EventBase) argument from EventBufferEvent::sslFilter method is deprecated, since the internal EventBase object must match EventBase object within the underlying EventBufferEvent
+      - The first(EventBase) argument of EventBufferEvent::sslFilter method is deprecated, since the internal EventBase object must match EventBase object within the underlying EventBufferEvent
       - Added EventBufferEvent::createSslFilter method as a replacement for the sslFilter method.
   ]]></notes>
   <!--}}}-->
@@ -238,7 +238,7 @@
 
     API changes:
       - EventUtil::createSocket method added(PHP7)
-      - removed the first(EventBase) argument from EventBufferEvent::sslFilter method, since the internal EventBase object must match EventBase object within the underlying EventBufferEvent
+      - removed the first(EventBase) argument of EventBufferEvent::sslFilter method, since the internal EventBase object must match EventBase object within the underlying EventBufferEvent
   ]]></notes>
     </release>
     <!--}}}-->

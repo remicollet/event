@@ -914,21 +914,19 @@ PHP_METHOD(EventBufferEvent, setWatermark)
  * Adds `data' to a buffer event's output buffer. */
 PHP_METHOD(EventBufferEvent, write)
 {
-	zval               *zbevent = getThis();
+	zval               *zbevent  = getThis();
 	php_event_bevent_t *bev;
-	zval               *zdata;
+	char               *data;
+	size_t              data_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z",
-				&zdata) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &data, &data_len) == FAILURE) {
 		return;
 	}
 
 	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
-	convert_to_string(zdata);
-
-	if (bufferevent_write(bev->bevent, Z_STRVAL_P(zdata), Z_STRLEN_P(zdata))) {
+	if (bufferevent_write(bev->bevent, data, data_len)) {
 		RETURN_FALSE;
 	}
 

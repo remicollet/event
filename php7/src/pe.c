@@ -199,13 +199,22 @@ static zval * event_bevent_output_prop_read(void *obj, zval *retval)/*{{{*/
 static zval * event_bevent_input_prop_ptr_ptr(void *obj)/*{{{*/
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *)obj;
-	return (EXPECTED(bev) ? &bev->input : NULL);
+
+	if (EXPECTED(bev) && !Z_ISUNDEF(bev->input)) {
+		return &bev->input;
+	}
+
+	return NULL;
 }/*}}}*/
 
 static zval * event_bevent_output_prop_ptr_ptr(void *obj)/*{{{*/
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *)obj;
-	return (EXPECTED(bev) ? &bev->output : NULL);
+	if (EXPECTED(bev) && !Z_ISUNDEF(bev->output)) {
+		return &bev->output;
+	}
+
+	return NULL;
 }/*}}}*/
 
 
