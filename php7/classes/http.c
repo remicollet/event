@@ -15,10 +15,10 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "src/common.h"
-#include "src/util.h"
-#include "src/priv.h"
-#include "classes/http.h"
+#include "../src/common.h"
+#include "../src/util.h"
+#include "../src/priv.h"
+#include "http.h"
 
 /* {{{ Private */
 

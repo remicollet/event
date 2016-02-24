@@ -15,9 +15,9 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "src/common.h"
-#include "src/util.h"
-#include "src/priv.h"
+#include "../src/common.h"
+#include "../src/util.h"
+#include "../src/priv.h"
 
 /* {{{ proto int EventUtil::getLastSocketErrno([mixed socket = null]);
  *

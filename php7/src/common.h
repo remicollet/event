@@ -87,7 +87,7 @@
 # include <openssl/pkcs12.h>
 #endif
 
-#include "php_event.h"
+#include "../php_event.h"
 #include "structs.h"
 
 #endif

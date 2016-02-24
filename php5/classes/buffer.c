@@ -15,9 +15,9 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "src/common.h"
-#include "src/util.h"
-#include "src/priv.h"
+#include "../src/common.h"
+#include "../src/util.h"
+#include "../src/priv.h"
 
 /* {{{ _get_pos */
 static int _get_pos(struct evbuffer_ptr *out_ptr, const long pos, struct evbuffer *buf TSRMLS_DC)

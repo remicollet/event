@@ -17,7 +17,7 @@
 */
 
 #include "fe.h"
-#include "src/priv.h"
+#include "priv.h"
 
 /* {{{ ARGINFO */
 ZEND_BEGIN_ARG_INFO(arginfo_event__void, 0)

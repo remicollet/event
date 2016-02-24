@@ -15,9 +15,9 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "src/common.h"
-#include "src/priv.h"
-#include "src/util.h"
+#include "common.h"
+#include "priv.h"
+#include "util.h"
 
 #define PHP_EVENT_PROP_REQUIRE(x) do { \
 	if (UNEXPECTED(!(x))) {            \
@@ -241,7 +241,7 @@ static zval * event_bevent_allow_ssl_dirty_shutdown_prop_read(void *obj, zval *r
 #endif
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
-#include "classes/ssl_context.h"
+#include "../classes/ssl_context.h"
 
 static int event_ssl_context_local_cert_prop_write(void *obj, zval *value)/*{{{*/
 {

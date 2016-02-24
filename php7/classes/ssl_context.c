@@ -15,11 +15,11 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "src/common.h"
-#include "src/util.h"
-#include "src/priv.h"
+#include "../src/common.h"
+#include "../src/util.h"
+#include "../src/priv.h"
 
-#include "classes/ssl_context.h"
+#include "ssl_context.h"
 
 #ifndef HAVE_EVENT_OPENSSL_LIB
 # error "HAVE_EVENT_OPENSSL_LIB undefined"

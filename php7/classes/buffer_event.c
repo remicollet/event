@@ -15,9 +15,9 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
-#include "src/common.h"
-#include "src/util.h"
-#include "src/priv.h"
+#include "../src/common.h"
+#include "../src/util.h"
+#include "../src/priv.h"
 
 extern const zend_function_entry php_event_dns_base_ce_functions[];
 extern zend_class_entry *php_event_dns_base_ce;

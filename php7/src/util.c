@@ -16,8 +16,8 @@
    +----------------------------------------------------------------------+
 */
 
-#include "src/common.h"
-#include "src/util.h"
+#include "common.h"
+#include "util.h"
 #ifndef PHP_WIN32
 # include <fcntl.h>
 #endif
