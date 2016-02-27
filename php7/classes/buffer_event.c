@@ -759,9 +759,7 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 		event_cb = NULL;
 	}
 
-	if (zarg) {
-		php_event_copy_zval(&bev->data, zarg);
-	}
+	php_event_replace_zval(&bev->data, zarg);
 
 	bufferevent_setcb(bev->bevent, read_cb, write_cb, event_cb, (void *)bev);
 }

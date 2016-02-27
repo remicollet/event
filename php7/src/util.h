@@ -52,6 +52,15 @@ static zend_always_inline void php_event_copy_zval(zval *zdst, zval *zsrc) {/*{{
 	}
 }/*}}}*/
 
+static zend_always_inline void php_event_replace_zval(zval *zdst, zval *zsrc) {/*{{{*/
+	if (zsrc) {
+		if (!Z_ISUNDEF_P(zdst)) {
+			zval_ptr_dtor(zdst);
+		}
+		php_event_copy_zval(zdst, zsrc);
+	}
+}/*}}}*/
+
 #define php_event_is_pending(e) \
 	event_pending((e), EV_READ | EV_WRITE | EV_SIGNAL | EV_TIMEOUT, NULL)
 

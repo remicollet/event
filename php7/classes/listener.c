@@ -313,6 +313,7 @@ PHP_METHOD(EventListener, __construct)
 	}
 
 	if (!listener) {
+		zend_throw_exception_ex(zend_ce_exception, 0, "Failed to allocate listener");
 		return;
 	}
 
@@ -387,7 +388,7 @@ PHP_METHOD(EventListener, setCallback)
 	_ret_if_invalid_listener_ptr(l);
 
 	php_event_replace_callback(&l->cb, zcb);
-	php_event_copy_zval(&l->data, zarg);
+	php_event_replace_zval(&l->data, zarg);
 
 	/*
 	 * No sense in the following call, since the callback and the pointer

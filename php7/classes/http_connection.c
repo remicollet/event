@@ -171,6 +171,8 @@ PHP_METHOD(EventHttpConnection, __construct)
 	} else {
 		ZVAL_UNDEF(&evcon->dns_base);
 	}
+
+	ZVAL_UNDEF(&evcon->data_closecb);
 }
 /* }}} */
 
@@ -399,10 +401,7 @@ PHP_METHOD(EventHttpConnection, setCloseCallback)
 	PHP_EVENT_ASSERT(evcon);
 
 	php_event_replace_callback(&evcon->cb_close, zcb);
-
-	if (zarg) {
-		php_event_copy_zval(&evcon->data_closecb, zarg);
-	}
+	php_event_replace_zval(&evcon->data_closecb, zarg);
 
 	evhttp_connection_set_closecb(evcon->conn, _conn_close_cb, (void *)evcon);
 }
