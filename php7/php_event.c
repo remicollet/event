@@ -153,6 +153,7 @@ static void php_event_bevent_dtor_obj(zend_object *object)/*{{{*/
 		if (Z_REFCOUNT(intern->self) > 1) {
 			zval_ptr_dtor(&intern->self);
 		}
+		ZVAL_UNDEF(&intern->self);
 	}
 
 	if (!Z_ISUNDEF(intern->base)) {
@@ -236,9 +237,22 @@ static void php_event_config_free_obj(zend_object *object)/*{{{*/
 
 static void php_event_bevent_free_obj(zend_object *object)/*{{{*/
 {
+#ifdef HAVE_EVENT_OPENSSL_LIB
+	SSL *ctx;
+#endif
 	Z_EVENT_X_OBJ_T(bevent) *b = Z_EVENT_X_FETCH_OBJ(bevent, object);
 
-	if (b->bevent) {
+	if (!b->_internal && b->bevent) {
+#ifdef HAVE_EVENT_OPENSSL_LIB
+		/* See www.wangafu.net/~nickm/libevent-book/Ref6a_advanced_bufferevents.html#_bufferevents_and_ssl */
+		ctx = bufferevent_openssl_get_ssl(b->bevent);
+		if (ctx) {
+			SSL_set_shutdown(ctx, SSL_RECEIVED_SHUTDOWN);
+			SSL_shutdown(ctx);
+			SSL_free(ctx);
+		}
+#endif
+
 		bufferevent_free(b->bevent);
 		b->bevent = NULL;
 	}
@@ -364,12 +378,14 @@ static void php_event_listener_dtor_obj(zend_object *object)/*{{{*/
 
 	if (!Z_ISUNDEF(intern->data)) {
 		zval_ptr_dtor(&intern->data);
+		ZVAL_UNDEF(&intern->data);
 	}
 
 	if (!Z_ISUNDEF(intern->self)) {
 		if (Z_REFCOUNT(intern->self) > 1) {
 			zval_ptr_dtor(&intern->self);
 		}
+		ZVAL_UNDEF(&intern->self);
 	}
 
 	php_event_free_callback(&intern->cb);
@@ -1245,11 +1261,11 @@ PHP_MINIT_FUNCTION(event)
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CIPHER_SERVER_PREFERENCE, PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE);
 
 	/* Initialize openssl library */
+	SSL_load_error_strings();
 	SSL_library_init();
 	OpenSSL_add_all_ciphers();
 	OpenSSL_add_all_digests();
 	OpenSSL_add_all_algorithms();
-	SSL_load_error_strings();
 
 	/* Create new index which will be used to retreive custom data of the OpenSSL callbacks */
 	php_event_ssl_data_index = SSL_get_ex_new_index(0, "PHP EventSslContext index", NULL, NULL, NULL);
@@ -1283,9 +1299,14 @@ PHP_MINIT_FUNCTION(event)
 PHP_MSHUTDOWN_FUNCTION(event)
 {
 #ifdef HAVE_EVENT_OPENSSL_LIB
+	FIPS_mode_set(0);
+	CONF_modules_unload(1);
 	/* Removes memory allocated when loading digest and cipher names
 	 * in the OpenSSL_add_all_ family of functions */
 	EVP_cleanup();
+	CRYPTO_cleanup_all_ex_data();
+	ERR_remove_state(0);
+	ERR_free_strings();
 #endif
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000

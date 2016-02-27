@@ -46,10 +46,9 @@ static zend_always_inline void php_event_replace_callback(php_event_callback_t *
 
 static zend_always_inline void php_event_copy_zval(zval *zdst, zval *zsrc) {/*{{{*/
 	if (zsrc) {
-		if (!Z_ISUNDEF_P(zdst)) {
-			zval_ptr_dtor(zdst);
-		}
 		ZVAL_COPY(zdst, zsrc);
+	} else {
+		ZVAL_UNDEF(zdst);
 	}
 }/*}}}*/
 

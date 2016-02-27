@@ -275,7 +275,7 @@ static void _create_ssl_filter(INTERNAL_FUNCTION_PARAMETERS, zend_bool deprecate
 
 	PHP_EVENT_ASSERT(ectx->ctx);
 	ssl = SSL_new(ectx->ctx);
-	if (!ssl) {
+	if (UNEXPECTED(!ssl)) {
 		php_error_docref(NULL, E_WARNING, "Event: Failed creating SSL handle");
 		RETURN_FALSE;
 	}

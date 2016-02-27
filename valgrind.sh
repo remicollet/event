@@ -1,2 +1,7 @@
 #!/bin/bash -
-USE_ZEND_ALLOC=0 valgrind --leak-check=full php -n -d extension=event.so  -dextension_dir=./.libs "$@"
+MALLOC_PERTURB_=$(($RANDOM % 255 + 1)) \
+	MALLOC_CHECK_=3 \
+	USE_ZEND_ALLOC=0 \
+	ZEND_DONT_UNLOAD_MODULES=1 \
+	valgrind --leak-check=full --show-leak-kinds=all \
+	php -n -d extension=event.so  -dextension_dir=./.libs "$@"

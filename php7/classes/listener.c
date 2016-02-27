@@ -319,7 +319,7 @@ PHP_METHOD(EventListener, __construct)
 	l->listener = listener;
 	php_event_copy_zval(&l->data, zdata);
 	php_event_copy_callback(&l->cb, zcb);
-	ZVAL_COPY(&l->self, zself);
+	ZVAL_COPY_VALUE(&l->self, zself);
 }
 /* }}} */
 
