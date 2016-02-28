@@ -574,6 +574,9 @@ PHP_METHOD(EventBuffer, pullup)
 		RETURN_NULL();
 	}
 
+	/* evbuffer_pullup() doesn't add terminating zero */
+	mem[evbuffer_get_length(b->buf)] = '\0';
+
 	RETVAL_STRING((const char *)mem);
 }
 /* }}} */

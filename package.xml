@@ -48,6 +48,8 @@
     - SSL leaks
     - Possibility of implicit destruction of user vars
     - Unclean SSL bufferevent shutdown
+    - String returned by EventBuffer::pullup() was not zero-terminated
+    - EventBufferEvent::free() within a callback damaged zvals bound to corresponding bufferevent thereby causing SEGFAULT
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -228,6 +230,8 @@
     - SSL leaks
     - Possibility of implicit destruction of user vars
     - Unclean SSL bufferevent shutdown
+    - String returned by EventBuffer::pullup() was not zero-terminated
+    - EventBufferEvent::free() within a callback damaged zvals bound to corresponding bufferevent thereby causing SEGFAULT
   ]]></notes>
     </release>
     <!--}}}-->

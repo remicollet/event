@@ -145,6 +145,16 @@ static void php_event_bevent_dtor_obj(zend_object *object)/*{{{*/
 	Z_EVENT_X_OBJ_T(bevent) *intern = Z_EVENT_X_FETCH_OBJ(bevent, object);
 	PHP_EVENT_ASSERT(intern);
 
+#if 0
+	if (intern->bevent) {
+		bufferevent_lock(intern->bevent);
+		bufferevent_disable(intern->bevent, EV_WRITE|EV_READ);
+		bufferevent_setcb(intern->bevent, NULL, NULL, NULL, NULL);
+		bufferevent_set_timeouts(intern->bevent, NULL, NULL);
+		bufferevent_unlock(intern->bevent);
+	}
+#endif
+
 	if (!Z_ISUNDEF(intern->data)) {
 		zval_ptr_dtor(&intern->data);
 	}
@@ -158,15 +168,18 @@ static void php_event_bevent_dtor_obj(zend_object *object)/*{{{*/
 
 	if (!Z_ISUNDEF(intern->base)) {
 		Z_TRY_DELREF(intern->base);
+		ZVAL_UNDEF(&intern->base);
 		/*zval_ptr_dtor(&intern->base);*/
 	}
 
 	if (!Z_ISUNDEF(intern->input)) {
 		zval_ptr_dtor(&intern->input);
+		ZVAL_UNDEF(&intern->input);
 	}
 
 	if (!Z_ISUNDEF(intern->output)) {
 		zval_ptr_dtor(&intern->output);
+		ZVAL_UNDEF(&intern->output);
 	}
 
 	php_event_free_callback(&intern->cb_read);
@@ -243,7 +256,7 @@ static void php_event_bevent_free_obj(zend_object *object)/*{{{*/
 	Z_EVENT_X_OBJ_T(bevent) *b = Z_EVENT_X_FETCH_OBJ(bevent, object);
 
 	if (!b->_internal && b->bevent) {
-#ifdef HAVE_EVENT_OPENSSL_LIB
+#if defined(HAVE_EVENT_OPENSSL_LIB)
 		/* See www.wangafu.net/~nickm/libevent-book/Ref6a_advanced_bufferevents.html#_bufferevents_and_ssl */
 		ctx = bufferevent_openssl_get_ssl(b->bevent);
 		if (ctx) {

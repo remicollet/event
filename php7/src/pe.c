@@ -235,7 +235,7 @@ static zval * event_bevent_allow_ssl_dirty_shutdown_prop_read(void *obj, zval *r
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *)obj;
 
-	ZVAL_BOOL(retval, (zend_bool)bufferevent_openssl_get_allow_dirty_shutdown(bev->bevent));
+	ZVAL_BOOL(retval, bev->bevent ? (zend_bool)bufferevent_openssl_get_allow_dirty_shutdown(bev->bevent) : FALSE);
 	return retval;
 }/*}}}*/
 #endif

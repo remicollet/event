@@ -432,19 +432,32 @@ PHP_METHOD(EventBufferEvent, free)
 	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 
 	if (bev->bevent) {
+#if 0
+		bufferevent_lock(bev->bevent);
+		bufferevent_disable(bev->bevent, EV_WRITE|EV_READ);
+		bufferevent_setcb(bev->bevent, NULL, NULL, NULL, NULL);
+		bufferevent_unlock(bev->bevent);
+#endif
+
 		if (!bev->_internal) {
 			bufferevent_free(bev->bevent);
 		}
 		bev->bevent = 0;
 
+#if 0
 		/* Do it once */
 		if (!Z_ISUNDEF(bev->self)) {
 			zval_ptr_dtor(&bev->self);
 			ZVAL_UNDEF(&bev->self);
 		}
+#else
+		if (bev->_internal && !Z_ISUNDEF(bev->self)) {
+			zval_ptr_dtor(&bev->self);
+			ZVAL_UNDEF(&bev->self);
+		}
+#endif
 		if (!Z_ISUNDEF(bev->base)) {
 			Z_TRY_DELREF(bev->base);
-			/*zval_ptr_dtor(&bev->base);*/
 			ZVAL_UNDEF(&bev->base);
 		}
 	}
