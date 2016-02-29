@@ -32,14 +32,14 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-02-27</date>
+  <date>2016-02-29</date>
   <!--{{{ Current version -->
   <version>
     <release>2.0.0RC3</release>
     <api>2.0.0</api>
   </version>
   <stability>
-    <release>beta</release>
+    <release>stable</release>
     <api>stable</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
@@ -48,8 +48,9 @@
     - SSL leaks
     - Possibility of implicit destruction of user vars
     - Unclean SSL bufferevent shutdown
-    - String returned by EventBuffer::pullup() was not zero-terminated
     - EventBufferEvent::free() within a callback damaged zvals bound to corresponding bufferevent thereby causing SEGFAULT
+
+    Fixed PHP5/PHP7 memory issue: string returned by EventBuffer::pullup() was not zero-terminated
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -177,6 +178,7 @@
         <file role="test" name="26-http-debug-info.phpt"/>
         <file role="test" name="27-event-util-create-socket.phpt"/>
         <file role="test" name="28-bevent-ssl.phpt"/>
+        <file role="test" name="29-buffer-pullup.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -230,8 +232,9 @@
     - SSL leaks
     - Possibility of implicit destruction of user vars
     - Unclean SSL bufferevent shutdown
-    - String returned by EventBuffer::pullup() was not zero-terminated
     - EventBufferEvent::free() within a callback damaged zvals bound to corresponding bufferevent thereby causing SEGFAULT
+
+    Fixed PHP5/PHP7 memory issue: string returned by EventBuffer::pullup() was not zero-terminated
   ]]></notes>
     </release>
     <!--}}}-->

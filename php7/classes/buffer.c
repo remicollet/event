@@ -556,10 +556,11 @@ PHP_METHOD(EventBuffer, searchEol)
  */
 PHP_METHOD(EventBuffer, pullup)
 {
-	zval               *zbuf = getThis();
+	zval               *zbuf   = getThis();
 	php_event_buffer_t *b;
-	zend_long               size;
+	zend_long           size;
 	unsigned char      *mem;
+	size_t              length;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&size) == FAILURE) {
@@ -574,10 +575,12 @@ PHP_METHOD(EventBuffer, pullup)
 		RETURN_NULL();
 	}
 
-	/* evbuffer_pullup() doesn't add terminating zero */
-	mem[evbuffer_get_length(b->buf)] = '\0';
+	length = evbuffer_get_length(b->buf);
 
-	RETVAL_STRING((const char *)mem);
+	/* evbuffer_pullup() doesn't add terminating zero */
+	mem[length] = '\0';
+
+	RETVAL_STRINGL((const char *)mem, length);
 }
 /* }}} */
 
