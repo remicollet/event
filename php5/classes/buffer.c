@@ -99,7 +99,7 @@ PHP_METHOD(EventBuffer, unfreeze)
 /* }}} */
 
 /* {{{ proto void EventBuffer::lock(void);
- * Acquire the lock on an evbuffer. 
+ * Acquire the lock on an evbuffer.
  * Has no effect if locking was not enabled with evbuffer_enable_locking.
  */
 PHP_METHOD(EventBuffer, lock)
@@ -157,7 +157,7 @@ PHP_METHOD(EventBuffer, enableLocking)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::add(string data); 
+/* {{{ proto bool EventBuffer::add(string data);
  *
  * Append data to the end of an event buffer.
  */
@@ -218,7 +218,7 @@ PHP_METHOD(EventBuffer, read)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::addBuffer(EventBuffer buf); 
+/* {{{ proto bool EventBuffer::addBuffer(EventBuffer buf);
  * Move all data from the buffer provided in buf parameter to the current instance of EventBuffer.
  * This is a destructive add. The data from one buffer moves into the other buffer. However, no unnecessary memory copies occur.
  */
@@ -245,7 +245,7 @@ PHP_METHOD(EventBuffer, addBuffer)
 }
 /* }}} */
 
-/* {{{ proto int EventBuffer::appendFrom(EventBuffer buf, int len); 
+/* {{{ proto int EventBuffer::appendFrom(EventBuffer buf, int len);
  * Moves exactly len bytes from buf to the end of current instance of EventBuffer
  */
 PHP_METHOD(EventBuffer, appendFrom)
@@ -268,7 +268,7 @@ PHP_METHOD(EventBuffer, appendFrom)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::expand(int len); 
+/* {{{ proto bool EventBuffer::expand(int len);
  * Alters the last chunk of memory in the buffer, or adds a new chunk, such that the buffer is now large enough to contain datlen bytes without any further allocations.
  */
 PHP_METHOD(EventBuffer, expand)
@@ -292,7 +292,7 @@ PHP_METHOD(EventBuffer, expand)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::prepend(string data); 
+/* {{{ proto bool EventBuffer::prepend(string data);
  *
  * Prepend data to the front of the event buffer.
  */
@@ -319,7 +319,7 @@ PHP_METHOD(EventBuffer, prepend)
 }
 /* }}} */
 
-/* {{{ proto bool EventBuffer::prependBuffer(EventBuffer buf); 
+/* {{{ proto bool EventBuffer::prependBuffer(EventBuffer buf);
  * Behaves as EventBuffer::addBuffer, except that it moves data to the front of the buffer.
  */
 PHP_METHOD(EventBuffer, prependBuffer)
@@ -482,7 +482,7 @@ PHP_METHOD(EventBuffer, search)
 
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
-	if (start_pos != -1 
+	if (start_pos != -1
 			&& _get_pos(&ptr_start, start_pos, b->buf TSRMLS_CC) == FAILURE) {
 		start_pos = -1;
 	}
@@ -528,7 +528,7 @@ PHP_METHOD(EventBuffer, searchEol)
 
 	PHP_EVENT_FETCH_BUFFER(b, zbuf);
 
-	if (start_pos != -1 
+	if (start_pos != -1
 			&& _get_pos(&ptr_start, start_pos, b->buf TSRMLS_CC) == FAILURE) {
 		start_pos = -1;
 	}
@@ -560,6 +560,7 @@ PHP_METHOD(EventBuffer, pullup)
 	php_event_buffer_t *b;
 	long                size;
 	unsigned char      *mem;
+	size_t              length;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
 				&size) == FAILURE) {
@@ -574,7 +575,12 @@ PHP_METHOD(EventBuffer, pullup)
 		RETURN_NULL();
 	}
 
-	RETVAL_STRING((const char *)mem, 1);
+	length = evbuffer_get_length(b->buf);
+
+	/* evbuffer_pullup() doesn't add terminating zero */
+	mem[length] = '\0';
+
+	RETVAL_STRINGL((const char *)mem, length, 1);
 }
 /* }}} */
 
