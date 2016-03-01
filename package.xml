@@ -35,7 +35,7 @@
   <date>2016-02-29</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.0.0RC3</release>
+    <release>2.0.0</release>
     <api>2.0.0</api>
   </version>
   <stability>
@@ -216,14 +216,14 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ 2.0.0RC3 -->
+    <!--{{{ 2.0.0 -->
     <release>
       <version>
-        <release>2.0.0RC3</release>
+        <release>2.0.0</release>
         <api>2.0.0</api>
       </version>
       <stability>
-        <release>beta</release>
+        <release>stable</release>
         <api>stable</api>
       </stability>
       <license uri="http://www.php.net/license">PHP</license>
