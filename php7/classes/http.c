@@ -54,7 +54,6 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	zend_fcall_info      fci;
 	zval                 argv[2];
 	zval                 retval;
-	zval                 zcallable;
 	zend_string         *func_name;
 	Z_EVENT_X_OBJ_T(base) *b;
 	Z_EVENT_X_OBJ_T(http_req) *http_req;
@@ -62,10 +61,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	cb = (php_event_http_cb_t *)arg;
 	PHP_EVENT_ASSERT(cb);
 
-	/* Protect against accidental destruction of the func name before zend_call_function() finished */
-	ZVAL_COPY(&zcallable, &cb->cb.func_name);
-
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&cb->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -90,7 +86,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
+	ZVAL_COPY_VALUE(&fci.function_name, &cb->cb.func_name);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -119,8 +115,6 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 		}
 	}
 
-	zval_ptr_dtor(&zcallable);
-
 	if (!Z_ISUNDEF(argv[0])) {
 		zval_ptr_dtor(&argv[0]);
 	}
@@ -137,17 +131,13 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	zend_fcall_info   fci;
 	zval              argv[2];
 	zval              retval;
-	zval              zcallable;
 	zend_string      *func_name;
 	Z_EVENT_X_OBJ_T(base) *b;
 	Z_EVENT_X_OBJ_T(http_req) *http_req;
 
 	PHP_EVENT_ASSERT(http);
 
-	/* Protect against accidental destruction of the func name before zend_call_function() finished */
-	ZVAL_COPY(&zcallable, &http->cb.func_name);
-
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&http->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -172,7 +162,7 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
+	ZVAL_COPY_VALUE(&fci.function_name, &http->cb.func_name);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -200,8 +190,6 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 			php_error_docref(NULL, E_WARNING, "Failed to invoke http request callback");
 		}
 	}
-
-	zval_ptr_dtor(&zcallable);
 
 	if (!Z_ISUNDEF(argv[0])) {
 		zval_ptr_dtor(&argv[0]);

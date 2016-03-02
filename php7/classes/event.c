@@ -47,15 +47,11 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	zval             argv[1];
 	zval             retval;
 	zend_string     *func_name;
-	zval             zcallable;
 
 	PHP_EVENT_ASSERT(e);
 	PHP_EVENT_ASSERT(what & EV_TIMEOUT);
 
-	/* Protect against accidental destruction of the func name before zend_call_function() finished */
-	ZVAL_COPY(&zcallable, &e->cb.func_name);
-
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -69,7 +65,7 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
+	ZVAL_COPY_VALUE(&fci.function_name, &e->cb.func_name);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -85,8 +81,6 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 		php_error_docref(NULL, E_WARNING, "Failed to invoke timer callback");
 	}
 
-	zval_ptr_dtor(&zcallable);
-
 	zval_ptr_dtor(&argv[0]);
 }
 /* }}} */
@@ -99,14 +93,10 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	zval             argv[3];
 	zval             retval;
 	zend_string     *func_name;
-	zval             zcallable;
 
 	PHP_EVENT_ASSERT(e);
 
-	/* Protect against accidental destruction of the func name before zend_call_function() finished */
-	ZVAL_COPY(&zcallable, &e->cb.func_name);
-
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -131,7 +121,7 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
+	ZVAL_COPY_VALUE(&fci.function_name, &e->cb.func_name);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -147,8 +137,6 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 		php_error_docref(NULL, E_WARNING, "Failed to invoke event callback");
 	}
 
-	zval_ptr_dtor(&zcallable);
-
 	zval_ptr_dtor(&argv[2]);
 	zval_ptr_dtor(&argv[1]);
 	zval_ptr_dtor(&argv[0]);
@@ -163,15 +151,11 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	zval             argv[2];
 	zval             retval;
 	zend_string     *func_name;
-	zval             zcallable;
 
 	PHP_EVENT_ASSERT(e);
 	PHP_EVENT_ASSERT(what & EV_SIGNAL);
 
-	/* Protect against accidental destruction of the func name before zend_call_function() finished */
-	ZVAL_COPY(&zcallable, &e->cb.func_name);
-
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&e->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -187,7 +171,7 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
+	ZVAL_COPY_VALUE(&fci.function_name, &e->cb.func_name);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -202,8 +186,6 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	} else {
 		php_error_docref(NULL, E_WARNING, "Failed to invoke signal callback");
 	}
-
-	zval_ptr_dtor(&zcallable);
 
 	zval_ptr_dtor(&argv[0]);
 	zval_ptr_dtor(&argv[1]);

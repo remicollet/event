@@ -97,14 +97,10 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	zval                  argv[4];
 	zval                  retval;
 	zend_string     *func_name;
-	zval                  zcallable;
 
 	PHP_EVENT_ASSERT(l);
 
-	/* Protect against accidental destruction of the func name before zend_call_function() finished */
-	ZVAL_COPY(&zcallable, &l->cb.func_name);
-
-	if (!zend_is_callable(&zcallable,  IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&l->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -158,7 +154,7 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
+	ZVAL_COPY_VALUE(&fci.function_name, &l->cb.func_name);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -174,8 +170,6 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 		php_error_docref(NULL, E_WARNING, "Failed to invoke listener callback");
 	}
 
-	zval_ptr_dtor(&zcallable);
-
 	zval_ptr_dtor(&argv[0]);
 	zval_ptr_dtor(&argv[1]);
 	zval_ptr_dtor(&argv[2]);
@@ -190,14 +184,10 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	zval                  argv[2];
 	zval                  retval;
 	zend_string          *func_name;
-	zval                  zcallable;
 
 	PHP_EVENT_ASSERT(l);
 
-	/* Protect against accidental destruction of the func name before zend_call_function() finished */
-	ZVAL_COPY(&zcallable, &l->cb_err.func_name);
-
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&l->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -216,7 +206,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
+	ZVAL_COPY_VALUE(&fci.function_name, &l->cb.func_name);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -231,8 +221,6 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	} else {
 		php_error_docref(NULL, E_WARNING, "Failed to invoke listener error callback");
 	}
-
-	zval_ptr_dtor(&zcallable);
 
 	zval_ptr_dtor(&argv[0]);
 	zval_ptr_dtor(&argv[1]);

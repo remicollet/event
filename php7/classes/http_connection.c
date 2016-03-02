@@ -27,12 +27,8 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	zend_fcall_info        fci;
 	zval                   argv[2];
 	zval                   retval;
-	zval                   zcallable;
 
 	PHP_EVENT_ASSERT(evcon && conn);
-
-	/* Protect against accidental destruction of the func name before zend_call_function() finished */
-	ZVAL_COPY(&zcallable, &evcon->cb_close.func_name);
 
 	/* Call userspace function according to
 	 * proto void callback(EventHttpConnection conn, mixed data); */
@@ -40,7 +36,7 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	if (conn == NULL || Z_ISUNDEF(evcon->self)) {
 		ZVAL_NULL(&argv[0]);
 	} else {
-		ZVAL_COPY(&argv[0], &evcon->self);
+		ZVAL_COPY_VALUE(&argv[0], &evcon->self);
 	}
 
 	if (Z_ISUNDEF(evcon->data_closecb)) {
@@ -51,7 +47,7 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table); /* XXX fetch TSRMLS_CACHE? */
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
+	ZVAL_COPY_VALUE(&fci.function_name, &evcon->cb_close.func_name);
 	fci.object        = NULL;
 	fci.retval        = &retval;
 	fci.param_count   = 2;
@@ -66,8 +62,6 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	} else {
 		php_error_docref(NULL, E_WARNING, "Failed to invoke http connection close callback");
 	}
-
-	zval_ptr_dtor(&zcallable);
 
 	zval_ptr_dtor(&argv[0]);
 	zval_ptr_dtor(&argv[1]);
