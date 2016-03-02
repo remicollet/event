@@ -66,11 +66,15 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	zend_fcall_info       fci;
 	zval                  argv[2];
 	zval                  retval;
+	zval                  zcallable;
 	zend_string          *func_name;
 
 	PHP_EVENT_ASSERT(http_req && http_req->ptr);
 
-	if (!zend_is_callable(&http_req->cb.func_name, IS_CALLABLE_STRICT, &func_name)) {
+	/* Protect against accidental destruction of the func name before zend_call_function() finished */
+	ZVAL_COPY(&zcallable, &http_req->cb.func_name);
+
+	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -94,7 +98,7 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &http_req->cb.func_name);
+	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -112,6 +116,8 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	} else {
 		php_error_docref(NULL, E_WARNING, "Failed to invoke http request handler");
 	}
+
+	zval_ptr_dtor(&zcallable);
 
 	zval_ptr_dtor(&argv[0]);
 	zval_ptr_dtor(&argv[1]);

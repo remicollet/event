@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-02-29</date>
+  <date>2016-03-02</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.0.0</release>
+    <release>2.0.1</release>
     <api>2.0.0</api>
   </version>
   <stability>
@@ -44,13 +44,8 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed some memory issues in PHP7
-    - SSL leaks
-    - Possibility of implicit destruction of user vars
-    - Unclean SSL bufferevent shutdown
-    - EventBufferEvent::free() within a callback damaged zvals bound to corresponding bufferevent thereby causing SEGFAULT
-
-    Fixed PHP5/PHP7 memory issue: string returned by EventBuffer::pullup() was not zero-terminated
+    PHP7:
+    - Protected user callbacks from destruction within libevent callbacks
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -216,6 +211,23 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.0.1 -->
+    <release>
+      <version>
+        <release>2.0.1</release>
+        <api>2.0.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    PHP7:
+    - Protected user callbacks from destruction within libevent callbacks
+  ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 2.0.0 -->
     <release>
       <version>
