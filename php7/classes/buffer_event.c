@@ -43,12 +43,16 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 	php_event_base_t *b;
 	zend_string      *func_name;
 	zend_fcall_info   fci;
+	zval              zcallable;
 
 	PHP_EVENT_ASSERT(bev);
 	PHP_EVENT_ASSERT(bevent);
 	PHP_EVENT_ASSERT(bevent == bev->bevent);
 
-	if (!zend_is_callable(&pcb->func_name, IS_CALLABLE_STRICT, &func_name)) {
+	/* Protect against accidental destruction of the func name before zend_call_function() finished */
+	ZVAL_COPY(&zcallable, &pcb->func_name);
+
+	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -73,7 +77,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &pcb->func_name);
+	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -98,6 +102,8 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 			php_error_docref(NULL, E_WARNING, "Failed to invoke bufferevent callback");
 		}
 	}
+
+	zval_ptr_dtor(&zcallable);
 
 	if (!Z_ISUNDEF(argv[0])) {
 		zval_ptr_dtor(&argv[0]);
@@ -136,11 +142,15 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	zval                retval;
 	php_event_base_t   *b;
 	zend_string        *func_name;
+	zval                zcallable;
 
 	PHP_EVENT_ASSERT(bevent);
 	PHP_EVENT_ASSERT(bev->bevent == bevent);
 
-	if (!zend_is_callable(&bev->cb_event.func_name, IS_CALLABLE_STRICT, &func_name)) {
+	/* Protect against accidental destruction of the func name before zend_call_function() finished */
+	ZVAL_COPY(&zcallable, &bev->cb_event.func_name);
+
+	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -168,7 +178,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 
 	fci.size = sizeof(fci);
 	fci.function_table = EG(function_table);
-	ZVAL_COPY_VALUE(&fci.function_name, &bev->cb_event.func_name);
+	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
@@ -196,6 +206,8 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 			php_error_docref(NULL, E_WARNING, "Failed to invoke bufferevent event callback");
 		}
 	}
+
+	zval_ptr_dtor(&zcallable);
 
 	if (!Z_ISUNDEF(argv[0])) {
 		zval_ptr_dtor(&argv[0]);
