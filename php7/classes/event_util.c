@@ -131,6 +131,8 @@ PHP_METHOD(EventUtil, setSocketOption)
 	int              ov;
 	socklen_t        optlen;
 	int              retval;
+	struct linger    lv;
+	struct timeval   tv;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zllz",
 				&zfd, &level, &optname, &zoptval) == FAILURE) {
@@ -147,7 +149,6 @@ PHP_METHOD(EventUtil, setSocketOption)
 			{
 				zval          *l_onoff;
 				zval          *l_linger;
-				struct linger  lv;
 
 				convert_to_array_ex(zoptval);
 				opt_ht = HASH_OF(zoptval);
@@ -178,7 +179,6 @@ PHP_METHOD(EventUtil, setSocketOption)
 			{
 				zval           *sec;
 				zval           *usec;
-				struct timeval  tv;
 
 				convert_to_array_ex(zoptval);
 				opt_ht = HASH_OF(zoptval);
