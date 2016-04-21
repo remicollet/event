@@ -38,6 +38,30 @@ PHP_ARG_ENABLE(event-debug, whether Event debugging support enabled,
 PHP_ARG_ENABLE(event-sockets, whether to enable sockets support in Event,
 [  --enable-event-sockets Enable sockets support in Event], yes, no)
 
+
+dnl
+dnl PHP_EVENT_CHECK_FCALLINFO_SYMBOL_TABLE
+dnl
+dnl Checks whether zend_fcall_info.symbol_table exists
+dnl
+AC_DEFUN([PHP_EVENT_CHECK_FCALLINFO_SYMBOL_TABLE],[
+  AC_MSG_CHECKING(whether zend_fcall_info.symbol_table exists)
+  export OLD_CPPFLAGS="$CPPFLAGS"
+  export CPPFLAGS="$CPPFLAGS $INCLUDES"
+  AC_TRY_COMPILE([#include <php.h>], [
+    zend_fcall_info fc;
+    fc.symbol_table = NULL;
+    printf("%p", fc.symbol_table);
+  ], [
+  AC_DEFINE(HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE, 1, [ ])
+  AC_MSG_RESULT([yes])
+  ], [
+  AC_MSG_RESULT([no])
+  ])
+  export CPPFLAGS="$OLD_CPPFLAGS"
+])
+
+
 if test "$PHP_EVENT_CORE" != "no"; then
 
   OLD_LDFLAGS=$LDFLAGS
@@ -69,6 +93,8 @@ if test "$PHP_EVENT_CORE" != "no"; then
     PHP_EVENT_SUBDIR="."
   fi
   dnl }}}
+
+  PHP_EVENT_CHECK_FCALLINFO_SYMBOL_TABLE()
 
   dnl {{{ --enable-event-debug
   if test "$PHP_EVENT_DEBUG" != "no"; then

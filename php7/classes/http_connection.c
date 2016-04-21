@@ -57,7 +57,9 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	fci.param_count   = 2;
 	fci.params        = argv;
 	fci.no_separation = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table  = NULL;
+#endif
 
 	if (zend_call_function(&fci, &evcon->cb_close.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {

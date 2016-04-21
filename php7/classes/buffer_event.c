@@ -83,7 +83,9 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 	fci.params = argv;
 	fci.param_count = 2;
 	fci.no_separation  = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	if (zend_call_function(&fci, &pcb->fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -184,7 +186,9 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	fci.params = argv;
 	fci.param_count = 3;
 	fci.no_separation  = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	if (zend_call_function(&fci, &bev->cb_event.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {

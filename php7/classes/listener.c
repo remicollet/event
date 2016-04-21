@@ -164,7 +164,9 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	fci.params = argv;
 	fci.param_count = 4;
 	fci.no_separation  = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -222,7 +224,9 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	fci.params = argv;
 	fci.param_count = 2;
 	fci.no_separation  = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {

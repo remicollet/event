@@ -104,7 +104,9 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	fci.params = argv;
 	fci.param_count = 2;
 	fci.no_separation  = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)*/
 	/*evhttp_request_own(http_req->ptr);*/

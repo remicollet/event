@@ -75,7 +75,9 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	fci.params = argv;
 	fci.param_count = 1;
 	fci.no_separation  = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -137,7 +139,9 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	fci.params = argv;
 	fci.param_count = 3;
 	fci.no_separation  = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -193,7 +197,9 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	fci.params = argv;
 	fci.param_count = 2;
 	fci.no_separation  = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {

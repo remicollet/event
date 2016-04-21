@@ -48,7 +48,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_loopexit, 0, 0, 0)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event__construct, 0, 0, 4)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, fd)
 	ZEND_ARG_INFO(0, what)
 	ZEND_ARG_INFO(0, cb)
@@ -56,7 +56,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event__construct, 0, 0, 4)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_set, 0, 0, 2)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, fd)
 	ZEND_ARG_INFO(0, what)
 	ZEND_ARG_INFO(0, cb)
@@ -84,20 +84,20 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_pending, 0, 0, 1)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evtimer_new, 0, 0, 2)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, cb)
 	ZEND_ARG_INFO(0, arg)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evtimer_set, 0, 0, 2)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, cb)
 	ZEND_ARG_INFO(0, arg)
 ZEND_END_ARG_INFO();
 
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evsignal_new, 0, 0, 3)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, signum)
 	ZEND_ARG_INFO(0, cb)
 	ZEND_ARG_INFO(0, arg)
@@ -118,7 +118,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent__events, 0, 0, 1)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent__construct, 0, 0, 1)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, socket)
 	ZEND_ARG_INFO(0, options)
 	ZEND_ARG_INFO(0, readcb)
@@ -167,7 +167,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_read, 0, 0, 1)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_pair_new, 0, 0, 1)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, options)
 ZEND_END_ARG_INFO();
 
@@ -197,7 +197,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_create_ssl_filter, 0, 0, 3)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_ssl_socket, 0, 0, 4)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, socket)
 	ZEND_ARG_OBJ_INFO(0, ctx, EventSslContext, 0)
 	ZEND_ARG_INFO(0, state)
@@ -278,7 +278,7 @@ ZEND_END_ARG_INFO();
 
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection__construct, 0, 0, 5)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, dns_base)
 	ZEND_ARG_INFO(0, address)
 	ZEND_ARG_INFO(0, port)
@@ -311,7 +311,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_set_retries, 0, 0, 1)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http__construct, 0, 0, 1)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_OBJ_INFO(0, ctx, EventSslContext, 0)
 ZEND_END_ARG_INFO();
 
@@ -430,7 +430,7 @@ ZEND_END_ARG_INFO();
 /* {{{ ARGINFO for extra API */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evdns__construct, 0, 0, 2)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, initialize)
 ZEND_END_ARG_INFO();
 
@@ -462,7 +462,7 @@ ZEND_END_ARG_INFO();
 
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener__construct, 0, 0, 6)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, cb)
 	ZEND_ARG_INFO(0, data)
 	ZEND_ARG_INFO(0, flags)
@@ -471,7 +471,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener__construct, 0, 0, 6)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_new_bind, 0, 0, 5)
-	ZEND_ARG_OBJ_INFO(1, base, EventBase, 0)
+	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, cb)
 	ZEND_ARG_INFO(0, data)
 	ZEND_ARG_INFO(0, flags)

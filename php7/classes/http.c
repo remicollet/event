@@ -96,7 +96,9 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	fci.params = argv;
 	fci.param_count = 2;
 	fci.no_separation = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	if (zend_call_function(&fci, &cb->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -178,7 +180,9 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	fci.params = argv;
 	fci.param_count = 2;
 	fci.no_separation  = 1;
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
 	fci.symbol_table = NULL;
+#endif
 
 	if (zend_call_function(&fci, &http->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {

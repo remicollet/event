@@ -42,6 +42,17 @@ if (PHP_EVENT != "no") {
 		ADD_FLAG("CFLAGS_EVENT", "/D _EVENT_HAVE_OPENSSL=1"); */
 		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_EXTRA_LIB=1");
 
+		var v = dll.match(/^php(\d+)\.(\d+)\.(\d+)(?:RC(\d+))?/);
+		// zend_fcall_info.symbol_table is removed from PHP version > 7.0.6RC1
+		if (false === (
+			(v[1] > 7) ||
+			(v[1] == 7 && v[2] > 0) ||
+			(v[1] == 7 && v[2] == 0 && v[3] > 6) ||
+			(v[1] == 7 && v[2] == 0 && v[3] == 6 && v[4] > 1)
+		)) {
+			ADD_FLAG("CFLAGS_EVENT", "/D HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE=1");
+		}
+
 		EXTENSION("event", "php_event.c", true,
 				  "/I \"" + configure_module_dirname + "\" /DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
 
