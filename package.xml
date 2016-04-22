@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-04-21</date>
+  <date>2016-04-22</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.0.3</release>
+    <release>2.0.4</release>
     <api>2.0.0</api>
   </version>
   <stability>
@@ -44,7 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Issue #27: PHP > 7.0.6RC1 build fails
+    Issue #28: event-2.0.3 Windows build fails
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -210,7 +210,23 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ Current version -->
+    <!--{{{ 2.0.4 -->
+    <release>
+      <version>
+        <release>2.0.4</release>
+        <api>2.0.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Issue #28: event-2.0.3 Windows build fails
+  ]]></notes>
+    </release>
+    <!--}}}-->
+    <!--{{{ 2.0.3 -->
     <release>
       <version>
         <release>2.0.3</release>
