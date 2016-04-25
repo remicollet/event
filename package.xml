@@ -45,6 +45,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
     Add: EventUtil::SOCK_RAW constant
+    Fix: EventBufferEvent::createPair caused segmentation fault in PHP7
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -223,6 +224,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
     Add: EventUtil::SOCK_RAW constant
+    Fix: EventBufferEvent::createPair caused segmentation fault in PHP7
   ]]></notes>
     </release>
   <!--}}}-->

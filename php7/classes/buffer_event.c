@@ -538,8 +538,10 @@ PHP_METHOD(EventBufferEvent, createPair)
 	for (i = 0; i < 2; i++) {
 		PHP_EVENT_INIT_CLASS_OBJECT(&zbev[i], php_event_bevent_ce);
 		b[i] = Z_EVENT_BEVENT_OBJ_P(&zbev[i]);
-
 		b[i]->bevent = bevent_pair[i];
+
+		ZVAL_COPY(&b[i]->self, &zbev[i]);
+		ZVAL_COPY(&b[i]->base, zbase);
 
 		add_next_index_zval(return_value, &zbev[i]);
 	}
