@@ -32,19 +32,19 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-04-22</date>
+  <date>2016-04-25</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.0.4</release>
-    <api>2.0.0</api>
+    <release>2.1.0RC1</release>
+    <api>2.1.0RC1</api>
   </version>
   <stability>
-    <release>stable</release>
-    <api>stable</api>
+    <release>beta</release>
+    <api>beta</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Issue #28: event-2.0.3 Windows build fails
+    Add: EventUtil::SOCK_RAW constant
   ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -210,6 +210,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+  <!--{{{ 2.1.0RC1 -->
+    <release>
+  <version>
+    <release>2.1.0RC1</release>
+    <api>2.1.0RC1</api>
+  </version>
+  <stability>
+    <release>beta</release>
+    <api>beta</api>
+  </stability>
+  <license uri="http://www.php.net/license">PHP</license>
+  <notes><![CDATA[
+    Add: EventUtil::SOCK_RAW constant
+  ]]></notes>
+    </release>
+  <!--}}}-->
     <!--{{{ 2.0.4 -->
     <release>
       <version>
