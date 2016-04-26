@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-04-25</date>
+  <date>2016-04-26</date>
   <!--{{{ Current version -->
   <version>
     <release>2.1.0RC1</release>
@@ -45,8 +45,13 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
     Add: EventUtil::SOCK_RAW constant
+    Add: EventSslContext option constants: OPT_REQUIRE_CLIENT_CERT and OPT_VERIFY_CLIENT_ONCE
     Fix: EventBufferEvent::createPair caused segmentation fault in PHP7
-  ]]></notes>
+    SSL Fixes:
+    - chained self-signed certificate failed to pass with EventSslContext::OPT_ALLOW_SELF_SIGNED = TRUE
+    - the server didn't set the list of CAs to be sent to the client when requesting a client certificate for underlying SSL structure
+    - EventSslContext::OPT_ALLOW_SELF_SIGNED = TRUE accepted any self-signed certificate without regard to OPT_CA_FILE/OPT_CA_PATH
+    ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
   <contents>
@@ -211,23 +216,28 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-  <!--{{{ 2.1.0RC1 -->
+    <!--{{{ 2.1.0RC1 -->
     <release>
-  <version>
-    <release>2.1.0RC1</release>
-    <api>2.1.0RC1</api>
-  </version>
-  <stability>
-    <release>beta</release>
-    <api>beta</api>
-  </stability>
-  <license uri="http://www.php.net/license">PHP</license>
-  <notes><![CDATA[
+      <version>
+        <release>2.1.0RC1</release>
+        <api>2.1.0RC1</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
     Add: EventUtil::SOCK_RAW constant
+    Add: EventSslContext option constants: OPT_REQUIRE_CLIENT_CERT and OPT_VERIFY_CLIENT_ONCE
     Fix: EventBufferEvent::createPair caused segmentation fault in PHP7
-  ]]></notes>
+    SSL Fixes:
+    - chained self-signed certificate failed to pass with EventSslContext::OPT_ALLOW_SELF_SIGNED = TRUE
+    - the server didn't set the list of CAs to be sent to the client when requesting a client certificate for underlying SSL structure
+    - EventSslContext::OPT_ALLOW_SELF_SIGNED = TRUE accepted any self-signed certificate without regard to OPT_CA_FILE/OPT_CA_PATH
+    ]]></notes>
     </release>
-  <!--}}}-->
+    <!--}}}-->
     <!--{{{ 2.0.4 -->
     <release>
       <version>
