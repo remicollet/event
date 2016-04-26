@@ -174,7 +174,9 @@ enum {
 	PHP_EVENT_OPT_NO_TLSv1                 = 12,
 	PHP_EVENT_OPT_NO_TLSv1_1               = 13,
 	PHP_EVENT_OPT_NO_TLSv1_2               = 14,
-	PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE = 15
+	PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE = 15,
+	PHP_EVENT_OPT_REQUIRE_CLIENT_CERT      = 16,
+	PHP_EVENT_OPT_VERIFY_CLIENT_ONCE       = 17
 };
 
 enum {
@@ -196,6 +198,7 @@ enum {
 typedef struct _php_event_ssl_context_t {
 	SSL_CTX   *ctx;
 	HashTable *ht;
+	zend_bool  allow_self_signed;
 
 	PHP_EVENT_OBJECT_TAIL;
 } Z_EVENT_X_OBJ_T(ssl_context);
