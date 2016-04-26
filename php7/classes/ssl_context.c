@@ -27,45 +27,28 @@
 
 /* {{{ Private */
 
+
 /* {{{ verify_callback */
-static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
+static int verify_callback(int ok, X509_STORE_CTX *ctx)
 {
-	SSL                      *ssl;
-	int                       ret      = preverify_ok;
-	int                       err;
-	int                       depth;
-	php_event_ssl_context_t  *ectx;
-	zval                     *pzval   = NULL;
-	HashTable                *ht;
+	SSL                     *ssl;
+	int                      err;
+	php_event_ssl_context_t *ectx;
 
 	ssl  = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
 	ectx = (php_event_ssl_context_t *) SSL_get_ex_data(ssl, php_event_ssl_data_index);
 
-	PHP_EVENT_ASSERT(ectx && ectx->ht);
-	ht = ectx->ht;
+	PHP_EVENT_ASSERT(ectx);
 
 	X509_STORE_CTX_get_current_cert(ctx);
 	err      = X509_STORE_CTX_get_error(ctx);
-	depth    = X509_STORE_CTX_get_error_depth(ctx);
 
-	/* If OPT_ALLOW_SELF_SIGNED is set and is TRUE, ret = 1 */
-	if (err == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
-			&& (pzval = zend_hash_index_find(ht, PHP_EVENT_OPT_ALLOW_SELF_SIGNED)) != NULL
-			&& zend_is_true(pzval)) {
-		ret = 1;
+	if (!ok && (err == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT || err == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN)
+			&& ectx->allow_self_signed) {
+		ok = 1;
 	}
 
-	/* Verify depth, if OPT_VERIFY_DEPTH option is set */
-	if ((pzval = zend_hash_index_find(ht, PHP_EVENT_OPT_VERIFY_DEPTH)) != NULL) {
-		convert_to_long_ex(pzval);
-
-		if (depth > Z_LVAL_P(pzval)) {
-			ret = 0;
-			X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_CHAIN_TOO_LONG);
-		}
-	}
-
-	return ret;
+	return ok;
 }
 /* }}} */
 
@@ -92,6 +75,9 @@ static zend_always_inline void set_ca(SSL_CTX *ctx, const char *cafile, const ch
 		php_error_docref(NULL, E_WARNING,
 				"Unable to set verify locations `%s' `%s'",
 				cafile, capath);
+	}
+	if (cafile) {
+		SSL_CTX_set_client_CA_list(ctx, SSL_load_client_CA_file(cafile));
 	}
 }
 /* }}} */
@@ -159,12 +145,15 @@ int _php_event_ssl_ctx_set_local_cert(SSL_CTX *ctx, const char *certfile, const 
 /* }}} */
 
 /* {{{ set_ssl_ctx_options */
-static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
+static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx)
 {
+	SSL_CTX     *ctx         = ectx->ctx;
+	HashTable   *ht          = ectx->ht;
 	zend_string *key;
 	zval        *zv;
 	zend_ulong   idx;
 	zend_bool    got_ciphers = 0;
+	int          verify_mode = SSL_VERIFY_NONE;
 	char        *cafile      = NULL;
 	char        *capath      = NULL;
 
@@ -249,13 +238,13 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 				}
 				break;
 			case PHP_EVENT_OPT_ALLOW_SELF_SIGNED:
-				/* Skip */
+				ectx->allow_self_signed = (zend_bool)zend_is_true(zv);
 				break;
 			case PHP_EVENT_OPT_VERIFY_PEER:
 				if (zend_is_true(zv)) {
-					SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
+					verify_mode |= SSL_VERIFY_PEER;
 				} else {
-					SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+					verify_mode &= ~SSL_VERIFY_PEER;
 				}
 				break;
 			case PHP_EVENT_OPT_VERIFY_DEPTH:
@@ -267,16 +256,35 @@ static inline void set_ssl_ctx_options(SSL_CTX *ctx, HashTable *ht)
 				convert_to_string_ex(zv);
 				set_ciphers(ctx, Z_STRVAL_P(zv));
 				break;
+			case PHP_EVENT_OPT_REQUIRE_CLIENT_CERT:
+				if (zend_is_true(zv)) {
+					verify_mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+				}
+				break;
+			case PHP_EVENT_OPT_VERIFY_CLIENT_ONCE:
+				if (zend_is_true(zv)) {
+					verify_mode |= SSL_VERIFY_CLIENT_ONCE;
+				}
+				break;
 			default:
 				php_error_docref(NULL, E_WARNING, "Unknown option %ld", idx);
 		}
 	} ZEND_HASH_FOREACH_END();
+
+	SSL_CTX_set_verify(ctx, verify_mode, verify_callback);
 
 	if (got_ciphers == 0) {
 		set_ciphers(ctx, "DEFAULT");
 	}
 
 	if (cafile || capath) {
+		/* We have to disable this flag, because CA file/path provides
+		 * a "whitelist" of specific certificates which will pass even if self-signed.
+		 * We can't have allow_self_signed enabled, because in this case verify_callback
+		 * accepts *any* self-signed certificate.
+		 */
+		ectx->allow_self_signed = 0;
+
 		set_ca(ctx, cafile, capath);
 	}
 }
@@ -417,7 +425,7 @@ PHP_METHOD(EventSslContext, __construct)
 	zend_hash_copy(ectx->ht, ht_options, (copy_ctor_func_t) zval_add_ref);
 
 	SSL_CTX_set_options(ectx->ctx, options);
-	set_ssl_ctx_options(ectx->ctx, ectx->ht);
+	set_ssl_ctx_options(ectx);
 
 	/* Issue #20 */
 	SSL_CTX_set_session_id_context(ectx->ctx, (unsigned char *)(void *)ectx->ctx, sizeof(ectx->ctx));

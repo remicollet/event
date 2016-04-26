@@ -106,6 +106,9 @@ class MySslEchoServer {
 			exit("EventUtil::sslRandPoll failed\n");
 		}
 
+		//$local_cert = __DIR__."/certs/cert2.pem";
+		//$local_pk   = __DIR__."/certs/cert2.key";
+		//$cafile     = __DIR__."/certs/CAbundle.pem";
 		$local_cert = __DIR__."/cert.pem";
 		$local_pk   = __DIR__."/privkey.pem";
 
@@ -120,11 +123,14 @@ class MySslEchoServer {
 		}
 
 		$ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, array (
- 			EventSslContext::OPT_LOCAL_CERT  => $local_cert,
- 			EventSslContext::OPT_LOCAL_PK    => $local_pk,
- 			EventSslContext::OPT_PASSPHRASE  => "test",
- 			EventSslContext::OPT_VERIFY_PEER => true,
- 			EventSslContext::OPT_ALLOW_SELF_SIGNED => true,
+			//EventSslContext::OPT_CA_FILE              => $cafile,
+			EventSslContext::OPT_LOCAL_CERT           => $local_cert,
+			EventSslContext::OPT_LOCAL_PK             => $local_pk,
+			//EventSslContext::OPT_PASSPHRASE           => "test",
+			EventSslContext::OPT_VERIFY_PEER          => true,
+			EventSslContext::OPT_VERIFY_DEPTH         => 10,
+			EventSslContext::OPT_ALLOW_SELF_SIGNED    => true,
+			EventSslContext::OPT_REQUIRE_CLIENT_CERT  => true,
 		));
 
 		return $ctx;
