@@ -89,7 +89,9 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	}
 
 	fci.size = sizeof(fci);
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
 	fci.function_table = EG(function_table);
+#endif
 	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;
@@ -173,7 +175,9 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	}
 
 	fci.size = sizeof(fci);
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
 	fci.function_table = EG(function_table);
+#endif
 	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;

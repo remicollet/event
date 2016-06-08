@@ -50,7 +50,9 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	}
 
 	fci.size = sizeof(fci);
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
 	fci.function_table = EG(function_table); /* XXX fetch TSRMLS_CACHE? */
+#endif
 	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object        = NULL;
 	fci.retval        = &retval;

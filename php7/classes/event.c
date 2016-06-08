@@ -68,7 +68,9 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	}
 
 	fci.size = sizeof(fci);
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
 	fci.function_table = EG(function_table);
+#endif
 	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;
@@ -132,7 +134,9 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	}
 
 	fci.size = sizeof(fci);
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
 	fci.function_table = EG(function_table);
+#endif
 	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;
@@ -190,7 +194,9 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	}
 
 	fci.size = sizeof(fci);
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
 	fci.function_table = EG(function_table);
+#endif
 	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;

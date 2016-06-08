@@ -378,8 +378,10 @@ static void php_event_http_req_free_obj(zend_object *object)/*{{{*/
 
 static void php_event_dns_base_dtor_obj(zend_object *object)/*{{{*/
 {
+#if 0
 	Z_EVENT_X_OBJ_T(dns_base) *intern = Z_EVENT_X_FETCH_OBJ(dns_base, object);
 	PHP_EVENT_ASSERT(intern);
+#endif
 
 	zend_objects_destroy_object(object);
 }/*}}}*/

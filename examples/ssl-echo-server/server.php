@@ -4,21 +4,30 @@
  *
  * To test:
  * 1) Run:
- * $ php examples/ssl-echo-server/server.php 9998
+ * $ php examples/ssl-echo-server/server.php OPTIONS
+ * OPTIONS:
+ * -p, --port           Default: 9998
+ * -c, --cert
+ * -k, --pkey
  *
  * 2) in another terminal window run:
  * $ socat - SSL:127.0.0.1:9998,verify=1,cafile=examples/ssl-echo-server/cert.pem
  */
 
 class MySslEchoServer {
-	public $port,
+	public $port, $cafile, $capath, $cert, $pkey,
 		$base,
 		$bev,
 		$listener,
 		$ctx;
 
-	function __construct ($port, $host = "127.0.0.1") {
+	function __construct ($port, $cert, $pkey, $cafile = null, $capath = null, $host = "127.0.0.1") {
 		$this->port = $port;
+		$this->cert = $cert;
+		$this->pkey = $pkey;
+		$this->cafile = $cafile;
+		$this->capath = $capath;
+
 		$this->ctx = $this->init_ssl();
 		if (!$this->ctx) {
 			exit("Failed creating SSL context\n");
@@ -106,11 +115,10 @@ class MySslEchoServer {
 			exit("EventUtil::sslRandPoll failed\n");
 		}
 
-		//$local_cert = __DIR__."/certs/cert2.pem";
-		//$local_pk   = __DIR__."/certs/cert2.key";
-		//$cafile     = __DIR__."/certs/CAbundle.pem";
-		$local_cert = __DIR__."/cert.pem";
-		$local_pk   = __DIR__."/privkey.pem";
+		$local_cert = $this->cert;
+		$local_pk = $this->pkey;
+		$cafile = $this->cafile;
+		$capath = $this->capath;
 
 		if (!file_exists($local_cert) || !file_exists($local_pk)) {
 			echo "Couldn't read $local_cert or $local_pk file.  To generate a key\n",
@@ -121,31 +129,41 @@ class MySslEchoServer {
 
 			return FALSE;
 		}
-
-		$ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, array (
-			//EventSslContext::OPT_CA_FILE              => $cafile,
+		$options = [
 			EventSslContext::OPT_LOCAL_CERT           => $local_cert,
 			EventSslContext::OPT_LOCAL_PK             => $local_pk,
-			//EventSslContext::OPT_PASSPHRASE           => "test",
 			EventSslContext::OPT_VERIFY_PEER          => true,
 			EventSslContext::OPT_VERIFY_DEPTH         => 10,
 			EventSslContext::OPT_ALLOW_SELF_SIGNED    => true,
 			EventSslContext::OPT_REQUIRE_CLIENT_CERT  => true,
-		));
+		];
+
+		if ($cafile) {
+			$options[EventSslContext::OPT_CA_FILE] = $cafile;
+		}
+
+		if ($capath) {
+			$options[EventSslContext::OPT_CA_PATH] = $capath;
+		}
+
+		$ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, $options);
 
 		return $ctx;
 	}
 }
+////////////////////////////////////////////////////////////
 
-// Allow to override the port
-$port = 9999;
-if ($argc > 1) {
-	$port = (int) $argv[1];
-}
+
+$o = getopt('p:c:k:b:', ['port:', 'cert:', 'pkey:', 'cafile:']);
+
+$port = $o['p'] ?? $o['port'] ?? 9998;
+$cert = $o['c'] ?? $o['cert'] ?? __DIR__.'/certs/cert2.pem' ;
+$pkey = $o['k'] ?? $o['pkey'] ?? __DIR__.'/certs/cert2.key' ;
+$cafile = $o['b'] ?? $o['cafile'] ?? __DIR__.'/certs/CAbundle.pem' ;
+
 if ($port <= 0 || $port > 65535) {
-	exit("Invalid port\n");
+	exit("Invalid port: $port\n");
 }
 
-
-$l = new MySslEchoServer($port);
+$l = new MySslEchoServer($port, $cert, $pkey, $cafile);
 $l->dispatch();

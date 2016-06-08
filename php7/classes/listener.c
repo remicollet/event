@@ -157,7 +157,9 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	}
 
 	fci.size = sizeof(fci);
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
 	fci.function_table = EG(function_table);
+#endif
 	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;
@@ -217,7 +219,9 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	}
 
 	fci.size = sizeof(fci);
+#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
 	fci.function_table = EG(function_table);
+#endif
 	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;

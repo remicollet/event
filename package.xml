@@ -32,15 +32,15 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-04-26</date>
+  <date>2016-06-08</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.1.0RC1</release>
-    <api>2.1.0RC1</api>
+    <release>2.1.0</release>
+    <api>2.1.0</api>
   </version>
   <stability>
-    <release>beta</release>
-    <api>beta</api>
+    <release>stable</release>
+    <api>stable</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
@@ -51,6 +51,7 @@
     - chained self-signed certificate failed to pass with EventSslContext::OPT_ALLOW_SELF_SIGNED = TRUE
     - the server didn't set the list of CAs to be sent to the client when requesting a client certificate for underlying SSL structure
     - EventSslContext::OPT_ALLOW_SELF_SIGNED = TRUE accepted any self-signed certificate without regard to OPT_CA_FILE/OPT_CA_PATH
+    Fix: PHP 7.1.0alpha1 build errors
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -216,15 +217,15 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
-    <!--{{{ 2.1.0RC1 -->
+    <!--{{{ 2.1.0-->
     <release>
       <version>
-        <release>2.1.0RC1</release>
-        <api>2.1.0RC1</api>
+        <release>2.1.0</release>
+        <api>2.1.0</api>
       </version>
       <stability>
-        <release>beta</release>
-        <api>beta</api>
+        <release>stable</release>
+        <api>stable</api>
       </stability>
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
@@ -235,6 +236,7 @@
     - chained self-signed certificate failed to pass with EventSslContext::OPT_ALLOW_SELF_SIGNED = TRUE
     - the server didn't set the list of CAs to be sent to the client when requesting a client certificate for underlying SSL structure
     - EventSslContext::OPT_ALLOW_SELF_SIGNED = TRUE accepted any self-signed certificate without regard to OPT_CA_FILE/OPT_CA_PATH
+    Fix: PHP 7.1.0alpha1 build errors
     ]]></notes>
     </release>
     <!--}}}-->
