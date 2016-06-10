@@ -18,6 +18,10 @@
 #include "../src/common.h"
 #include "../src/util.h"
 #include "../src/priv.h"
+#ifndef PHP_WIN32
+# include <fcntl.h>
+#endif
+
 
 /* {{{ proto int EventUtil::getLastSocketErrno([mixed socket = null]);
  *
@@ -236,6 +240,54 @@ PHP_METHOD(EventUtil, getSocketFd) {
 	RETVAL_LONG(ppzfd ? php_event_zval_to_fd(ppzfd TSRMLS_CC) : -1);
 }
 /* }}} */
+
+#ifdef PHP_EVENT_SOCKETS_SUPPORT
+/* {{{ proto resource EventUtil::createSocket(int fd)
+ *    Creates socket resource from a numeric file descriptor. */
+PHP_METHOD(EventUtil, createSocket) {
+	php_socket *php_sock;
+	php_socket_t  fd = -1;
+	socklen_t  opt_length;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+	                         &fd) == FAILURE) {
+	         return;
+	}
+
+        /* Validate file descriptor */
+#ifndef PHP_WIN32
+        if (fd >= 0 && fcntl(fd, F_GETFD) == -1) {
+#else
+        if (fd == INVALID_SOCKET) {
+#endif
+                php_error_docref(NULL TSRMLS_CC, E_WARNING, "fcntl: invalid file descriptor passed");
+                RETURN_FALSE;
+        }
+
+	php_sock = emalloc(sizeof *php_sock);
+	php_sock->error      = 0;
+	php_sock->zstream    = NULL;
+	php_sock->type       = PF_UNSPEC;
+	php_sock->bsd_socket = fd;
+
+	opt_length = sizeof(php_sock->type);
+
+#ifndef PHP_WIN32
+	if (getsockopt(fd, SOL_SOCKET, SO_TYPE, &php_sock->type, &opt_length) != 0) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to retrieve socket type");
+		RETURN_FALSE;
+	}
+#endif
+
+#ifndef PHP_WIN32
+	php_sock->blocking = (fcntl(fd, F_GETFL) & O_NONBLOCK) == 0 ? 0 : 1;
+#else
+	php_sock->blocking = 1;
+#endif
+
+        ZEND_REGISTER_RESOURCE(return_value, php_sock, php_sockets_le_socket());
+} /* }}} */
+#endif /* PHP_EVENT_SOCKETS_SUPPORT */
 
 /*
  * Local variables:

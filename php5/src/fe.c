@@ -418,6 +418,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_set_socket_option, 0, 0, 4)
 	ZEND_ARG_INFO(0, optval)
 ZEND_END_ARG_INFO();
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_create_socket, 0, 0, 1)
+	ZEND_ARG_INFO(0, fd)
+ZEND_END_ARG_INFO();
+
 
 /* ARGINFO END }}} */
 
@@ -635,6 +639,7 @@ const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 	PHP_ME(EventUtil, getSocketName,   arginfo_event_util_get_socket_name,   ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventUtil, getSocketFd,     arginfo_event_util_get_socket_fd,     ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventUtil, setSocketOption, arginfo_event_util_set_socket_option, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(EventUtil, createSocket,    arginfo_event_util_create_socket,     ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 	PHP_FE_END
 };
