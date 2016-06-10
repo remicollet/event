@@ -125,6 +125,9 @@ PHP_METHOD(EventUtil, sslRandPoll);
 PHP_METHOD(EventUtil, getSocketName);
 PHP_METHOD(EventUtil, getSocketFd);
 PHP_METHOD(EventUtil, setSocketOption);
+#ifdef PHP_EVENT_SOCKETS_SUPPORT
+PHP_METHOD(EventUtil, createSocket);
+#endif
 
 PHP_METHOD(EventBufferPosition, __construct);
 
