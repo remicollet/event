@@ -245,26 +245,26 @@ PHP_METHOD(EventUtil, getSocketFd) {
 /* {{{ proto resource EventUtil::createSocket(int fd)
  *    Creates socket resource from a numeric file descriptor. */
 PHP_METHOD(EventUtil, createSocket) {
-	php_socket *php_sock;
-	php_socket_t  fd = -1;
-	socklen_t  opt_length;
+	php_socket   *php_sock;
+	php_socket_t  fd         = -1;
+	socklen_t     opt_length;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
-	                         &fd) == FAILURE) {
-	         return;
+				&fd) == FAILURE) {
+		return;
 	}
 
-        /* Validate file descriptor */
+	/* Validate file descriptor */
 #ifndef PHP_WIN32
-        if (fd >= 0 && fcntl(fd, F_GETFD) == -1) {
+	if (fd >= 0 && fcntl(fd, F_GETFD) == -1) {
 #else
-        if (fd == INVALID_SOCKET) {
+		if (fd == INVALID_SOCKET) {
 #endif
-                php_error_docref(NULL TSRMLS_CC, E_WARNING, "fcntl: invalid file descriptor passed");
-                RETURN_FALSE;
-        }
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid file descriptor");
+			RETURN_FALSE;
+		}
 
-	php_sock = emalloc(sizeof *php_sock);
+	php_sock             = emalloc(sizeof *php_sock);
 	php_sock->error      = 0;
 	php_sock->zstream    = NULL;
 	php_sock->type       = PF_UNSPEC;
@@ -272,12 +272,10 @@ PHP_METHOD(EventUtil, createSocket) {
 
 	opt_length = sizeof(php_sock->type);
 
-#ifndef PHP_WIN32
 	if (getsockopt(fd, SOL_SOCKET, SO_TYPE, &php_sock->type, &opt_length) != 0) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to retrieve socket type");
 		RETURN_FALSE;
 	}
-#endif
 
 #ifndef PHP_WIN32
 	php_sock->blocking = (fcntl(fd, F_GETFL) & O_NONBLOCK) == 0 ? 0 : 1;
