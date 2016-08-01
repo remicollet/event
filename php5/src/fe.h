@@ -149,6 +149,7 @@ PHP_METHOD(EventDnsBase, setOption);
 PHP_METHOD(EventDnsBase, countNameservers);
 
 PHP_METHOD(EventListener, __construct);
+PHP_METHOD(EventListener, free);
 PHP_METHOD(EventListener, enable);
 PHP_METHOD(EventListener, disable);
 PHP_METHOD(EventListener, setCallback);

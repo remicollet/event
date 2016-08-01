@@ -729,6 +729,7 @@ const zend_function_entry php_event_http_req_ce_functions[] = {
 
 const zend_function_entry php_event_listener_ce_functions[] = {
 	PHP_ME(EventListener, __construct,      arginfo_evconnlistener__construct,   ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(EventListener, free,             arginfo_event__void,                 ZEND_ACC_PUBLIC)
 	PHP_ME(EventListener, enable,           arginfo_event__void,                 ZEND_ACC_PUBLIC)
 	PHP_ME(EventListener, disable,          arginfo_event__void,                 ZEND_ACC_PUBLIC)
 	PHP_ME(EventListener, setCallback,      arginfo_evconnlistener_set_cb,       ZEND_ACC_PUBLIC)

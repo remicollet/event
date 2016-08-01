@@ -344,6 +344,24 @@ PHP_METHOD(EventListener, __construct)
 }
 /* }}} */
 
+/*{{{ proto void EventListener::free(void); */
+PHP_METHOD(EventListener, free)
+{
+	zval *self = getThis();
+	php_event_listener_t *l;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	l = Z_EVENT_LISTENER_OBJ_P(self);
+
+	if (l != NULL && l->listener != NULL) {
+		evconnlistener_free(l->listener);
+		l->listener = NULL;
+	}
+}/*}}}*/
+
 /* {{{ proto bool EventListener::enable(void);
  * Enable an event connect listener resource */
 PHP_METHOD(EventListener, enable)

@@ -310,7 +310,7 @@ PHP_METHOD(EventListener, __construct)
 		evutil_socket_t fd = -1;
 
 		/* php_event_zval_to_fd reports error
-	 	 * in case if it is not a valid socket resource */
+			in case if it is not a valid socket resource */
 		fd = php_event_zval_to_fd(ppztarget TSRMLS_CC);
 		if (fd < 0) {
 			ZVAL_NULL(zself);
@@ -348,6 +348,24 @@ PHP_METHOD(EventListener, __construct)
 	TSRMLS_SET_CTX(l->thread_ctx);
 }
 /* }}} */
+
+/*{{{ proto void EventListener::free(void); */
+PHP_METHOD(EventListener, free)
+{
+	zval *self = getThis();
+	php_event_listener_t *l;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_LISTENER(l, self);
+
+	if (l != NULL && l->listener != NULL) {
+		evconnlistener_free(l->listener);
+		l->listener = NULL;
+	}
+}/*}}}*/
 
 /* {{{ proto bool EventListener::enable(void);
  * Enable an event connect listener resource */
