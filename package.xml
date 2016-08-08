@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-08-01</date>
+  <date>2016-08-08</date>
   <!--{{{ Current version -->
   <version>
     <release>2.2.0</release>
@@ -46,6 +46,8 @@
   <notes><![CDATA[
     Add: EventUtil::createSocket method(PHP5)
     Add: EventListener::free method
+    Fix: issue #30 where building without SSL3 failed
+    Fix: the class property names were wrapped in double quotes
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -226,6 +228,8 @@
       <notes><![CDATA[
     Add: EventUtil::createSocket method(PHP5)
     Add: EventListener::free method
+    Fix: issue #30 where building without SSL3 failed
+    Fix: the class property names were wrapped in double quotes
     ]]></notes>
     </release>
     <!--}}}-->

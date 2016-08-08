@@ -307,9 +307,16 @@ static zend_always_inline SSL_METHOD *get_ssl_method(zend_long in_method)
 			method = (SSL_METHOD *) SSLv2_client_method();
 			break;
 #endif
+#ifdef OPENSSL_NO_SSL3
+			php_error_docref(NULL, E_WARNING,
+					"SSLv3 support is not compiled into the "
+					"OpenSSL library PHP is linked against");
+			return NULL;
+#else
 		case PHP_EVENT_SSLv3_CLIENT_METHOD:
 			method = (SSL_METHOD *) SSLv3_client_method();
 			break;
+#endif
 		case PHP_EVENT_SSLv23_CLIENT_METHOD:
 			method = (SSL_METHOD *) SSLv23_client_method();
 			break;
@@ -326,9 +333,16 @@ static zend_always_inline SSL_METHOD *get_ssl_method(zend_long in_method)
 			method = (SSL_METHOD *) SSLv2_server_method();
 			break;
 #endif
+#ifdef OPENSSL_NO_SSL3
+			php_error_docref(NULL, E_WARNING,
+					"SSLv3 support is not compiled into the "
+					"OpenSSL library PHP is linked against");
+			return NULL;
+#else
 		case PHP_EVENT_SSLv3_SERVER_METHOD:
 			method = (SSL_METHOD *) SSLv3_server_method();
 			break;
+#endif
 		case PHP_EVENT_SSLv23_SERVER_METHOD:
 			method = (SSL_METHOD *) SSLv23_server_method();
 			break;

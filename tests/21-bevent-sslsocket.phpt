@@ -9,9 +9,19 @@ if (version_compare(PHP_VERSION, '7.0.0') < 0) {
 ?>
 --FILE--
 <?php
+foreach (['EventSslContext::SSLv3_SERVER_METHOD',
+	'EventSslContext::SSLv2_SERVER_METHOD',
+	'EventSslContext::SSLv23_SERVER_METHOD'] as $method)
+{
+	if (defined($method)) {
+		$method = constant($method);
+		break;
+	}
+}
+
 $base = new EventBase();
-$ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, []);
-EventBufferEvent::sslSocket(new EventBase(), NULL, $ctx, EventBufferEvent::SSL_ACCEPTING);
+$ctx = new EventSslContext($method, []);
+EventBufferEvent::sslSocket(new EventBase(), null, $ctx, EventBufferEvent::SSL_ACCEPTING);
 echo 'ok';
 ?>
 --EXPECT--

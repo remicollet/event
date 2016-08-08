@@ -8,8 +8,18 @@ if (!class_exists('EventHttp')) {
 ?>
 --FILE--
 <?php
+foreach (['EventSslContext::SSLv3_SERVER_METHOD',
+	'EventSslContext::SSLv2_SERVER_METHOD',
+	'EventSslContext::SSLv23_SERVER_METHOD'] as $method)
+{
+	if (defined($method)) {
+		$method = constant($method);
+		break;
+	}
+}
+
 $base = new EventBase();
-$ctx = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, []);
+$ctx = new EventSslContext($method, []);
 
 var_dump(new EventHttpRequest(function() {}, null));
 var_dump(new EventHttp($base));
