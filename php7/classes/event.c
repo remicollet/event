@@ -116,7 +116,7 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	}
 	zend_string_release(func_name);
 
-	if (what & EV_SIGNAL) {
+	if ((what & EV_SIGNAL) || e->stream_res == NULL) {
 		ZVAL_LONG(&argv[0], fd);
 	} else if (e->stream_res) {
 		ZVAL_RES(&argv[0], e->stream_res);
@@ -237,8 +237,8 @@ PHP_METHOD(Event, __construct)
 	php_event_t      *e;
 	evutil_socket_t   fd;
 	zend_long         what;
-	zval             *zself = getThis();
-	zval             *zarg   = NULL;
+	zval             *zself            = getThis();
+	zval             *zarg             = NULL;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ozlz|z!",
 				&zbase, php_event_base_ce, &pzfd, &what, &zcb, &zarg) == FAILURE) {
@@ -289,7 +289,17 @@ PHP_METHOD(Event, __construct)
 
 	php_event_copy_callback(&e->cb, zcb);
 
-	e->stream_res = fd == -1 || (what & EV_SIGNAL) ? NULL : Z_RES_P(pzfd);
+	if (what & EV_SIGNAL) {
+		e->stream_res = NULL;
+	} else if (Z_TYPE_P(pzfd) == IS_RESOURCE) {
+		e->stream_res = fd == -1 ? NULL : Z_RES_P(pzfd);
+	} else {
+		/* We might open a stream for fd, but the only place where we need
+		 * stream_res is the event callback, which should only bypass the
+		 * fd argument to the user. Since fd is a numeric fd, we can simply
+		 * pass ZVAL_LONG(fd) in the event callback. */
+		e->stream_res = NULL;
+	}
 }
 /* }}} */
 
@@ -368,8 +378,10 @@ PHP_METHOD(Event, set)
 	if (pzfd) {
 		if (what != -1 && what & EV_SIGNAL) {
 			e->stream_res = NULL; /* stdin fd = 0 */
-		} else {
+		} else if (Z_TYPE_P(pzfd) == IS_RESOURCE) {
 			e->stream_res = Z_RES_P(pzfd);
+		} else {
+			e->stream_res = NULL;
 		}
 	}
 

@@ -11,7 +11,6 @@ if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
 ?>
 --FILE--
 <?php
-<?php
 foreach (['EventSslContext::SSLv3_SERVER_METHOD',
 	'EventSslContext::SSLv2_SERVER_METHOD',
 	'EventSslContext::SSLv23_SERVER_METHOD'] as $method)

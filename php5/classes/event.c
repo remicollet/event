@@ -109,13 +109,11 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	if (ZEND_FCI_INITIALIZED(*pfci)) {
 		/* Setup callback arguments */
 		MAKE_STD_ZVAL(arg_fd);
-		if (what & EV_SIGNAL) {
+		if ((what & EV_SIGNAL) || e->stream_id == -1) {
 			ZVAL_LONG(arg_fd, fd);
 		} else if (e->stream_id >= 0) {
 			ZVAL_RESOURCE(arg_fd, e->stream_id);
 			zend_list_addref(e->stream_id);
-		} else {
-			ZVAL_NULL(arg_fd);
 		}
 		args[0] = &arg_fd;
 
@@ -279,10 +277,12 @@ PHP_METHOD(Event, __construct)
 
 	if (what & EV_SIGNAL) {
 		e->stream_id = -1; /* stdin fd = 0 */
-	} else {
+	} else if (Z_TYPE_PP(ppzfd) == IS_RESOURCE) {
 		/* lval of ppzfd is the resource ID */
 		e->stream_id = Z_LVAL_PP(ppzfd);
 		zend_list_addref(Z_LVAL_PP(ppzfd));
+	} else {
+		e->stream_id = -1;
 	}
 }
 /* }}} */
@@ -366,13 +366,15 @@ PHP_METHOD(Event, set)
 	if (ppzfd) {
 		if (what != -1 && what & EV_SIGNAL) {
 			e->stream_id = -1; /* stdin fd = 0 */
-		} else {
+		} else if (Z_TYPE_PP(ppzfd) == IS_RESOURCE) {
 			if (e->stream_id != Z_LVAL_PP(ppzfd)) {
 				zend_list_delete(e->stream_id);
 				/* lval of ppzfd is the resource ID */
 				e->stream_id = Z_LVAL_PP(ppzfd);
 				zend_list_addref(Z_LVAL_PP(ppzfd));
 			}
+		} else {
+			e->stream_id = -1;
 		}
 	}
 

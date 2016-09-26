@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-08-08</date>
+  <date>2016-09-26</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.2.0</release>
+    <release>2.2.1</release>
     <api>2.2.0</api>
   </version>
   <stability>
@@ -44,10 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Add: EventUtil::createSocket method(PHP5)
-    Add: EventListener::free method
-    Fix: issue #30 where building without SSL3 failed
-    Fix: the class property names were wrapped in double quotes
+    Fix: issue #31 where numeric file descriptor caused segmentation fault
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -214,6 +211,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.2.1 -->
+    <release>
+      <version>
+        <release>2.2.1</release>
+        <api>2.2.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Fix: issue #31 where numeric file descriptor caused segmentation fault
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 2.2.0 -->
     <release>
       <version>
