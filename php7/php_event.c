@@ -21,7 +21,6 @@
 #include "src/priv.h"
 #include "classes/http.h"
 
-
 zend_class_entry *php_event_ce;
 zend_class_entry *php_event_base_ce;
 zend_class_entry *php_event_config_ce;
@@ -1247,21 +1246,17 @@ PHP_MINIT_FUNCTION(event)
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_buffer_ce, PTR_ADD,         EVBUFFER_PTR_ADD);
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
-# ifndef OPENSSL_NO_SSL2
+# ifdef HAVE_SSL2
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv2_CLIENT_METHOD,  PHP_EVENT_SSLv2_CLIENT_METHOD);
-# endif
-# ifndef OPENSSL_NO_SSL3
-	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv3_CLIENT_METHOD,  PHP_EVENT_SSLv3_CLIENT_METHOD);
-# endif
-	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_CLIENT_METHOD, PHP_EVENT_SSLv23_CLIENT_METHOD);
-	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS_CLIENT_METHOD,    PHP_EVENT_TLS_CLIENT_METHOD);
-# ifndef OPENSSL_NO_SSL2
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv2_SERVER_METHOD,  PHP_EVENT_SSLv2_SERVER_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_CLIENT_METHOD, PHP_EVENT_SSLv23_CLIENT_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_SERVER_METHOD, PHP_EVENT_SSLv23_SERVER_METHOD);
 # endif
-# ifndef OPENSSL_NO_SSL3
+# ifdef HAVE_SSL3
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv3_CLIENT_METHOD,  PHP_EVENT_SSLv3_CLIENT_METHOD);
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv3_SERVER_METHOD,  PHP_EVENT_SSLv3_SERVER_METHOD);
 # endif
-	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSLv23_SERVER_METHOD, PHP_EVENT_SSLv23_SERVER_METHOD);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS_CLIENT_METHOD,    PHP_EVENT_TLS_CLIENT_METHOD);
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS_SERVER_METHOD,    PHP_EVENT_TLS_SERVER_METHOD);
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv11_CLIENT_METHOD, PHP_EVENT_TLSv11_CLIENT_METHOD);
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLSv11_SERVER_METHOD, PHP_EVENT_TLSv11_SERVER_METHOD);
@@ -1285,6 +1280,20 @@ PHP_MINIT_FUNCTION(event)
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_CIPHER_SERVER_PREFERENCE, PHP_EVENT_OPT_CIPHER_SERVER_PREFERENCE);
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_REQUIRE_CLIENT_CERT,      PHP_EVENT_OPT_REQUIRE_CLIENT_CERT);
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, OPT_VERIFY_CLIENT_ONCE,       PHP_EVENT_OPT_VERIFY_CLIENT_ONCE);
+
+	PHP_EVENT_REG_CLASS_CONST_STRING(php_event_ssl_context_ce, OPENSSL_VERSION_TEXT,       OPENSSL_VERSION_TEXT);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce,   OPENSSL_VERSION_NUMBER,     OPENSSL_VERSION_NUMBER);
+
+
+	/* Constants for EventSslContext::setMinProtoVersion */
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, SSL3_VERSION,    SSL3_VERSION);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS1_VERSION,    TLS1_VERSION);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS1_1_VERSION,  TLS1_1_VERSION);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS1_2_VERSION,  TLS1_2_VERSION);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, DTLS1_VERSION,   DTLS1_VERSION);
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, DTLS1_2_VERSION, DTLS1_2_VERSION);
+#endif
 
 	/* Initialize openssl library */
 	SSL_load_error_strings();
@@ -1331,9 +1340,16 @@ PHP_MSHUTDOWN_FUNCTION(event)
 	 * in the OpenSSL_add_all_ family of functions */
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
+# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	/* No need in ERR_remove_thread_state, or ERR_remove_state, since OpenSSL
+	 * do all thread initialisation/deinitialisation automatically */
+# elif OPENSSL_VERSION_NUMBER >= 0x10000000L
+	ERR_remove_thread_state(NULL);
+# else
 	ERR_remove_state(0);
+# endif
 	ERR_free_strings();
-#endif
+#endif /* HAVE_EVENT_OPENSSL_LIB */
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
 	/* libevent_global_shutdown is available since libevent 2.1.0-alpha.
@@ -1404,6 +1420,7 @@ PHP_MINFO_FUNCTION(event)
 #else
 	php_info_print_table_row(2, "Thread safety support", "disabled");
 #endif
+
 
 	php_info_print_table_row(2, "Extension version", PHP_EVENT_VERSION);
 	php_info_print_table_row(2, "libevent2 headers version", LIBEVENT_VERSION);

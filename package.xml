@@ -32,19 +32,24 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-09-26</date>
+  <date>2016-11-10</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.2.1</release>
-    <api>2.2.0</api>
+    <release>2.3.0RC1</release>
+    <api>2.3.0RC1</api>
   </version>
   <stability>
-    <release>stable</release>
-    <api>stable</api>
+    <release>beta</release>
+    <api>beta</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fix: issue #31 where numeric file descriptor caused segmentation fault
+    Add: EventSslContext methods: setMinProtoVersion and setMaxProtoVersion for OpenSSL >= 1.1.0.
+    Add: EventSslContext constants: OPENSSL_VERSION_NUMBER and OPENSSL_VERSION_TEXT.
+    Fix: compilation warnings regarding OpenSSL features deprecated in version 1.0.0 and newer.
+    Deprecated: EventSslContext protocol version options are deprecated for OpenSSL >= 1.1.0.
+      Use the new setMinProtoVersion and setMaxProtoVersion methods instead.
+    Fix: build failed with custom openssl setup (non-standard --with-openssl-dir)
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -172,6 +177,7 @@
         <file role="test" name="26-http-debug-info.phpt"/>
         <file role="test" name="27-event-util-create-socket.phpt"/>
         <file role="test" name="28-bevent-ssl.phpt"/>
+        <file role="test" name="28-bevent-ssl1.1.0.phpt"/>
         <file role="test" name="29-buffer-pullup.phpt"/>
         <file role="test" name="30-listener-free.phpt"/>
       </dir>

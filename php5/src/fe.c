@@ -401,6 +401,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_ssl_context__construct, 0, 0, 2)
 	ZEND_ARG_INFO(0, options)
 ZEND_END_ARG_INFO();
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_ssl_context_set_min_proto_version, 0, 0, 1)
+	ZEND_ARG_INFO(0, proto)
+ZEND_END_ARG_INFO();
+#endif
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_util_get_socket_name, 0, 0, 2)
 	ZEND_ARG_INFO(0, socket)
 	ZEND_ARG_INFO(1, address)
@@ -748,6 +754,10 @@ const zend_function_entry php_event_listener_ce_functions[] = {
 #ifdef HAVE_EVENT_OPENSSL_LIB
 const zend_function_entry php_event_ssl_context_ce_functions[] = {/* {{{ */
 	PHP_ME(EventSslContext, __construct, arginfo_event_ssl_context__construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	PHP_ME(EventSslContext, setMinProtoVersion, arginfo_event_ssl_context_set_min_proto_version, ZEND_ACC_PUBLIC)
+	PHP_ME(EventSslContext, setMaxProtoVersion, arginfo_event_ssl_context_set_min_proto_version, ZEND_ACC_PUBLIC)
+#endif
 
 	PHP_FE_END
 };

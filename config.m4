@@ -179,6 +179,8 @@ if test "$PHP_EVENT_CORE" != "no"; then
 
     if test -z "$PHP_OPENSSL_DIR" || test $PHP_OPENSSL_DIR == "no"; then
       PHP_OPENSSL_DIR=yes
+    else
+      PHP_OPENSSL="$PHP_OPENSSL_DIR"
     fi
 
     PHP_SETUP_OPENSSL(EVENT_SHARED_LIBADD)

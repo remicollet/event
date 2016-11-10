@@ -276,7 +276,9 @@ static void _create_ssl_filter(INTERNAL_FUNCTION_PARAMETERS, zend_bool deprecate
 	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
 	PHP_EVENT_FETCH_BEVENT(bev, return_value);
 
-	PHP_EVENT_ASSERT(ectx->ctx);
+	if (UNEXPECTED(ectx->ctx == NULL)) {
+		RETURN_FALSE;
+	}
 	ssl = SSL_new(ectx->ctx);
 	if (!ssl) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING,

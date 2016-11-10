@@ -85,7 +85,13 @@
 # include <openssl/rand.h>
 # include <openssl/ssl.h>
 # include <openssl/pkcs12.h>
-#endif
+# if !defined(OPENSSL_NO_SSL2) && OPENSSL_VERSION_NUMBER < 0x10100000L
+#  define HAVE_SSL2 1
+# endif
+# ifndef OPENSSL_NO_SSL3
+#  define HAVE_SSL3 1
+# endif
+#endif /* HAVE_EVENT_OPENSSL_LIB */
 
 #include "../php_event.h"
 #include "structs.h"

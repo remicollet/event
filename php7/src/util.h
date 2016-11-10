@@ -81,6 +81,9 @@ static zend_always_inline void php_event_replace_zval(zval *zdst, zval *zsrc) {/
 #define PHP_EVENT_REG_CLASS_CONST_LONG(pce, const_name, value) \
 	zend_declare_class_constant_long((pce), #const_name, sizeof(#const_name) - 1, (zend_long) value)
 
+#define PHP_EVENT_REG_CLASS_CONST_STRING(pce, const_name, value) \
+	zend_declare_class_constant_stringl((pce), #const_name, sizeof(#const_name) - 1, value, sizeof(value) - 1);
+
 #define PHP_EVENT_X_OBJ_HANDLERS(x) event_ ## x ## _object_handlers
 
 #define PHP_EVENT_SET_X_OBJ_HANDLER(x, name) \
