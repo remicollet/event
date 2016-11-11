@@ -23,10 +23,6 @@
 ZEND_BEGIN_ARG_INFO(arginfo_event__void, 0)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_config_1, 0, 0, 1)
-	ZEND_ARG_INFO(0, config)
-ZEND_END_ARG_INFO();
-
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base__construct, 0, 0, 0)
 	ZEND_ARG_INFO(0, cfg)
 ZEND_END_ARG_INFO();
@@ -127,10 +123,6 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent__construct, 0, 0, 1)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_connect, 0, 0, 1)
-	ZEND_ARG_INFO(0, addr)
-ZEND_END_ARG_INFO();
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent_connect_unix, 0, 0, 1)
 	ZEND_ARG_INFO(0, addr)
 ZEND_END_ARG_INFO();
 
@@ -249,12 +241,6 @@ ZEND_END_ARG_INFO();
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_search_eol, 0, 0, 0)
 	ZEND_ARG_INFO(0, start)
 	ZEND_ARG_INFO(0, eol_style)
-ZEND_END_ARG_INFO();
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_set_position, 0, 0, 3)
-	ZEND_ARG_INFO(1, pos)
-	ZEND_ARG_INFO(0, value)
-	ZEND_ARG_INFO(0, how)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evbuffer_pullup, 0, 0, 1)
@@ -474,16 +460,6 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener__construct, 0, 0, 6)
 	ZEND_ARG_INFO(0, flags)
 	ZEND_ARG_INFO(0, backlog)
 	ZEND_ARG_INFO(0, target)
-ZEND_END_ARG_INFO();
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_new_bind, 0, 0, 5)
-	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
-	ZEND_ARG_INFO(0, cb)
-	ZEND_ARG_INFO(0, data)
-	ZEND_ARG_INFO(0, flags)
-	ZEND_ARG_INFO(0, backlog)
-	ZEND_ARG_INFO(0, addr)
-	ZEND_ARG_INFO(0, port)
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_evconnlistener_set_cb, 0, 0, 1)

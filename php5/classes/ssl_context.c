@@ -365,7 +365,6 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 
 	switch (in_method) {
 		case PHP_EVENT_SSLv2_CLIENT_METHOD:
-
 #ifndef HAVE_SSL2
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
 					"SSLv2 support is not compiled into the "
@@ -375,19 +374,32 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 			method = (SSL_METHOD *) SSLv2_client_method();
 			break;
 #endif
+
+		case PHP_EVENT_SSLv3_CLIENT_METHOD:
 #ifndef HAVE_SSL3
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
 					"SSLv3 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
+#elif OPENSSL_VERSION_NUMBER >= 0x10100000L
+			php_error_docref(NULL TSRMLS_CC, E_DEPRECATED,
+					"SSLv3_CLIENT_METHOD is deprecated, "
+					"use TLS_CLIENT_METHOD instead");
+			method = (SSL_METHOD *) TLS_client_method();
+			break;
 #else
-		case PHP_EVENT_SSLv3_CLIENT_METHOD:
 			method = (SSL_METHOD *) SSLv3_client_method();
 			break;
 #endif
+
 		case PHP_EVENT_SSLv23_CLIENT_METHOD:
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+			method = (SSL_METHOD *) TLS_client_method();
+#else
 			method = (SSL_METHOD *) SSLv23_client_method();
+#endif
 			break;
+
 		case PHP_EVENT_TLS_CLIENT_METHOD:
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 			method = (SSL_METHOD *) TLS_client_method();
@@ -395,6 +407,7 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 			method = (SSL_METHOD *) TLSv1_client_method();
 #endif
 			break;
+
 		case PHP_EVENT_SSLv2_SERVER_METHOD:
 #ifndef HAVE_SSL2
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
@@ -405,19 +418,29 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 			method = (SSL_METHOD *) SSLv2_server_method();
 			break;
 #endif
+
+		case PHP_EVENT_SSLv3_SERVER_METHOD:
 #ifndef HAVE_SSL3
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
 					"SSLv3 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
+#elif OPENSSL_VERSION_NUMBER >= 0x10100000L
+			method = (SSL_METHOD *) TLS_server_method();
+			break;
 #else
-		case PHP_EVENT_SSLv3_SERVER_METHOD:
 			method = (SSL_METHOD *) SSLv3_server_method();
 			break;
 #endif
+
 		case PHP_EVENT_SSLv23_SERVER_METHOD:
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 			method = (SSL_METHOD *) SSLv23_server_method();
+#else
+			method = (SSL_METHOD *) TLS_server_method();
+#endif
 			break;
+
 		case PHP_EVENT_TLS_SERVER_METHOD:
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 			method = (SSL_METHOD *) TLS_server_method();
@@ -425,74 +448,75 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 			method = (SSL_METHOD *) TLSv1_server_method();
 #endif
 			break;
+
 		case PHP_EVENT_TLSv11_CLIENT_METHOD:
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 			php_error_docref(NULL TSRMLS_CC, E_DEPRECATED,
 					"TLSv11_CLIENT_METHOD is deprecated, "
 					"use TLS_CLIENT_METHOD instead");
 			method = (SSL_METHOD *) TLS_client_method();
-#else
-# ifdef SSL_OP_NO_TLSv1_1
+			break;
+#elif defined(SSL_OP_NO_TLSv1_1)
 			method = (SSL_METHOD *) TLSv1_1_client_method();
-# else
+			break;
+#else
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
 					"TLSv1_1 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
-# endif
 #endif
-			break;
+
 		case PHP_EVENT_TLSv11_SERVER_METHOD:
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 			php_error_docref(NULL TSRMLS_CC, E_DEPRECATED,
 					"TLSv11_SERVER_METHOD is deprecated, "
 					"use TLS_SERVER_METHOD instead");
 			method = (SSL_METHOD *) TLS_server_method();
-#else
-# ifdef SSL_OP_NO_TLSv1_1
+			break;
+#elif defined(SSL_OP_NO_TLSv1_1)
 			method = (SSL_METHOD *) TLSv1_1_server_method();
-# else
+			break;
+#else
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
 					"TLSv1_1 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
-# endif
 #endif
-			break;
+
 		case PHP_EVENT_TLSv12_CLIENT_METHOD:
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 			php_error_docref(NULL TSRMLS_CC, E_DEPRECATED,
 					"TLSv12_CLIENT_METHOD is deprecated, "
 					"use TLS_CLIENT_METHOD instead");
 			method = (SSL_METHOD *) TLS_client_method();
-#else
-# ifdef SSL_OP_NO_TLSv1_2
+			break;
+#elif defined(SSL_OP_NO_TLSv1_2)
 			method = (SSL_METHOD *) TLSv1_2_client_method();
-# else
+			break;
+#else
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
 					"TLSv1_2 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
-# endif
 #endif
-			break;
+
 		case PHP_EVENT_TLSv12_SERVER_METHOD:
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 			php_error_docref(NULL TSRMLS_CC, E_DEPRECATED,
 					"TLSv12_SERVER_METHOD is deprecated, "
 					"use TLS_SERVER_METHOD instead");
 			method = (SSL_METHOD *) TLS_server_method();
-#else
-# ifdef SSL_OP_NO_TLSv1_2
+			break;
+#elif defined(SSL_OP_NO_TLSv1_2)
 			method = (SSL_METHOD *) TLSv1_2_server_method();
-# else
+			break;
+#else
 			php_error_docref(NULL TSRMLS_CC, E_WARNING,
 					"TLSv1_2 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
-# endif
 #endif
-			break;
+
 		default:
 			return NULL;
 	}
