@@ -435,9 +435,9 @@ static zend_always_inline SSL_METHOD *get_ssl_method(long in_method TSRMLS_DC)
 
 		case PHP_EVENT_SSLv23_SERVER_METHOD:
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
-			method = (SSL_METHOD *) SSLv23_server_method();
-#else
 			method = (SSL_METHOD *) TLS_server_method();
+#else
+			method = (SSL_METHOD *) SSLv23_server_method();
 #endif
 			break;
 
