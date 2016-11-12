@@ -446,12 +446,11 @@ static zend_always_inline SSL_METHOD *get_ssl_method(zend_long in_method)
 #elif defined(SSL_OP_NO_TLSv1_1)
 			method = (SSL_METHOD *) TLSv1_1_client_method();
 			break;
-# else
+#else
 			php_error_docref(NULL, E_WARNING,
 					"TLSv1_1 support is not compiled into the "
 					"OpenSSL library PHP is linked against");
 			return NULL;
-# endif
 #endif
 
 		case PHP_EVENT_TLSv11_SERVER_METHOD:
