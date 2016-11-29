@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2016-11-28</date>
+  <date>2016-11-29</date>
   <!--{{{ Current version -->
   <version>
     <release>2.3.0RC2</release>
@@ -46,6 +46,7 @@
   <notes><![CDATA[
     Fix: build warnings with OpenSSL version 1.1.0 when SSLv3 was enabled
     Fix: premature destruction of EventHttpConnection after the close callback
+    Fix: tests/06-timer.phpt failed in PHP7 with non-zero MALLOC_PERTURB_
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
