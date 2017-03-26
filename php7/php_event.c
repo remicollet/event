@@ -1283,6 +1283,12 @@ PHP_MINIT_FUNCTION(event)
 
 	PHP_EVENT_REG_CLASS_CONST_STRING(php_event_ssl_context_ce, OPENSSL_VERSION_TEXT,       OPENSSL_VERSION_TEXT);
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce,   OPENSSL_VERSION_NUMBER,     OPENSSL_VERSION_NUMBER);
+#ifdef LIBRESSL_VERSION_NUMBER
+	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce,   LIBRESSL_VERSION_NUMBER,     LIBRESSL_VERSION_NUMBER);
+#endif
+#ifdef LIBRESSL_VERSION_TEXT
+	PHP_EVENT_REG_CLASS_CONST_STRING(php_event_ssl_context_ce, LIBRESSL_VERSION_TEXT,       LIBRESSL_VERSION_TEXT);
+#endif
 
 
 	/* Constants for EventSslContext::setMinProtoVersion */
@@ -1292,7 +1298,9 @@ PHP_MINIT_FUNCTION(event)
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS1_1_VERSION,  TLS1_1_VERSION);
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, TLS1_2_VERSION,  TLS1_2_VERSION);
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, DTLS1_VERSION,   DTLS1_VERSION);
+# ifdef DTLS1_2_VERSION /* May be missing in libressl*/
 	PHP_EVENT_REG_CLASS_CONST_LONG(php_event_ssl_context_ce, DTLS1_2_VERSION, DTLS1_2_VERSION);
+# endif
 #endif
 
 	/* Initialize openssl library */
@@ -1334,7 +1342,9 @@ PHP_MINIT_FUNCTION(event)
 PHP_MSHUTDOWN_FUNCTION(event)
 {
 #ifdef HAVE_EVENT_OPENSSL_LIB
+# ifndef LIBRESSL_VERSION_NUMBER
 	FIPS_mode_set(0);
+# endif
 	CONF_modules_unload(1);
 	/* Removes memory allocated when loading digest and cipher names
 	 * in the OpenSSL_add_all_ family of functions */

@@ -16,7 +16,12 @@ if (version_compare(PHP_VERSION, '7.0.0') < 0) {
 }
 if (defined('EventSslContext::OPENSSL_VERSION_NUMBER') &&
 	EventSslContext::OPENSSL_VERSION_NUMBER < 0x10100000)
-	die('skip the test is for OpenSSL version >= 1.1.0')
+{
+	die('skip the test is for OpenSSL version >= 1.1.0');
+}
+if (defined('EventSslContext::LIBRESSL_VERSION_NUMBER')) {
+	die('skip LibreSSL does not support this function');
+}
 ?>
 --FILE--
 <?php

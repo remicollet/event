@@ -212,8 +212,10 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx TSRMLS_DC)
 						"OPT_NO_SSLv2 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
 						"Setting minimal protocol version to 0");
+#  ifndef LIBRESSL_VERSION_NUMBER
 				/* There is no constant for SSL2 in OpenSSL 1.1.0 */
 				SSL_CTX_set_min_proto_version(ctx, 0);
+#  endif
 # else
 				if (zval_is_true(*ppzval)) {
 					SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
@@ -225,7 +227,7 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx TSRMLS_DC)
 #endif
 #ifdef HAVE_SSL3
 			case PHP_EVENT_OPT_NO_SSLv3:
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+# if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 				php_error_docref(NULL TSRMLS_CC, E_DEPRECATED,
 						"OPT_NO_SSLv3 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
@@ -243,7 +245,7 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx TSRMLS_DC)
 				break;
 #endif
 			case PHP_EVENT_OPT_NO_TLSv1:
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+# if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 				php_error_docref(NULL TSRMLS_CC, E_DEPRECATED,
 						"OPT_NO_TLSv1 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
@@ -261,7 +263,7 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx TSRMLS_DC)
 				break;
 #ifdef SSL_OP_NO_TLSv1_1
 			case PHP_EVENT_OPT_NO_TLSv1_1:
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+# if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 				php_error_docref(NULL TSRMLS_CC, E_DEPRECATED,
 						"OPT_NO_TLSv1_1 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
@@ -280,7 +282,7 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx TSRMLS_DC)
 #endif
 #ifdef SSL_OP_NO_TLSv1_2
 			case PHP_EVENT_OPT_NO_TLSv1_2:
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+# if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 				php_error_docref(NULL TSRMLS_CC, E_DEPRECATED,
 						"OPT_NO_TLSv1_2 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
@@ -583,7 +585,7 @@ PHP_METHOD(EventSslContext, __construct)
 /* }}} */
 
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 /*{{{ proto bool EventSslContext::setMinProtoVersion(int proto);
  *
  * Sets minimum supported protocol version for the SSL context.

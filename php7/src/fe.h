@@ -133,7 +133,7 @@ PHP_METHOD(EventBufferPosition, __construct);
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
 PHP_METHOD(EventSslContext, __construct);
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 PHP_METHOD(EventSslContext, setMinProtoVersion);
 PHP_METHOD(EventSslContext, setMaxProtoVersion);
 # endif

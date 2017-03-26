@@ -193,7 +193,7 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx)
 				break;
 #ifdef HAVE_SSL2
 			case PHP_EVENT_OPT_NO_SSLv2:
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 				php_error_docref(NULL, E_DEPRECATED,
 						"OPT_NO_SSLv2 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
@@ -211,7 +211,7 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx)
 #endif
 #ifdef HAVE_SSL3
 			case PHP_EVENT_OPT_NO_SSLv3:
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 				php_error_docref(NULL, E_DEPRECATED,
 						"OPT_NO_SSLv3 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
@@ -229,7 +229,7 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx)
 				break;
 #endif
 			case PHP_EVENT_OPT_NO_TLSv1:
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 				php_error_docref(NULL, E_DEPRECATED,
 						"OPT_NO_TLSv1 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
@@ -247,7 +247,7 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx)
 				break;
 #ifdef SSL_OP_NO_TLSv1_1
 			case PHP_EVENT_OPT_NO_TLSv1_1:
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 				php_error_docref(NULL, E_DEPRECATED,
 						"OPT_NO_TLSv1_1 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
@@ -266,7 +266,7 @@ static inline void set_ssl_ctx_options(php_event_ssl_context_t *ectx)
 #endif
 #ifdef SSL_OP_NO_TLSv1_2
 			case PHP_EVENT_OPT_NO_TLSv1_2:
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 				php_error_docref(NULL, E_DEPRECATED,
 						"OPT_NO_TLSv1_2 is deprecated, "
 						"use EventSslContext::setMinProtoVersion instead. "
@@ -562,7 +562,7 @@ PHP_METHOD(EventSslContext, __construct)
 /* }}} */
 
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 /*{{{ proto bool EventSslContext::setMinProtoVersion(int proto);
  *
  * Sets minimum supported protocol version for the SSL context.
