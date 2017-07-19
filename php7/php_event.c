@@ -20,6 +20,8 @@
 #include "src/util.h"
 #include "src/priv.h"
 #include "classes/http.h"
+#include "zend_exceptions.h"
+#include "ext/spl/spl_exceptions.h"
 
 zend_class_entry *php_event_ce;
 zend_class_entry *php_event_base_ce;
@@ -37,6 +39,8 @@ zend_class_entry *php_event_http_req_ce;
 #ifdef HAVE_EVENT_OPENSSL_LIB
 zend_class_entry *php_event_ssl_context_ce;
 #endif
+
+zend_class_entry *php_event_exception_ce;
 
 static HashTable classes;
 
@@ -96,6 +100,21 @@ ZEND_TSRMLS_CACHE_DEFINE();
 #endif
 ZEND_GET_MODULE(event)
 #endif
+
+
+zend_class_entry *php_event_get_exception_base(int root) /* {{{ */
+{
+	if (!root) {
+		return spl_ce_RuntimeException;
+	}
+	return zend_ce_exception;
+}
+/* }}} */
+
+zend_class_entry *php_event_get_exception(void)/*{{{*/
+{
+	return php_event_exception_ce;
+}/*}}}*/
 
 
 /* {{{ Private functions */
@@ -965,9 +984,11 @@ static void php_event_add_property(HashTable *h, const char *name, size_t name_l
 	zend_string_release(p.name);
 }/*}}}*/
 
+
 static zend_always_inline void register_classes()/*{{{*/
 {
 	zend_class_entry *ce;
+	zend_class_entry ce_excepiton;
 
 	PHP_EVENT_REGISTER_CLASS("Event", event_object_create, php_event_ce, php_event_ce_functions);
 	ce = php_event_ce;
@@ -1061,6 +1082,10 @@ static zend_always_inline void register_classes()/*{{{*/
 	PHP_EVENT_DECL_PROP_NULL(ce, local_pk,   ZEND_ACC_PUBLIC);
 	zend_hash_add_ptr(&classes, ce->name, &event_ssl_context_properties);
 #endif /* HAVE_EVENT_OPENSSL_LIB */
+
+	INIT_CLASS_ENTRY(ce_excepiton, "EventException", NULL);
+	php_event_exception_ce = zend_register_internal_class_ex(&ce_excepiton, php_event_get_exception_base(0));
+	zend_declare_property_null(php_event_exception_ce, "errorInfo", sizeof("errorInfo") - 1, ZEND_ACC_PUBLIC);
 }/*}}}*/
 
 /* Private functions }}} */
@@ -1333,6 +1358,7 @@ PHP_MINIT_FUNCTION(event)
 	 * logging to stderr, or calling abort()/exit() */
 	event_set_fatal_callback(fatal_error_cb);
 	event_set_log_callback(log_cb);
+
 
 	return SUCCESS;
 }

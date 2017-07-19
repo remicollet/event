@@ -18,6 +18,7 @@
 #include "../src/common.h"
 #include "../src/util.h"
 #include "../src/priv.h"
+#include "zend_exceptions.h"
 
 /* {{{ proto EventConfig::__construct(void);
  * On success returns an object representing an event configuration
@@ -35,6 +36,20 @@ PHP_METHOD(EventConfig, __construct)
 	cfg->ptr = event_config_new();
 }
 /* }}} */
+
+/*{{{ proto int EventConfig::__sleep */
+PHP_METHOD(EventConfig, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventConfig instances are not serializable");
+}
+/*}}}*/
+
+/*{{{ proto int EventConfig::__wakeup */
+PHP_METHOD(EventConfig, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventConfig instances are not serializable");
+}
+/*}}}*/
 
 /* {{{ proto bool EventConfig::avoidMethod(EventConfig cfg, string method);
  * Tells libevent to avoid specific event method.

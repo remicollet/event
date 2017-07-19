@@ -19,6 +19,7 @@
 #include "../src/util.h"
 #include "../src/priv.h"
 #include "http.h"
+#include "zend_exceptions.h"
 
 /* {{{ Private */
 
@@ -130,6 +131,19 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 
 /* }}} */
 
+/*{{{ proto int EventHttpRequest::__sleep */
+PHP_METHOD(EventHttpRequest, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttpRequest instances are not serializable");
+}
+/*}}}*/
+
+/*{{{ proto int EventHttpRequest::__wakeup */
+PHP_METHOD(EventHttpRequest, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttpRequest instances are not serializable");
+}
+/*}}}*/
 
 /* {{{ proto EventHttpRequest::__construct(callable callback[, mixed data = NULL]); */
 PHP_METHOD(EventHttpRequest, __construct)

@@ -18,6 +18,7 @@
 #include "../src/common.h"
 #include "../src/util.h"
 #include "../src/priv.h"
+#include "zend_exceptions.h"
 
 /* {{{ Private */
 
@@ -346,6 +347,22 @@ PHP_METHOD(EventListener, __construct)
 	Z_ADDREF_P(l->self);
 
 	TSRMLS_SET_CTX(l->thread_ctx);
+}
+/* }}} */
+
+/* {{{ proto int EventListener::__wakeup()
+   Prevents use of a EventListener instance that has been unserialized */
+PHP_METHOD(EventListener, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventListener instances are not serializable");
+}
+/* }}} */
+
+/* {{{ proto int EventListener::__sleep()
+   Prevents serialization of a EventListener instance */
+PHP_METHOD(EventListener, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventListener instances are not serializable");
 }
 /* }}} */
 

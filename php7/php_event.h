@@ -19,7 +19,7 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "2.3.0"
+#define PHP_EVENT_VERSION "2.3.1"
 
 #define PHP_EVENT_SUN_PREFIX "unix:"
 
@@ -27,6 +27,10 @@ extern zend_module_entry event_module_entry;
 #define phpext_event_ptr &event_module_entry
 
 #include "src/common.h"
+
+zend_class_entry *php_event_get_exception_base(int root);
+zend_class_entry *php_event_get_exception(void);
+
 
 PHP_MINIT_FUNCTION(event);
 PHP_MSHUTDOWN_FUNCTION(event);

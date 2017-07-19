@@ -44,6 +44,20 @@ PHP_METHOD(EventBase, __construct)
 }
 /* }}} */
 
+/*{{{ proto int EventBase::__sleep */
+PHP_METHOD(EventBase, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventBase instances are not serializable");
+}
+/*}}}*/
+
+/*{{{ proto int EventBase::__wakeup */
+PHP_METHOD(EventBase, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventBase instances are not serializable");
+}
+/*}}}*/
+
 /* {{{ proto void EventBase::free(void); */
 PHP_METHOD(EventBase, free)
 {

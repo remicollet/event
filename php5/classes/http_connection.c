@@ -18,6 +18,7 @@
 #include "../src/common.h"
 #include "../src/util.h"
 #include "../src/priv.h"
+#include "zend_exceptions.h"
 
 /* {{{ Private */
 
@@ -188,6 +189,22 @@ PHP_METHOD(EventHttpConnection, __construct)
 	if (zdns_base) {
 		Z_ADDREF_P(zdns_base);
 	}
+}
+/* }}} */
+
+/* {{{ proto int EventHttpConnection::__wakeup()
+   Prevents use of a EventHttpConnection instance that has been unserialized */
+PHP_METHOD(EventHttpConnection, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventHttpConnection instances are not serializable");
+}
+/* }}} */
+
+/* {{{ proto int EventHttpConnection::__sleep()
+   Prevents serialization of a EventHttpConnection instance */
+PHP_METHOD(EventHttpConnection, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventHttpConnection instances are not serializable");
 }
 /* }}} */
 

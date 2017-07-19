@@ -18,6 +18,7 @@
 #include "../src/common.h"
 #include "../src/util.h"
 #include "../src/priv.h"
+#include "zend_exceptions.h"
 
 /* {{{ Private */
 
@@ -185,6 +186,20 @@ PHP_METHOD(EventHttpConnection, __construct)
 	ZVAL_UNDEF(&evcon->data_closecb);
 }
 /* }}} */
+
+/*{{{ proto int EventHttpConnection::__sleep */
+PHP_METHOD(EventHttpConnection, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttpConnection instances are not serializable");
+}
+/*}}}*/
+
+/*{{{ proto int EventHttpConnection::__wakeup */
+PHP_METHOD(EventHttpConnection, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttpConnection instances are not serializable");
+}
+/*}}}*/
 
 /* {{{ proto EventBase EventHttpConnection::getBase(void);
  *

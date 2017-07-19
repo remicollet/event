@@ -19,6 +19,7 @@
 #include "../src/util.h"
 #include "../src/priv.h"
 #include "http.h"
+#include "zend_exceptions.h"
 
 /* {{{ Private */
 
@@ -243,6 +244,20 @@ static struct bufferevent* _bev_ssl_callback(struct event_base *base, void *arg)
 #endif
 
 /* }}} */
+
+/*{{{ proto int EventHttp::__sleep */
+PHP_METHOD(EventHttp, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttp instances are not serializable");
+}
+/*}}}*/
+
+/*{{{ proto int EventHttp::__wakeup */
+PHP_METHOD(EventHttp, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttp instances are not serializable");
+}
+/*}}}*/
 
 void _php_event_free_http_cb(php_event_http_cb_t *http_cb)/*{{{*/
 {

@@ -20,6 +20,7 @@
 #include "src/util.h"
 #include "src/priv.h"
 #include "classes/http.h"
+#include "zend_exceptions.h"
 
 #if 0
 ZEND_DECLARE_MODULE_GLOBALS(event)
@@ -46,6 +47,9 @@ zend_class_entry *php_event_http_conn_ce;
 zend_class_entry *php_event_http_ce;
 zend_class_entry *php_event_http_req_ce;
 #endif
+
+static zend_class_entry *spl_ce_RuntimeException;
+zend_class_entry *php_event_exception_ce;
 
 static HashTable classes;
 
@@ -101,6 +105,35 @@ zend_module_entry event_module_entry = {
 #ifdef COMPILE_DL_EVENT
 ZEND_GET_MODULE(event)
 #endif
+
+zend_class_entry *php_event_get_exception(void)/*{{{*/
+{
+	return php_event_exception_ce;
+}/*}}}*/
+
+
+zend_class_entry *php_event_get_exception_base(int root TSRMLS_DC)/*{{{*/
+{
+#if can_handle_soft_dependency_on_SPL && defined(HAVE_SPL) && ((PHP_MAJOR_VERSION > 5) || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 1))
+	if (!root) {
+		if (!spl_ce_RuntimeException) {
+			zend_class_entry **pce;
+
+			if (zend_hash_find(CG(class_table), "runtimeexception", sizeof("RuntimeException"), (void **) &pce) == SUCCESS) {
+				spl_ce_RuntimeException = *pce;
+				return *pce;
+			}
+		} else {
+			return spl_ce_RuntimeException;
+		}
+	}
+#endif
+#if (PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION < 2)
+	return zend_exception_get_default();
+#else
+	return zend_exception_get_default(TSRMLS_C);
+#endif
+}/*}}}*/
 
 
 /* {{{ Private functions */
@@ -1058,6 +1091,7 @@ static HashTable *get_gc(zval *object, zval ***table, int *n TSRMLS_DC)
 static zend_always_inline void register_classes(TSRMLS_D)
 {
 	zend_class_entry *ce;
+	zend_class_entry ce_exception;
 
 	PHP_EVENT_REGISTER_CLASS("Event", event_object_create, php_event_ce, php_event_ce_functions);
 	ce = php_event_ce;
@@ -1150,6 +1184,9 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			sizeof(event_ssl_context_properties), NULL);
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
+	INIT_CLASS_ENTRY(ce_exception, "EventException", NULL);
+	php_event_exception_ce = zend_register_internal_class_ex(&ce_exception, php_event_get_exception_base(0 TSRMLS_CC), NULL TSRMLS_CC);
+	zend_declare_property_null(php_event_exception_ce, "errorInfo", sizeof("errorInfo") - 1, ZEND_ACC_PUBLIC TSRMLS_CC);
 }
 /* }}} */
 
@@ -1182,6 +1219,8 @@ PHP_MINIT_FUNCTION(event)
 	object_handlers.get_properties       = get_properties;
 #endif
 	object_handlers.get_gc               = get_gc;
+
+	spl_ce_RuntimeException = NULL;
 
 	zend_hash_init(&classes, 8, NULL, NULL, 1);
 	register_classes(TSRMLS_C);

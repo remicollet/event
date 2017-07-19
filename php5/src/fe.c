@@ -509,6 +509,8 @@ const zend_function_entry php_event_ce_functions[] = {/* {{{ */
 
 const zend_function_entry php_event_base_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBase, __construct,        arginfo_event_base__construct,    ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(EventBase, __wakeup,           arginfo_event__void,              ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
+	PHP_ME(EventBase, __sleep,            arginfo_event__void,              ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
 	PHP_ME(EventBase, getMethod,          arginfo_event_base_void,          ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, getFeatures,        arginfo_event__void,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, priorityInit,       arginfo_event_base_priority_init, ZEND_ACC_PUBLIC)
@@ -534,6 +536,8 @@ const zend_function_entry php_event_base_ce_functions[] = {/* {{{ */
 
 const zend_function_entry php_event_config_ce_functions[] = {/* {{{ */
 	PHP_ME(EventConfig, __construct,     arginfo_event__void,                   ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(EventConfig, __wakeup,        arginfo_event__void,                   ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
+	PHP_ME(EventConfig, __sleep,         arginfo_event__void,                   ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
 	PHP_ME(EventConfig, avoidMethod,     arginfo_event_config_avoid_method,     ZEND_ACC_PUBLIC)
 	PHP_ME(EventConfig, requireFeatures, arginfo_event_config_require_features, ZEND_ACC_PUBLIC)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
@@ -648,6 +652,8 @@ const zend_function_entry php_event_dns_base_ce_functions[] = {
 
 const zend_function_entry php_event_http_conn_ce_functions[] = {
 	PHP_ME(EventHttpConnection, __construct,       arginfo_event_evhttp_connection__construct,        ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(EventHttpConnection, __wakeup,          arginfo_event__void,                               ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
+	PHP_ME(EventHttpConnection, __sleep,           arginfo_event__void,                               ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
 	PHP_ME(EventHttpConnection, getBase,           arginfo_event__void,                               ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpConnection, getPeer,           arginfo_event_evhttp_connection_get_peer,          ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpConnection, setLocalAddress,   arginfo_event_evhttp_connection_set_local_address, ZEND_ACC_PUBLIC)
@@ -664,6 +670,8 @@ const zend_function_entry php_event_http_conn_ce_functions[] = {
 
 const zend_function_entry php_event_http_ce_functions[] = {
 	PHP_ME(EventHttp, __construct,        arginfo_event_http__construct,          ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(EventHttp, __wakeup,           arginfo_event__void,                    ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
+	PHP_ME(EventHttp, __sleep,            arginfo_event__void,                    ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
 	PHP_ME(EventHttp, accept,             arginfo_event_http_accept,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttp, bind,               arginfo_event_http_bind,                ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttp, setCallback,        arginfo_event_http_set_callback,        ZEND_ACC_PUBLIC)
@@ -680,6 +688,8 @@ const zend_function_entry php_event_http_ce_functions[] = {
 
 const zend_function_entry php_event_http_req_ce_functions[] = {
 	PHP_ME(EventHttpRequest, __construct, arginfo_event_http_req__construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+	PHP_ME(EventHttpRequest, __wakeup,    arginfo_event__void,               ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
+	PHP_ME(EventHttpRequest, __sleep,     arginfo_event__void,               ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
 
 	PHP_ME(EventHttpRequest, free,             arginfo_event__void,                     ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpRequest, getCommand,       arginfo_event__void,                     ZEND_ACC_PUBLIC)
@@ -711,6 +721,8 @@ const zend_function_entry php_event_http_req_ce_functions[] = {
 
 const zend_function_entry php_event_listener_ce_functions[] = {
 	PHP_ME(EventListener, __construct,      arginfo_evconnlistener__construct,   ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
+	PHP_ME(EventListener, __wakeup,         arginfo_event__void,                 ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
+	PHP_ME(EventListener, __sleep,          arginfo_event__void,                 ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
 	PHP_ME(EventListener, free,             arginfo_event__void,                 ZEND_ACC_PUBLIC)
 	PHP_ME(EventListener, enable,           arginfo_event__void,                 ZEND_ACC_PUBLIC)
 	PHP_ME(EventListener, disable,          arginfo_event__void,                 ZEND_ACC_PUBLIC)

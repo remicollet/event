@@ -32,11 +32,11 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2017-03-26</date>
+  <date>2017-07-19</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.3.0</release>
-    <api>2.3.0</api>
+    <release>2.3.1</release>
+    <api>2.3.1</api>
   </version>
   <stability>
     <release>stable</release>
@@ -44,7 +44,10 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed build errors with LibreSSL
+    Fixed issue #40: Segmentation fault when trying to serialize instance of EventHttpRequest
+
+    EventException will be thrown when the user tries to serialize or unserialize an instance of
+      EventBase, EventHttp, EventHttpRequest, EventHttpConnection, or EventConfig.
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -212,6 +215,25 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.3.1 -->
+    <release>
+      <version>
+        <release>2.3.1</release>
+        <api>2.3.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Fixed issue #40: Segmentation fault when trying to serialize instance of EventHttpRequest
+
+    EventException will be thrown when the user tries to serialize or unserialize an instance of
+      EventBase, EventHttp, EventHttpRequest, EventHttpConnection, or EventConfig.
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 2.3.0 -->
     <release>
       <version>

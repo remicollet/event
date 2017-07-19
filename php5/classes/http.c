@@ -19,6 +19,7 @@
 #include "../src/util.h"
 #include "../src/priv.h"
 #include "http.h"
+#include "zend_exceptions.h"
 
 /* {{{ Private */
 
@@ -287,6 +288,23 @@ PHP_METHOD(EventHttp, __construct)
 #endif
 }
 /* }}} */
+
+/* {{{ proto int EventHttp::__wakeup()
+   Prevents use of a EventHttp instance that has been unserialized */
+PHP_METHOD(EventHttp, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventHttp instances are not serializable");
+}
+/* }}} */
+
+/* {{{ proto int EventHttp::__sleep()
+   Prevents serialization of a EventHttp instance */
+PHP_METHOD(EventHttp, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventHttp instances are not serializable");
+}
+/* }}} */
+
 
 /* {{{ proto bool EventHttp::accept(mixed socket);
  *

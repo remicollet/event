@@ -36,6 +36,8 @@ PHP_METHOD(Event, setTimer);
 PHP_METHOD(Event, signal);
 
 PHP_METHOD(EventBase, __construct);
+PHP_METHOD(EventBase, __sleep);
+PHP_METHOD(EventBase, __wakeup);
 PHP_METHOD(EventBase, getMethod);
 PHP_METHOD(EventBase, getFeatures);
 PHP_METHOD(EventBase, priorityInit);
@@ -56,6 +58,8 @@ PHP_METHOD(EventBase, resume);
 #endif
 
 PHP_METHOD(EventConfig, __construct);
+PHP_METHOD(EventConfig, __sleep);
+PHP_METHOD(EventConfig, __wakeup);
 PHP_METHOD(EventConfig, avoidMethod);
 PHP_METHOD(EventConfig, requireFeatures);
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
@@ -153,6 +157,8 @@ PHP_METHOD(EventDnsBase, setOption);
 PHP_METHOD(EventDnsBase, countNameservers);
 
 PHP_METHOD(EventListener, __construct);
+PHP_METHOD(EventListener, __sleep);
+PHP_METHOD(EventListener, __wakeup);
 PHP_METHOD(EventListener, free);
 PHP_METHOD(EventListener, enable);
 PHP_METHOD(EventListener, disable);
@@ -164,6 +170,8 @@ PHP_METHOD(EventListener, getBase);
 #endif
 
 PHP_METHOD(EventHttpConnection, __construct);
+PHP_METHOD(EventHttpConnection, __sleep);
+PHP_METHOD(EventHttpConnection, __wakeup);
 PHP_METHOD(EventHttpConnection, getBase);
 PHP_METHOD(EventHttpConnection, getPeer);
 PHP_METHOD(EventHttpConnection, setLocalAddress);
@@ -176,6 +184,8 @@ PHP_METHOD(EventHttpConnection, makeRequest);
 PHP_METHOD(EventHttpConnection, setCloseCallback);
 
 PHP_METHOD(EventHttp, __construct);
+PHP_METHOD(EventHttp, __sleep);
+PHP_METHOD(EventHttp, __wakeup);
 PHP_METHOD(EventHttp, accept);
 PHP_METHOD(EventHttp, bind);
 PHP_METHOD(EventHttp, setCallback);
@@ -188,6 +198,8 @@ PHP_METHOD(EventHttp, addServerAlias);
 PHP_METHOD(EventHttp, removeServerAlias);
 
 PHP_METHOD(EventHttpRequest, __construct);
+PHP_METHOD(EventHttpRequest, __sleep);
+PHP_METHOD(EventHttpRequest, __wakeup);
 PHP_METHOD(EventHttpRequest, free);
 PHP_METHOD(EventHttpRequest, getCommand);
 PHP_METHOD(EventHttpRequest, getHost);

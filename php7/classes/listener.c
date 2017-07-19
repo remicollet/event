@@ -344,6 +344,20 @@ PHP_METHOD(EventListener, __construct)
 }
 /* }}} */
 
+/*{{{ proto int EventListener::__sleep */
+PHP_METHOD(EventListener, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventListener instances are not serializable");
+}
+/*}}}*/
+
+/*{{{ proto int EventListener::__wakeup */
+PHP_METHOD(EventListener, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0, "EventListener instances are not serializable");
+}
+/*}}}*/
+
 /*{{{ proto void EventListener::free(void); */
 PHP_METHOD(EventListener, free)
 {

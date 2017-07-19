@@ -19,6 +19,7 @@
 #include "../src/util.h"
 #include "../src/priv.h"
 #include "http.h"
+#include "zend_exceptions.h"
 
 /* {{{ Private */
 
@@ -162,6 +163,22 @@ PHP_METHOD(EventHttpRequest, __construct)
 	PHP_EVENT_COPY_FCALL_INFO(http_req->fci, http_req->fcc, &fci, &fcc);
 
 	TSRMLS_SET_CTX(http_req->thread_ctx);
+}
+/* }}} */
+
+/* {{{ proto int EventHttpRequest::__wakeup()
+   Prevents use of a EventHttpRequest instance that has been unserialized */
+PHP_METHOD(EventHttpRequest, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventHttpRequest instances are not serializable");
+}
+/* }}} */
+
+/* {{{ proto int EventHttpRequest::__sleep()
+   Prevents serialization of a EventHttpRequest instance */
+PHP_METHOD(EventHttpRequest, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventHttpRequest instances are not serializable");
 }
 /* }}} */
 

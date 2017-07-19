@@ -18,6 +18,7 @@
 #include "../src/common.h"
 #include "../src/util.h"
 #include "../src/priv.h"
+#include "zend_exceptions.h"
 
 /* {{{ proto EventConfig::__construct(void);
  * On success returns an object representing an event configuration
@@ -33,6 +34,22 @@ PHP_METHOD(EventConfig, __construct)
 	PHP_EVENT_FETCH_CONFIG(cfg, getThis());
 
 	cfg->ptr = event_config_new();
+}
+/* }}} */
+
+/* {{{ proto int EventConfig::__wakeup()
+   Prevents use of a EventConfig instance that has been unserialized */
+PHP_METHOD(EventConfig, __wakeup)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventConfig instances are not serializable");
+}
+/* }}} */
+
+/* {{{ proto int EventConfig::__sleep()
+   Prevents serialization of a EventConfig instance */
+PHP_METHOD(EventConfig, __sleep)
+{
+	zend_throw_exception_ex(php_event_get_exception(), 0 TSRMLS_CC, "EventConfig instances are not serializable");
 }
 /* }}} */
 
