@@ -121,6 +121,7 @@ PHP_METHOD(EventBuffer, write);
 PHP_METHOD(EventBuffer, readFrom);
 PHP_METHOD(EventBuffer, substr);
 
+PHP_METHOD(EventUtil, __construct);
 PHP_METHOD(EventUtil, getLastSocketErrno);
 PHP_METHOD(EventUtil, getLastSocketError);
 #ifdef HAVE_EVENT_OPENSSL_LIB

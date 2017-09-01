@@ -585,13 +585,6 @@ static zend_object * event_buffer_object_create(zend_class_entry *ce)/*{{{*/
 	return &intern->zo;
 }/*}}}*/
 
-static zend_object * event_util_object_create(zend_class_entry *ce)/*{{{*/
-{
-	/* EventUtil is a singleton. This function should never be called */
-	PHP_EVENT_ASSERT(0);
-	return NULL;
-}/*}}}*/
-
 #ifdef HAVE_EVENT_OPENSSL_LIB
 static zend_object * event_ssl_context_object_create(zend_class_entry *ce)/*{{{*/
 {
@@ -1065,7 +1058,7 @@ static zend_always_inline void register_classes()/*{{{*/
 	ce->ce_flags |= ZEND_ACC_FINAL;
 #endif /* HAVE_EVENT_EXTRA_LIB */
 
-	PHP_EVENT_REGISTER_CLASS("EventUtil", event_util_object_create, php_event_util_ce,
+	PHP_EVENT_REGISTER_CLASS("EventUtil", zend_objects_new, php_event_util_ce,
 			php_event_util_ce_functions);
 	ce = php_event_util_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;

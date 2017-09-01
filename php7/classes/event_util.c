@@ -23,6 +23,12 @@
 # include <fcntl.h>
 #endif
 
+PHP_METHOD(EventUtil, __construct)
+{
+	zend_throw_exception(NULL, "An object of this type cannot be created "
+			"with the new operator", 0 );
+}
+
 /* {{{ proto int EventUtil::getLastSocketErrno([mixed socket = null]);
  *
  * Returns the most recent socket error number(errno). */

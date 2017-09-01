@@ -634,6 +634,7 @@ static zend_object_value event_buffer_object_create(zend_class_entry *ce TSRMLS_
  * EventUtil object ctor */
 static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC)
 {
+#if 0
 	php_event_abstract_object_t *obj;
 
 	/* EventUtil is a singleton. This function must never be called */
@@ -643,6 +644,17 @@ static zend_object_value event_util_object_create(zend_class_entry *ce TSRMLS_DC
 
 	return register_object(ce, (void *) obj, (zend_objects_store_dtor_t) zend_objects_destroy_object,
 			event_generic_object_free_storage TSRMLS_CC);
+#endif
+
+	zend_object *object;
+	zend_object_value value;
+
+	value = zend_objects_new(&object, ce TSRMLS_CC);
+	value.handlers = zend_get_std_object_handlers();
+
+	object_properties_init(object, ce);
+
+	return value;
 }
 /* }}} */
 

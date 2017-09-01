@@ -21,7 +21,14 @@
 #ifndef PHP_WIN32
 # include <fcntl.h>
 #endif
+#include <zend_exceptions.h>
 
+
+PHP_METHOD(EventUtil, __construct)
+{
+	zend_throw_exception(NULL, "An object of this type cannot be created "
+			"with the new operator", 0 TSRMLS_CC);
+}
 
 /* {{{ proto int EventUtil::getLastSocketErrno([mixed socket = null]);
  *

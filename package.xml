@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2017-07-19</date>
+  <date>2017-09-01</date>
   <!--{{{ Current version -->
   <version>
     <release>2.3.1</release>
@@ -48,6 +48,8 @@
 
     EventException will be thrown when the user tries to serialize or unserialize an instance of
       EventBase, EventHttp, EventHttpRequest, EventHttpConnection, or EventConfig.
+
+    Fixed issue #44: EventUtil class was final abstract
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -231,6 +233,8 @@
 
     EventException will be thrown when the user tries to serialize or unserialize an instance of
       EventBase, EventHttp, EventHttpRequest, EventHttpConnection, or EventConfig.
+
+    Fixed issue #44: EventUtil class was final abstract
     ]]></notes>
     </release>
     <!--}}}-->
