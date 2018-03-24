@@ -19,7 +19,7 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "2.3.1"
+#define PHP_EVENT_VERSION "2.4.0RC1"
 
 #define PHP_EVENT_SUN_PREFIX "unix:"
 
@@ -46,6 +46,12 @@ ZEND_TSRMLS_CACHE_EXTERN();
 # define EVENT_G(v) TSRMG(event_globals_id, zend_event_globals *, v)
 #else
 # define EVENT_G(v) (event_globals.v)
+#endif
+
+#ifdef PHP_EVENT_NS
+# define PHP_EVENT_NS_NAME(name) PHP_EVENT_NS "\\" #name
+#else
+# define PHP_EVENT_NS_NAME(name) #name
 #endif
 
 #ifdef PHP_EVENT_DEBUG

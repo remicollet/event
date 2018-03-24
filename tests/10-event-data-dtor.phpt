@@ -2,6 +2,9 @@
 Check for event destructor depending on the data property value
 --FILE--
 <?php
+$eventClass = EVENT_NS . '\\Event';
+$eventBaseClass = EVENT_NS . '\\EventBase';
+
 class _Indicator {
 	public $i;
 	public function __construct($i) {
@@ -12,13 +15,13 @@ class _Indicator {
 	}
 }
 
-$base = new EventBase();
+$base = new $eventBaseClass();
 
-$e1 = new Event($base, -1, Event::TIMEOUT, function() {
+$e1 = new $eventClass($base, -1, $eventClass::TIMEOUT, function() {
 	echo "2\n";
 });
 $e1->addTimer(0.10);
-$e2 = new Event($base, -1, Event::TIMEOUT, function() {
+$e2 = new $eventClass($base, -1, $eventClass::TIMEOUT, function() {
 	echo "3\n";
 });
 $e2->addTimer(0.11);

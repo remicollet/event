@@ -2,10 +2,10 @@
 Check for EventBufferEvent SSL features
 --SKIPIF--
 <?php
-if (!class_exists('EventBufferEvent')) {
+if (!class_exists(EVENT_NS . '\\EventBufferEvent')) {
 	die('skip Event is built without EventBufferEvent support');
 }
-$class = 'EventBufferEvent';
+$class = EVENT_NS . '\\EventBufferEvent';
 $prop = 'allow_ssl_dirty_shutdown';
 
 if (!property_exists($class, $prop)) {
@@ -20,13 +20,17 @@ if (defined('EventSslContext::OPENSSL_VERSION_NUMBER') &&
 ?>
 --FILE--
 <?php
-$base = new EventBase();
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventSslContextClass = EVENT_NS . '\\EventSslContext';
+$eventBufferEventClass = EVENT_NS . '\\EventBufferEvent';
+
+$base = new $eventBaseClass();
 
 foreach ([
-	'SSLv3'   => 'EventSslContext::SSLv3_SERVER_METHOD',
-	'SSLv2'   => 'EventSslContext::SSLv2_SERVER_METHOD',
-	'TLSv1.1' => 'EventSslContext::TLSv11_SERVER_METHOD',
-	'TLSv1.2' => 'EventSslContext::TLSv12_SERVER_METHOD'
+	"SSLv3"   => "$eventSslContextClass::SSLv3_SERVER_METHOD",
+	"SSLv2"   => "$eventSslContextClass::SSLv2_SERVER_METHOD",
+	"TLSv1.1" => "$eventSslContextClass::TLSv11_SERVER_METHOD",
+	"TLSv1.2" => "$eventSslContextClass::TLSv12_SERVER_METHOD"
 ] as $k => $method)
 {
     if (!defined($method)) {
@@ -38,8 +42,8 @@ foreach ([
     }
     $method = constant($method);
 
-	@$ctx = new EventSslContext($method, []);
-	$bev = EventBufferEvent::sslSocket($base, null, $ctx, EventBufferEvent::SSL_ACCEPTING);
+	@$ctx = new $eventSslContextClass($method, []);
+	$bev = $eventBufferEventClass::sslSocket($base, null, $ctx, $eventBufferEventClass::SSL_ACCEPTING);
 	var_dump($bev->sslGetProtocol());
 
 	var_dump($bev->allow_ssl_dirty_shutdown);

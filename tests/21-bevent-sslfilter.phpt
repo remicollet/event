@@ -2,16 +2,19 @@
 Check for EventBufferEvent::createSslFilter() behavior
 --SKIPIF--
 <?php
-if (!class_exists("EventSslContext")) die("skip Event extra functions are disabled");
+if (!class_exists(EVENT_NS . "\\EventSslContext")) die("skip Event extra functions are disabled");
 ?>
 --FILE--
 <?php
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventBufferEventClass = EVENT_NS . '\\EventBufferEvent';
+$eventSslContextClass = EVENT_NS . '\\EventSslContext';
 
 $methods = [
-	'EventSslContext::TLS_SERVER_METHOD',
-	'EventSslContext::SSLv3_SERVER_METHOD',
-	'EventSslContext::SSLv2_SERVER_METHOD',
-	'EventSslContext::SSLv23_SERVER_METHOD',
+	"$eventSslContextClass::TLS_SERVER_METHOD",
+	"$eventSslContextClass::SSLv3_SERVER_METHOD",
+	"$eventSslContextClass::SSLv2_SERVER_METHOD",
+	"$eventSslContextClass::SSLv23_SERVER_METHOD",
 ];
 
 foreach ($methods as $method) {
@@ -21,10 +24,10 @@ foreach ($methods as $method) {
 	}
 }
 
-$base = new EventBase();
-$b = new EventBufferEvent($base);
-$ctx = new EventSslContext($method, []);
-EventBufferEvent::createSslFilter($b, $ctx, EventBufferEvent::SSL_ACCEPTING);
+$base = new $eventBaseClass();
+$b = new $eventBufferEventClass($base);
+$ctx = new $eventSslContextClass($method, []);
+$eventBufferEventClass::createSslFilter($b, $ctx, $eventBufferEventClass::SSL_ACCEPTING);
 echo 'ok';
 ?>
 --EXPECT--

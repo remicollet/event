@@ -2,10 +2,12 @@
 Check for EventBuffer methods' behaviour
 --FILE--
 <?php
+$eventBufferClass = EVENT_NS . '\\EventBuffer';
+
 $s     = "abcdefghijklmnopqrstuvwxyz";
 $s_len = strlen($s);
-$b1    = new EventBuffer();
-$b2    = new EventBuffer();
+$b1    = new $eventBufferClass();
+$b2    = new $eventBufferClass();
 
 $b1->add($s);
 
@@ -17,13 +19,13 @@ for ($i = 0, $j = 1; $i < $s_len; $i += 4, ++$j) {
 	}
 }
 
-$b3 = new EventBuffer();
+$b3 = new $eventBufferClass();
 $b3->add("123");
 echo "$j ", $b3->search("23", 1, 10) == 1 ? "ok" : "failed", PHP_EOL;
 
 
 $s = "";
-$b4 = new EventBuffer();
+$b4 = new $eventBufferClass();
 for ($i = 0; $i < 10; ++$i) {
 	$s .= $i;
 }

@@ -64,10 +64,18 @@ static zend_always_inline void php_event_replace_zval(zval *zdst, zval *zsrc) {/
 #define php_event_is_pending(e) \
 	event_pending((e), EV_READ | EV_WRITE | EV_SIGNAL | EV_TIMEOUT, NULL)
 
+#ifdef PHP_EVENT_NS
+# define PHP_EVENT_INIT_CLASS(tmp_ce, name, ce_functions) \
+	INIT_NS_CLASS_ENTRY(tmp_ce, PHP_EVENT_NS, name, ce_functions)
+#else
+# define PHP_EVENT_INIT_CLASS(tmp_ce, name, ce_functions) \
+	INIT_CLASS_ENTRY(tmp_ce, name, ce_functions)
+#endif
+
 #define PHP_EVENT_REGISTER_CLASS(name, create_func, ce, ce_functions) \
 {                                                                     \
 	zend_class_entry tmp_ce;                                          \
-	INIT_CLASS_ENTRY(tmp_ce, name, ce_functions);                     \
+	PHP_EVENT_INIT_CLASS(tmp_ce, name, ce_functions);                 \
 	tmp_ce.create_object = create_func;                               \
 	ce = zend_register_internal_class(&tmp_ce);                       \
 }

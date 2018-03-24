@@ -2,7 +2,7 @@
 Check for EventBufferEvent::sslSocket() error behavior
 --SKIPIF--
 <?php
-if (!class_exists("EventSslContext")) {
+if (!class_exists(EVENT_NS . "\\EventSslContext")) {
 	die("skip Event extra functions are disabled");
 }
 if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
@@ -11,20 +11,24 @@ if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
 ?>
 --FILE--
 <?php
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventSslContextClass = EVENT_NS . '\\EventSslContext';
+$eventBufferEventClass = EVENT_NS . '\\EventBufferEvent';
+
 foreach ([
-	'EventSslContext::TLS_SERVER_METHOD',
-	'EventSslContext::SSLv3_SERVER_METHOD',
-	'EventSslContext::SSLv2_SERVER_METHOD',
-	'EventSslContext::SSLv23_SERVER_METHOD'] as $method)
+	"$eventSslContextClass::TLS_SERVER_METHOD",
+	"$eventSslContextClass::SSLv3_SERVER_METHOD",
+	"$eventSslContextClass::SSLv2_SERVER_METHOD",
+	"$eventSslContextClass::SSLv23_SERVER_METHOD"] as $method)
 {
 	if (defined($method)) {
 		$method = constant($method);
 		break;
 	}
 }
-$ctx = new EventSslContext($method, []);
-EventBufferEvent::sslSocket(new EventBase(), null, $ctx, EventBufferEvent::SSL_ACCEPTING);
+$ctx = new $eventSslContextClass($method, []);
+$eventBufferEventClass::sslSocket(new $eventBaseClass(), null, $ctx, $eventBufferEventClass::SSL_ACCEPTING);
 ?>
 --EXPECTF--
 
-Fatal error: EventBufferEvent::sslSocket(): EventBase must be passed by reference in %s on line %d
+Fatal error: %SEventBufferEvent::sslSocket(): %SEventBase must be passed by reference in %s on line %d

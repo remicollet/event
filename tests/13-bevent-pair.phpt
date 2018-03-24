@@ -2,17 +2,21 @@
 Check for EventBufferEvent::createPair()
 --FILE--
 <?php
-$base = new EventBase();
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventClass = EVENT_NS . '\\Event';
+$eventBufferEventClass = EVENT_NS . '\\EventBufferEvent';
 
-$pair = EventBufferEvent::createPair($base);
+$base = new $eventBaseClass();
 
-$pair[0]->enable(Event::WRITE);
-$pair[1]->enable(Event::READ);
+$pair = $eventBufferEventClass::createPair($base);
+
+$pair[0]->enable($eventClass::WRITE);
+$pair[1]->enable($eventClass::READ);
 $pair[0]->write("xyz");
 echo $pair[1]->read(10) == "xyz" ? "ok" : 'failed', PHP_EOL;
 $base->loop();
 
-$pair[0]->disable(Event::WRITE);
+$pair[0]->disable($eventClass::WRITE);
 $pair[0]->write("xyz");
 echo $pair[1]->read(10) == "" ? "ok" : 'failed', PHP_EOL;
 $base->loop();

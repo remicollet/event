@@ -19,7 +19,7 @@
 #ifndef PHP_EVENT_H
 #define PHP_EVENT_H
 
-#define PHP_EVENT_VERSION "2.3.1"
+#define PHP_EVENT_VERSION "2.4.0RC1"
 
 #define PHP_EVENT_SUN_PREFIX "unix:"
 
@@ -62,6 +62,12 @@ ZEND_EXTERN_MODULE_GLOBALS(event)
 # define PHP_EVENT_ASSERT(x) assert(x)
 #else
 # define PHP_EVENT_ASSERT(x)
+#endif
+
+#ifdef PHP_EVENT_NS
+# define PHP_EVENT_NS_NAME(name) PHP_EVENT_NS "\\" #name
+#else
+# define PHP_EVENT_NS_NAME(name) #name
 #endif
 
 #if PHP_VERSION_ID >= 50300

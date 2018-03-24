@@ -8,8 +8,11 @@ if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
 ?>
 --FILE--
 <?php
-$e = Event::timer(new EventBase(), function() {});
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventClass = EVENT_NS . '\\Event';
+
+$e = $eventClass::timer(new $eventBaseClass(), function() {});
 ?>
 --EXPECTF--
 
-Fatal error: Event::timer(): EventBase must be passed by reference in %s on line %d
+Fatal error: %SEvent::timer(): %SEventBase must be passed by reference in %s on line %d

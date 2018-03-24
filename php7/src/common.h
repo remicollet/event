@@ -65,7 +65,6 @@
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
 # include <event2/bufferevent_ssl.h>
-
 #endif
 
 #if !defined(_MINIX)

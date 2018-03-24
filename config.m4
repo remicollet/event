@@ -1,7 +1,7 @@
 dnl +----------------------------------------------------------------------+
 dnl | PHP Version 7                                                        |
 dnl +----------------------------------------------------------------------+
-dnl | Copyrght (C) 1997-2016 The PHP Group                                 |
+dnl | Copyrght (C) 1997-2018 The PHP Group                                 |
 dnl +----------------------------------------------------------------------+
 dnl | This source file is subject to version 3.01 of the PHP license,      |
 dnl | that is bundled with this package in the file LICENSE, and is        |
@@ -23,8 +23,11 @@ PHP_ARG_WITH(event-pthreads, for Event thread safety support,
 PHP_ARG_WITH(event-extra, for Event extra functionality support,
 [  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, no)
 
-PHP_ARG_WITH(event-openssl, for OpenSSL support in event,
+PHP_ARG_WITH(event-openssl, for OpenSSL support in Event,
 [  --with-event-openssl Include libevent OpenSSL support], yes, no)
+
+PHP_ARG_WITH(event-ns, for custom PHP namespace in Event,
+[  --with-event-ns[=NS] Set custom PHP namespace for all Event classes], [], no)
 
 PHP_ARG_WITH(openssl-dir, for OpenSSL installation prefix,
 [  --with-openssl-dir[=DIR]  Event: openssl installation prefix], no, no)
@@ -196,6 +199,14 @@ if test "$PHP_EVENT_CORE" != "no"; then
     event_src="$event_src $PHP_EVENT_SUBDIR/classes/ssl_context.c"
   fi
   dnl }}}
+
+  if test "$PHP_EVENT_NS" != "no" -a "$PHP_EVENT_NS" != "yes"; then
+    if test "x$SED" = "x"; then
+      AC_PATH_PROG(SED, sed)
+    fi
+    PHP_EVENT_NS=$(echo "$PHP_EVENT_NS" | $SED -e 's/\\/\\\\/g')
+    AC_DEFINE_UNQUOTED(PHP_EVENT_NS, ["$PHP_EVENT_NS"], [Custom PHP namespace for all Event classes])
+  fi
 
   PHP_NEW_EXTENSION(event, $event_src, $ext_shared,,$CFLAGS -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
   PHP_ADD_BUILD_DIR($ext_builddir/$PHP_EVENT_SUBDIR/src)

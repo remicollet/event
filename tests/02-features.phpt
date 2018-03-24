@@ -6,32 +6,34 @@ if (substr(PHP_OS, 0, 3) == "WIN") die('skip Not for Windows');
 ?>
 --FILE--
 <?php
-$cfg = new EventConfig();
+$eventConfigClass = EVENT_NS . '\\EventConfig';
+$eventBaseClass = EVENT_NS . '\\EventBase';
 
-if ($cfg->requireFeatures(EventConfig::FEATURE_FDS)) {
-	$base = new EventBase($cfg);
+$cfg = new $eventConfigClass();
 
-	if ($base->getFeatures() & EventConfig::FEATURE_FDS) {
+if ($cfg->requireFeatures($eventConfigClass::FEATURE_FDS)) {
+	$base = new $eventBaseClass($cfg);
+
+	if ($base->getFeatures() & $eventConfigClass::FEATURE_FDS) {
 		echo "FDS\n";
 	}
 }
 
-if ($cfg->requireFeatures(EventConfig::FEATURE_ET)) {
-	$base = new EventBase($cfg);
+if ($cfg->requireFeatures($eventConfigClass::FEATURE_ET)) {
+	$base = new $eventBaseClass($cfg);
 
-	if ($base->getFeatures() & EventConfig::FEATURE_ET) {
+	if ($base->getFeatures() & $eventConfigClass::FEATURE_ET) {
 		echo "ET\n";
 	}
 }
 
-if ($cfg->requireFeatures(EventConfig::FEATURE_O1)) {
-	$base = new EventBase($cfg);
+if ($cfg->requireFeatures($eventConfigClass::FEATURE_O1)) {
+	$base = new $eventBaseClass($cfg);
 
-	if ($base->getFeatures() & EventConfig::FEATURE_O1) {
+	if ($base->getFeatures() & $eventConfigClass::FEATURE_O1) {
 		echo "O1\n";
 	}
 }
-
 ?>
 --EXPECT--
 FDS

@@ -2,12 +2,15 @@
 Check for EventListener error behaviour
 --SKIPIF--
 <?php
-if (!class_exists("EventListener")) die("skip Event extra functions are disabled");
+if (!class_exists(EVENT_NS . "\\EventListener")) die("skip Event extra functions are disabled");
 if (substr(PHP_OS, 0, 3) == "WIN") die('skip Not for Windows');
 ?>
 --FILE--
 <?php
-$base = new EventBase();
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventListenerClass = EVENT_NS . '\\EventListener';
+
+$base = new $eventBaseClass();
 
 $sock_paths = array (
 	"unix:/tmp/".mt_rand().".sock" => TRUE,
@@ -21,7 +24,7 @@ if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
 		$res = true;
 
 		try {
-			$listener = @new EventListener($base, function() {}, NULL, 0, -1, $path);
+			$listener = @new $eventListenerClass($base, function() {}, NULL, 0, -1, $path);
 		} catch (Exception $e) {
 			$res = false;
 		}
@@ -34,7 +37,7 @@ if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
 	}
 } else { // PHP5
 	foreach ($sock_paths as $path => $expect) {
-		$listener = @new EventListener($base, function() {}, NULL, 0, -1, $path);
+		$listener = @new $eventListenerClass($base, function() {}, NULL, 0, -1, $path);
 
 		if (file_exists($path)) {
 			unlink($path);
