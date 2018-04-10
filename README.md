@@ -1,8 +1,6 @@
 Event - PECL extension
 ======================
 
-[![Build Status](https://drone.io/bitbucket.org/osmanov/pecl-event/status.png)](https://drone.io/bitbucket.org/osmanov/pecl-event/latest)
-
 Event is a PECL extension providing interface to `libevent` C library.
 
 ABOUT LIBEVENT
