@@ -38,7 +38,7 @@ echo "1 - ok\n";
 
 /////////////////////////////////////////////
 
-foreach ([ $base, $http, $http_request, $http_connection, $config, $listener ] as &$object) {
+foreach ([ $base, $http, $http_request, $http_connection, $config, $listener ] as $object) {
     try {
         serialize($object);
     } catch (\Exception $e) {
