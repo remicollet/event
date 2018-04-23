@@ -11,7 +11,6 @@ $eventHttpConnectionClass = EVENT_NS . '\\EventHttpConnection';
 $eventBaseClass = EVENT_NS . '\\EventBase';
 $eventHttpRequestClass = EVENT_NS . '\\EventHttpRequest';
 $eventSslContextClass = EVENT_NS . '\\EventSslContext';
-$eventExceptionClass = EVENT_NS . '\\EventException';
 
 $base = new $eventBaseClass();
 $listener = new $eventListenerClass($base, function () { }, null, 0, -1, '0.0.0.0:12345');
@@ -38,17 +37,26 @@ echo "1 - ok\n";
 
 /////////////////////////////////////////////
 
-foreach ([ $base, $http, $http_request, $http_connection, $config, $listener ] as $object) {
+function testSerializeEventObject($object) {
+    $eventExceptionClass = EVENT_NS . '\\EventException';
+
     try {
         serialize($object);
     } catch (\Exception $e) {
         echo get_class($object), ' - ',
             ($e instanceof $eventExceptionClass ? 'ok' : 'error - ' . get_class($e)),
             "\n";
-    } finally {
-        $object = null;
     }
 }
+
+testSerializeEventObject($base);
+testSerializeEventObject($http);
+testSerializeEventObject($http_request);
+testSerializeEventObject($http_connection);
+testSerializeEventObject($config);
+testSerializeEventObject($listener);
+
+
 ?>
 --EXPECTF--
 1 - ok
