@@ -981,7 +981,7 @@ static void php_event_add_property(HashTable *h, const char *name, size_t name_l
 static zend_always_inline void register_classes()/*{{{*/
 {
 	zend_class_entry *ce;
-	zend_class_entry ce_excepiton;
+	zend_class_entry ce_exception;
 
 	PHP_EVENT_REGISTER_CLASS("Event", event_object_create, php_event_ce, php_event_ce_functions);
 	ce = php_event_ce;
@@ -1076,8 +1076,13 @@ static zend_always_inline void register_classes()/*{{{*/
 	zend_hash_add_ptr(&classes, ce->name, &event_ssl_context_properties);
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
-	INIT_CLASS_ENTRY(ce_excepiton, "EventException", NULL);
-	php_event_exception_ce = zend_register_internal_class_ex(&ce_excepiton, php_event_get_exception_base(0));
+#ifdef PHP_EVENT_NS
+	INIT_NS_CLASS_ENTRY(ce_exception, PHP_EVENT_NS, "EventException", NULL);
+#else
+	INIT_CLASS_ENTRY(ce_exception, "EventException", NULL);
+#endif
+
+	php_event_exception_ce = zend_register_internal_class_ex(&ce_exception, php_event_get_exception_base(0));
 	zend_declare_property_null(php_event_exception_ce, "errorInfo", sizeof("errorInfo") - 1, ZEND_ACC_PUBLIC);
 }/*}}}*/
 
@@ -1120,6 +1125,12 @@ PHP_MINIT_FUNCTION(event)
 #endif
 #ifdef HAVE_EVENT_OPENSSL_LIB
 	PHP_EVENT_INIT_X_OBJ_HANDLERS(ssl_context);
+#endif
+
+#ifdef PHP_EVENT_NS
+	REGISTER_STRING_CONSTANT("EVENT_NS", PHP_EVENT_NS, CONST_CS | CONST_PERSISTENT);
+#else
+	REGISTER_STRING_CONSTANT("EVENT_NS", "", CONST_CS | CONST_PERSISTENT);
 #endif
 
 	zend_hash_init(&classes, 4, NULL, NULL, 1);

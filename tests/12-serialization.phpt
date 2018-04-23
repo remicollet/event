@@ -1,19 +1,28 @@
 --TEST--
 Check for SEGFAULT with serialization functions
 --SKIPIF--
-<?php if (!class_exists("EventListener")) print "skip Event extra functions are disabled"; ?>
+<?php if (!class_exists(EVENT_NS . "\\EventListener")) print "skip Event extra functions are disabled"; ?>
 --FILE--
 <?php
-$base = new EventBase();
-$listener = new EventListener($base, function () { }, null, 0, -1, '0.0.0.0:12345');
+$eventHttpClass = EVENT_NS . '\\EventHttp';
+$eventListenerClass = EVENT_NS . '\\EventListener';
+$eventConfigClass = EVENT_NS . '\\EventConfig';
+$eventHttpConnectionClass = EVENT_NS . '\\EventHttpConnection';
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventHttpRequestClass = EVENT_NS . '\\EventHttpRequest';
+$eventSslContextClass = EVENT_NS . '\\EventSslContext';
+$eventExceptionClass = EVENT_NS . '\\EventException';
 
-$http = new EventHttp($base);
-$http_request = new EventHttpRequest(function () {});
-$http_connection = new EventHttpConnection($base, null, "0.0.0.0", 9099);
-$config  = new EventConfig;
+$base = new $eventBaseClass();
+$listener = new $eventListenerClass($base, function () { }, null, 0, -1, '0.0.0.0:12345');
 
-if (class_exists('EventSslContext')) {
-    $ssl_context = new EventSslContext(EventSslContext::SSLv3_SERVER_METHOD, []);
+$http = new $eventHttpClass($base);
+$http_request = new $eventHttpRequestClass(function () {});
+$http_connection = new $eventHttpConnectionClass($base, null, "0.0.0.0", 9099);
+$config  = new $eventConfigClass;
+
+if (class_exists($eventSslContextClass)) {
+    $ssl_context = new $eventSslContextClass($eventSslContextClass::SSLv3_SERVER_METHOD, []);
     serialize($ssl_context);
 }
 
@@ -32,18 +41,20 @@ echo "1 - ok\n";
 foreach ([ $base, $http, $http_request, $http_connection, $config, $listener ] as &$object) {
     try {
         serialize($object);
-    } catch (EventException $e) {
-        echo get_class($object), " - ok\n";
+    } catch (\Exception $e) {
+        echo get_class($object), ' - ',
+            ($e instanceof $eventExceptionClass ? 'ok' : 'error - ' . get_class($e)),
+            "\n";
     } finally {
         $object = null;
     }
 }
 ?>
---EXPECT--
+--EXPECTF--
 1 - ok
-EventBase - ok
-EventHttp - ok
-EventHttpRequest - ok
-EventHttpConnection - ok
-EventConfig - ok
-EventListener - ok
+%SEventBase - ok
+%SEventHttp - ok
+%SEventHttpRequest - ok
+%SEventHttpConnection - ok
+%SEventConfig - ok
+%SEventListener - ok

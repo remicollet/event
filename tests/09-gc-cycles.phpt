@@ -4,8 +4,11 @@ Check for gc_collect_cycles appled after event free
 <?php if (!function_exists("gc_collect_cycles")) print "skip"; ?>
 --FILE--
 <?php
-$base = new EventBase();
-$e = new Event($base, 0, Event::READ, function(){});
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventClass = EVENT_NS . '\\Event';
+
+$base = new $eventBaseClass();
+$e = new $eventClass($base, 0, $eventClass::READ, function(){});
 $e->free();
 gc_collect_cycles(); // segfaults if something goes wrong
 echo "ok";

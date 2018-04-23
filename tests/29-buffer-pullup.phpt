@@ -2,6 +2,8 @@
 Check for EventBuffer::pullup method behavior
 --FILE--
 <?php
+$eventBuffereClass = EVENT_NS . '\\EventBuffer';
+
 $a = [
 	"",
 	"test",
@@ -9,7 +11,7 @@ $a = [
 ];
 
 foreach ($a as $s) {
-	$b = new EventBuffer();
+	$b = new $eventBuffereClass();
 	$b->add($s);
 	$s_pullup = $b->pullup(-1);
 	var_dump(strlen($s_pullup) == strlen($s) && $s_pullup == $s);

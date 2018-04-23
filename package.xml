@@ -32,24 +32,20 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2017-09-01</date>
+  <date>2018-03-24</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.3.1</release>
-    <api>2.3.1</api>
+    <release>2.4.0RC1</release>
+    <api>2.4.0RC1</api>
   </version>
   <stability>
-    <release>stable</release>
-    <api>stable</api>
+    <release>beta</release>
+    <api>beta</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed issue #40: Segmentation fault when trying to serialize instance of EventHttpRequest
-
-    EventException will be thrown when the user tries to serialize or unserialize an instance of
-      EventBase, EventHttp, EventHttpRequest, EventHttpConnection, or EventConfig.
-
-    Fixed issue #44: EventUtil class was final abstract
+    Issue #46: Class name conflict with Laravel and Lumen.
+      Added --with-event-ns configuration option.
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -213,10 +209,28 @@
     <configureoption default="no" name="with-event-pthreads" prompt="Include libevent's pthreads library and enable thread safety support in Event"/>
     <configureoption default="yes" name="with-event-extra" prompt="Include libevent protocol-specific functionality support including HTTP, DNS, and RPC"/>
     <configureoption default="yes" name="with-event-openssl" prompt="Include libevent OpenSSL support"/>
+    <configureoption default="" name="with-event-ns" prompt="PHP Namespace for all Event classes"/>
     <configureoption default="no" name="with-openssl-dir" prompt="openssl installation prefix"/>
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.4.0RC1 -->
+    <release>
+      <version>
+        <release>2.4.0RC1</release>
+        <api>2.4.0RC1</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Issue #46: Class name conflict with Laravel and Lumen.
+      Added --with-event-ns configuration option.
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 2.3.1 -->
     <release>
       <version>

@@ -1196,7 +1196,11 @@ static zend_always_inline void register_classes(TSRMLS_D)
 			sizeof(event_ssl_context_properties), NULL);
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
+#ifdef PHP_EVENT_NS
+	INIT_NS_CLASS_ENTRY(ce_exception, PHP_EVENT_NS, "EventException", NULL);
+#else
 	INIT_CLASS_ENTRY(ce_exception, "EventException", NULL);
+#endif
 	php_event_exception_ce = zend_register_internal_class_ex(&ce_exception, php_event_get_exception_base(0 TSRMLS_CC), NULL TSRMLS_CC);
 	zend_declare_property_null(php_event_exception_ce, "errorInfo", sizeof("errorInfo") - 1, ZEND_ACC_PUBLIC TSRMLS_CC);
 }
@@ -1233,6 +1237,12 @@ PHP_MINIT_FUNCTION(event)
 	object_handlers.get_gc               = get_gc;
 
 	spl_ce_RuntimeException = NULL;
+
+#ifdef PHP_EVENT_NS
+	REGISTER_STRING_CONSTANT("EVENT_NS", PHP_EVENT_NS, CONST_CS | CONST_PERSISTENT);
+#else
+	REGISTER_STRING_CONSTANT("EVENT_NS", "", CONST_CS | CONST_PERSISTENT);
+#endif
 
 	zend_hash_init(&classes, 8, NULL, NULL, 1);
 	register_classes(TSRMLS_C);

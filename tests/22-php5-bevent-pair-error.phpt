@@ -8,7 +8,9 @@ if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
 ?>
 --FILE--
 <?php
-EventBufferEvent::createPair(new EventBase());
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventBufferEventClass = EVENT_NS . '\\EventBufferEvent';
+$eventBufferEventClass::createPair(new $eventBaseClass());
 ?>
 --EXPECTF--
-Fatal error: EventBufferEvent::createPair(): EventBase must be passed by reference in %s on line %d
+Fatal error: %SEventBufferEvent::createPair(): %SEventBase must be passed by reference in %s on line %d

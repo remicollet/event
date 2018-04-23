@@ -2,13 +2,15 @@
 Check for get_gc property handler
 --FILE--
 <?php
-
 class x {
 	public $t = null;
 
 	public function __construct() {
-		$b = new EventBase();
-		$this->t = Event::timer($b, function () { });
+		$eventClass = EVENT_NS . '\\Event';
+		$eventBaseClass = EVENT_NS . '\\EventBase';
+
+		$b = new $eventBaseClass();
+		$this->t = $eventClass::timer($b, function () { });
 		$this->t->free();
 	}
 }

@@ -2,6 +2,8 @@
 Check for manipulation with buffer position
 --FILE--
 <?php
+$eventBufferClass = EVENT_NS . '\\EventBuffer';
+
 /* Count total occurances of 'str' in 'buf' */
 function count_instances($buf, $str) {
     $total = 0;
@@ -29,7 +31,7 @@ while ($i < 10) {
 	++$i;
 }
 
-$buf = new EventBuffer();
+$buf = new $eventBufferClass();
 $buf->add($a);
 
 while (--$i > 0) {

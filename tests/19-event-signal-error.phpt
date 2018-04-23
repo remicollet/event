@@ -11,8 +11,11 @@ if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
 ?>
 --FILE--
 <?php
-$e = Event::signal(new EventBase(), SIGTERM, function() {});
+$eventBaseClass = EVENT_NS . '\\EventBase';
+$eventClass = EVENT_NS . '\\Event';
+
+$e = $eventClass::signal(new $eventBaseClass(), SIGTERM, function() {});
 ?>
 --EXPECTF--
 
-Fatal error: Event::signal(): EventBase must be passed by reference in %s on line %d
+Fatal error: %SEvent::signal(): %SEventBase must be passed by reference in %s on line %d
