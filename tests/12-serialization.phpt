@@ -37,8 +37,10 @@ echo "1 - ok\n";
 
 /////////////////////////////////////////////
 
-function testSerializeEventObject($object) {
+function testSerializeEventObject($o) {
     $eventExceptionClass = EVENT_NS . '\\EventException';
+
+    $object = &$o;
 
     try {
         serialize($object);
