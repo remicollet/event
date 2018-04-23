@@ -22,7 +22,7 @@ $http_connection = new $eventHttpConnectionClass($base, null, "0.0.0.0", 9099);
 $config  = new $eventConfigClass;
 
 if (class_exists($eventSslContextClass)) {
-    $ssl_context = new $eventSslContextClass($eventSslContextClass::SSLv3_SERVER_METHOD, []);
+    $ssl_context = new $eventSslContextClass($eventSslContextClass::TLS_SERVER_METHOD, []);
     serialize($ssl_context);
 }
 
