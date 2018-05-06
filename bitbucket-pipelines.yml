@@ -6,6 +6,8 @@ pipelines:
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
             - docker-php-ext-install sockets
+            - sockets_ini=$(php -i | grep -m 1 -o -E '/etc/.*/sockets\.ini')
+            - test -z "$sockets_ini" || mv "$sockets_ini" "$(echo "$sockets_ini" | sed -e 's/sockets.ini/0-sockets.ini/')"
             - docker-php-source extract
             - phpize
             - ./configure --with-event-core --with-event-extra --with-event-openssl
@@ -17,6 +19,8 @@ pipelines:
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
             - docker-php-ext-install sockets
+            - sockets_ini=$(php -i | grep -m 1 -o -E '/etc/.*/sockets\.ini')
+            - test -z "$sockets_ini" || mv "$sockets_ini" "$(echo "$sockets_ini" | sed -e 's/sockets.ini/0-sockets.ini/')"
             - docker-php-source extract
             - phpize
             - ./configure --with-event-core --with-event-extra --with-event-openssl
@@ -28,6 +32,8 @@ pipelines:
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
             - docker-php-ext-install sockets
+            - sockets_ini=$(php -i | grep -m 1 -o -E '/etc/.*/sockets\.ini')
+            - test -z "$sockets_ini" || mv "$sockets_ini" "$(echo "$sockets_ini" | sed -e 's/sockets.ini/0-sockets.ini/')"
             - docker-php-source extract
             - phpize
             - ./configure --with-event-core --with-event-extra --with-event-openssl
