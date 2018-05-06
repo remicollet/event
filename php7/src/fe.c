@@ -19,8 +19,13 @@
 #include "fe.h"
 #include "priv.h"
 
-#define PHP_EVENT_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null) \
+#ifdef ZEND_TYPE_ENCODE_CLASS_CONST
+# define PHP_EVENT_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null) \
+	{ #name, ZEND_TYPE_ENCODE_CLASS_CONST(PHP_EVENT_NS_NAME(classname), allow_null), pass_by_ref, 0 },
+#else
+# define PHP_EVENT_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null) \
 	{ #name, PHP_EVENT_NS_NAME(classname), IS_OBJECT, pass_by_ref, allow_null, 0 },
+#endif
 
 /* {{{ ARGINFO */
 ZEND_BEGIN_ARG_INFO(arginfo_event__void, 0)

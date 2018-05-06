@@ -22,3 +22,14 @@ pipelines:
             - ./configure --with-event-core --with-event-extra --with-event-openssl
             - make test
             - docker-php-source delete
+    - step:
+        name: Build and run tests for PHP 7.2
+        image: php:7.2-cli
+        script:
+            - apt-get update && apt-get install -y libevent-dev libssl-dev
+            - docker-php-ext-install sockets
+            - docker-php-source extract
+            - phpize
+            - ./configure --with-event-core --with-event-extra --with-event-openssl
+            - make test
+            - docker-php-source delete
