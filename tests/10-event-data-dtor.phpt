@@ -11,7 +11,7 @@ class _Indicator {
 		$this->i = $i;
 	}
 	public function __destruct() {
-		echo $this->i, "\n";
+		echo "" . $this->i . "\n";
 	}
 }
 

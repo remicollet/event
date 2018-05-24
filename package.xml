@@ -32,11 +32,11 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2018-05-08</date>
+  <date>2018-05-24</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.4.0RC2</release>
-    <api>2.4.0RC2</api>
+    <release>2.4.0RC3</release>
+    <api>2.4.0RC3</api>
   </version>
   <stability>
     <release>beta</release>
@@ -44,10 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed tests/12-serialization.phpt (thanks to Remi Collet)
-    Fixed issue #49: "Invalid file descriptor" exceptions in PHP 7.2. Due to
-      Zend API changes in PHP 7.2, Event stream arguments were accepted by
-      reference.
+    Fixed test error on RHEL 6/7 (thanks to Remi Collet).
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -217,6 +214,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.4.0RC3-->
+    <release>
+      <version>
+        <release>2.4.0RC3</release>
+        <api>2.4.0RC3</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Fixed test error on RHEL 6/7 (thanks to Remi Collet).
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 2.4.0RC2 -->
     <release>
       <version>
