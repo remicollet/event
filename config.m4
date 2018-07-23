@@ -52,14 +52,14 @@ if test "$PHP_EVENT_CORE" != "no"; then
     dnl # only for PECL, not for PHP
     export OLD_CPPFLAGS="$CPPFLAGS"
     export CPPFLAGS="$CPPFLAGS $INCLUDES"
-    AC_TRY_COMPILE([#include <php_version.h>], [
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <php_version.h>]], [[
     #if PHP_MAJOR_VERSION > 5
     # error PHP > 5
     #endif
-    ], [
+    ]])],[
       PHP_EVENT_SUBDIR=php5
       AC_MSG_RESULT([PHP 5.x])
-    ], [
+    ],[
       PHP_EVENT_SUBDIR=php7
       AC_MSG_RESULT([PHP 7.x])
     ])
@@ -105,11 +105,11 @@ if test "$PHP_EVENT_CORE" != "no"; then
   export OLD_CPPFLAGS="$CPPFLAGS"
   export CPPFLAGS="$CPPFLAGS $INCLUDES -DHAVE_EV"
   AC_MSG_CHECKING(for libevent version)
-  AC_TRY_COMPILE([#include <event2/event.h>], [
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <event2/event.h>]], [[
   #if LIBEVENT_VERSION_NUMBER < 0x02000200
   # error this extension requires at least libevent version 2.0.2-alpha
   #endif
-  ],
+  ]])],
   [AC_MSG_RESULT(ok)],
   [AC_MSG_ERROR([need at least libevent 2.0.2-alpha])])
   export CPPFLAGS="$OLD_CPPFLAGS"
