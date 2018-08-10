@@ -32,19 +32,19 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2018-05-24</date>
+  <date>2018-07-23</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.4.0RC3</release>
-    <api>2.4.0RC3</api>
+    <release>2.4.0</release>
+    <api>2.4.0</api>
   </version>
   <stability>
-    <release>beta</release>
-    <api>beta</api>
+    <release>stable</release>
+    <api>stable</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed test error on RHEL 6/7 (thanks to Remi Collet).
+    Replaced obsolete AC_TRY_COMPILE with AC_COMPILE_IFELSE in config.m4
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -188,17 +188,6 @@
       <pearinstaller>
         <min>1.4.0a1</min>
       </pearinstaller>
-      <package>
-        <name>libevent</name>
-        <channel>pecl.php.net</channel>
-        <min>0.0.2</min>
-        <conflicts/>
-        <providesextension>libevent</providesextension>
-      </package>
-      <extension>
-        <name>libevent</name>
-        <conflicts/>
-      </extension>
     </required>
   </dependencies>
   <providesextension>event</providesextension>
@@ -214,6 +203,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.4.0 -->
+    <release>
+      <version>
+        <release>2.4.0</release>
+        <api>2.4.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Replaced obsolete AC_TRY_COMPILE with AC_COMPILE_IFELSE in config.m4
+    ]]></notes>
+      <!--}}}-->
+    </release>
     <!--{{{ 2.4.0RC3-->
     <release>
       <version>
