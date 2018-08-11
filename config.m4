@@ -27,7 +27,7 @@ PHP_ARG_WITH(event-openssl, for OpenSSL support in Event,
 [  --with-event-openssl Include libevent OpenSSL support], yes, no)
 
 PHP_ARG_WITH(event-ns, for custom PHP namespace in Event,
-[  --with-event-ns[=NS] Set custom PHP namespace for all Event classes], [], no)
+[  --with-event-ns[=NS] Set custom PHP namespace for all Event classes], no, no)
 
 PHP_ARG_WITH(openssl-dir, for OpenSSL installation prefix,
 [  --with-openssl-dir[=DIR]  Event: openssl installation prefix], no, no)

@@ -12,7 +12,7 @@ pipelines:
             - ./configure --with-event-core --with-event-extra --with-event-openssl
             - make install
             - echo 'extension=event.so' > /usr/local/etc/php/conf.d/z-event.ini
-            - TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
+            - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
     - step:
         name: Build and run tests for PHP 7.1
@@ -26,7 +26,7 @@ pipelines:
             - ./configure --with-event-core --with-event-extra --with-event-openssl
             - make install
             - echo 'extension=event.so' > /usr/local/etc/php/conf.d/z-event.ini
-            - TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
+            - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
     - step:
         name: Build and run tests for PHP 7.2
@@ -40,5 +40,5 @@ pipelines:
             - ./configure --with-event-core --with-event-extra --with-event-openssl
             - make install
             - echo 'extension=event.so' > /usr/local/etc/php/conf.d/z-event.ini
-            - TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
+            - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
