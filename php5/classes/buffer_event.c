@@ -285,6 +285,8 @@ static void _create_ssl_filter(INTERNAL_FUNCTION_PARAMETERS, zend_bool deprecate
 				"Event: Failed creating SSL handle");
 		RETURN_FALSE;
 	}
+	/* Attach ectx to ssl for callbacks */
+	SSL_set_ex_data(ssl, php_event_ssl_data_index, ectx);
 
 #ifdef HAVE_EVENT_PTHREADS_LIB
 	options |= BEV_OPT_THREADSAFE;
