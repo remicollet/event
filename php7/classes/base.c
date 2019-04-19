@@ -40,6 +40,11 @@ PHP_METHOD(EventBase, __construct)
 		cfg = Z_EVENT_CONFIG_OBJ_P(zcfg);
 
 		b->base = event_base_new_with_config(cfg->ptr);
+		if (!b->base) {
+			zend_throw_exception_ex(php_event_get_exception(), 0,
+					"EventBase cannot be constructed with the provided configuration. "
+					"Make sure that the specified features are supported on the current platform.");
+		}
 	}
 }
 /* }}} */
