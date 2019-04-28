@@ -44,7 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Issue #53: Added EventConfig::setFlags() method. (There was no way to set EVENT_BASE_FLAG_* flags.)
+    Issue #54: Added EventConfig::setFlags() method. (There was no way to set EVENT_BASE_FLAG_* flags.)
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -176,7 +176,7 @@
         <file role="test" name="29-buffer-pullup.phpt"/>
         <file role="test" name="30-listener-free.phpt"/>
         <file role="test" name="49-issue.phpt"/>
-        <file role="test" name="53-event-config-set-flags.phpt"/>
+        <file role="test" name="54-event-config-set-flags.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -216,7 +216,7 @@
       </stability>
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
-    Issue #53: Added EventConfig::setFlags() method. (There was no way to set EVENT_BASE_FLAG_* flags.)
+    Issue #54: Added EventConfig::setFlags() method. (There was no way to set EVENT_BASE_FLAG_* flags.)
     ]]></notes>
     </release>
     <!--}}}-->
