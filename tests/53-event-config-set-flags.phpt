@@ -8,7 +8,7 @@ $eventClass = EVENT_NS . '\\Event';
 
 $config = new $eventConfigClass;
 $flags = $eventBaseClass::NOLOCK;
-if (substr(PHP_OS, 0, 3) != "WIN") {
+if (substr(PHP_OS, 0, 3) == "WIN") {
     $flags |= $eventBaseClass::STARTUP_IOCP;
 }
 var_dump($config->setFlags($flags));
