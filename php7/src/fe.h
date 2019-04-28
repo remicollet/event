@@ -65,6 +65,9 @@ PHP_METHOD(EventConfig, requireFeatures);
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
 PHP_METHOD(EventConfig, setMaxDispatchInterval);
 #endif
+#if LIBEVENT_VERSION_NUMBER >= 0x02000201
+PHP_METHOD(EventConfig, setFlags);
+#endif
 
 PHP_METHOD(EventBufferEvent, __construct);
 PHP_METHOD(EventBufferEvent, free);

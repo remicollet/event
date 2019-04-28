@@ -42,7 +42,7 @@ $base->loop();
 
 $e1 = null;
 $e2 = null;
-echo "end";
+echo "end\n";
 ?>
 --EXPECT--
 start

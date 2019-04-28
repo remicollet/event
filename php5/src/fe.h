@@ -56,6 +56,9 @@ PHP_METHOD(EventBase, free);
 #if LIBEVENT_VERSION_NUMBER >= 0x02010200
 PHP_METHOD(EventBase, resume);
 #endif
+#if LIBEVENT_VERSION_NUMBER >= 0x02000201
+PHP_METHOD(EventConfig, setFlags);
+#endif
 
 PHP_METHOD(EventConfig, __construct);
 PHP_METHOD(EventConfig, __wakeup);

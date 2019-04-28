@@ -108,6 +108,9 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_config_set_max_dispatch_interval, 0, 0, 3)
 ZEND_END_ARG_INFO();
 #endif
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_config_set_flags, 0, 0, 1)
+	ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_bufferevent__events, 0, 0, 1)
 	ZEND_ARG_INFO(0, events)
@@ -542,6 +545,9 @@ const zend_function_entry php_event_config_ce_functions[] = {/* {{{ */
 	PHP_ME(EventConfig, requireFeatures, arginfo_event_config_require_features, ZEND_ACC_PUBLIC)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
 	PHP_ME(EventConfig, setMaxDispatchInterval, arginfo_event_config_set_max_dispatch_interval, ZEND_ACC_PUBLIC)
+#endif
+#if LIBEVENT_VERSION_NUMBER >= 0x02000201
+	PHP_ME(EventConfig, setFlags, arginfo_event_config_set_flags, ZEND_ACC_PUBLIC)
 #endif
 
 	PHP_FE_END

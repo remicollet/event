@@ -134,6 +134,31 @@ PHP_METHOD(EventConfig, setMaxDispatchInterval)
 /* }}} */
 #endif
 
+#if LIBEVENT_VERSION_NUMBER >= 0x02000201 /* 2.0.2-alpha */
+/*{{{ proto bool EventConfig::setFlags(int flags)
+ * Sets one or more flags to configure what parts of the eventual EventBase
+ * will be initialized, and how they'll work. */
+PHP_METHOD(EventConfig, setFlags)
+{
+	zval               *zcfg  = getThis();
+	long                flags;
+	php_event_config_t *cfg;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &flags) == FAILURE) {
+		return;
+	}
+
+	PHP_EVENT_FETCH_CONFIG(cfg, zcfg);
+
+	if (!event_config_set_flag(cfg->ptr, flags)) {
+		RETURN_TRUE;
+	}
+
+	RETVAL_FALSE;
+}
+/*}}}*/
+#endif /* 2.0.2-alpha */
+
 /*
  * Local variables:
  * tab-width: 4
