@@ -176,7 +176,7 @@
         <file role="test" name="29-buffer-pullup.phpt"/>
         <file role="test" name="30-listener-free.phpt"/>
         <file role="test" name="49-issue.phpt"/>
-        <file role="test" name="53-event-config-set-flags.phpt"/>
+        <file role="test" name="54-event-config-set-flags.phpt"/>
       </dir>
     </dir>
   </contents>
