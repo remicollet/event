@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2019-04-28</date>
+  <date>2019-05-25</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.5.0</release>
+    <release>2.5.1</release>
     <api>2.5.0</api>
   </version>
   <stability>
@@ -44,7 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Issue #54: Added EventConfig::setFlags() method. (There was no way to set EVENT_BASE_FLAG_* flags.)
+    Fixed build warnings with PHP 7.3
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -204,6 +204,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.5.1 -->
+    <release>
+      <version>
+        <release>2.5.1</release>
+        <api>2.5.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Fixed build warnings with PHP 7.3
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 2.5.0 -->
     <release>
       <version>

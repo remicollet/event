@@ -729,7 +729,7 @@ static zval * read_property(zval *object, zval *member, int type, void **cache_s
 			retval = &EG(uninitialized_zval);
 		}
 	} else {
-		zend_object_handlers *std_hnd = zend_get_std_object_handlers();
+		const zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 		retval = std_hnd->read_property(object, member, type, cache_slot, rv);
 	}
 
@@ -758,7 +758,7 @@ static void write_property(zval *object, zval *member, zval *value, void **cache
 	if (hnd) {
 		hnd->write_func(obj, value);
 	} else {
-		zend_object_handlers *std_hnd = zend_get_std_object_handlers();
+		const zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 	    std_hnd->write_property(object, member, value, cache_slot);
 	}
 
@@ -799,7 +799,7 @@ static int object_has_property(zval *object, zval *member, int has_set_exists, v
 				   php_error_docref(NULL, E_WARNING, "Invalid value for has_set_exists");
 		}
 	} else {
-		zend_object_handlers *std_hnd = zend_get_std_object_handlers();
+		const zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 		ret = std_hnd->has_property(object, member, has_set_exists, cache_slot);
 	}
 
@@ -848,7 +848,7 @@ static zval * get_property_ptr_ptr(zval *object, zval *member, int type, void **
 	if (hnd && hnd->get_ptr_ptr_func != NULL) {
 		retval = hnd->get_ptr_ptr_func(obj);
 	} else {
-		zend_object_handlers *std_hnd = zend_get_std_object_handlers();
+		const zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 		retval = std_hnd->get_property_ptr_ptr(object, member, type, cache_slot);
 	}
 
@@ -1091,10 +1091,6 @@ static zend_always_inline void register_classes()/*{{{*/
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(event)
 {
-#if 0
-	zend_object_handlers *std_hnd = zend_get_std_object_handlers();
-#endif
-
 	memcpy(&event_event_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	PHP_EVENT_SET_X_OBJ_HANDLERS(event);
 
