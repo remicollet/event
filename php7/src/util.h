@@ -18,6 +18,15 @@
 #ifndef PHP_EVENT_UTIL_H
 #define PHP_EVENT_UTIL_H
 
+#include "common.h"
+
+#ifdef PHP_WIN32
+# ifdef EINPROGRESS
+#  undef EINPROGRESS
+# endif
+# define EINPROGRESS WSAEWOULDBLOCK
+#endif
+
 php_socket_t php_event_zval_to_fd(zval *pfd);
 int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport);
 

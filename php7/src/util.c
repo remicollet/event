@@ -23,13 +23,6 @@
 #endif
 #include "zend_exceptions.h"
 
-#ifdef PHP_WIN32
-# ifdef EINPROGRESS
-#  undef EINPROGRESS
-# endif
-# define EINPROGRESS WSAEWOULDBLOCK
-#endif
-
 /* {{{ php_event_zval_to_fd
  * Get numeric file descriptor from PHP stream or Socket resource */
 php_socket_t php_event_zval_to_fd(zval *pfd)
