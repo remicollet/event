@@ -889,18 +889,34 @@ static HashTable * get_gc(zval *object, zval **gc_data, int *gc_count)/*{{{*/
 	return zend_std_get_properties(object);
 }/*}}}*/
 
-#define PHP_EVENT_X_PROP_HND_DECL(x)                                                                                        \
-static zval * php_event_ ## x ## _read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv) {        \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
-	return (obj ? read_property(object, member, type, cache_slot, rv, (void *)obj, obj->prop_handler) : NULL);              \
-}                                                                                                                           \
-static void php_event_ ## x ## _write_property(zval *object, zval *member, zval *value, void **cache_slot)                  \
-{                                                                                                                           \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
-	if (EXPECTED(obj)) {                                                                                                    \
-		write_property(object, member, value, cache_slot, (void *)obj, obj->prop_handler);                                  \
-	}                                                                                                                       \
-}                                                                                                                           \
+
+#if PHP_VERSION_ID >= 70400
+#define PHP_EVENT_X_PROP_WRITE_HND_DECL(x)                                                                  \
+static zval *php_event_ ## x ## _write_property(zval *object, zval *member, zval *value, void **cache_slot) \
+{                                                                                                           \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                   \
+	if (EXPECTED(obj)) {                                                                                    \
+		write_property(object, member, value, cache_slot, (void *)obj, obj->prop_handler);                  \
+	}                                                                                                       \
+	return value;                                                                                           \
+}
+#else
+#define PHP_EVENT_X_PROP_WRITE_HND_DECL(x)                                                                  \
+static void php_event_ ## x ## _write_property(zval *object, zval *member, zval *value, void **cache_slot)  \
+{                                                                                                           \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                   \
+	if (EXPECTED(obj)) {                                                                                    \
+		write_property(object, member, value, cache_slot, (void *)obj, obj->prop_handler);                  \
+	}                                                                                                       \
+}
+#endif /* PHP_VERSION >= 70400 */
+
+#define PHP_EVENT_X_PROP_HND_DECL(x)                                                                                 \
+PHP_EVENT_X_PROP_WRITE_HND_DECL(x)                                                                                   \
+static zval * php_event_ ## x ## _read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv) { \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                            \
+	return (obj ? read_property(object, member, type, cache_slot, rv, (void *)obj, obj->prop_handler) : NULL);       \
+}                                                                                                                    \
 static int php_event_ ## x ## _has_property(zval *object, zval *member, int has_set_exists, void **cache_slot)              \
 {                                                                                                                           \
 	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
