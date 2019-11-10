@@ -1,4 +1,4 @@
-CVS
+/CVS
 acinclude.m4
 aclocal.m4
 autom4te.cache
@@ -9,10 +9,11 @@ ltmain.sh
 missing
 mkinstalldirs
 modules
-reconf.sh
-run-tests.php
-tags
+/reconf.sh
+/run-tests.php
+/tags
 tmp-php.ini
+/.ccls-cache/
 
 *.tgz
 *.in
@@ -31,8 +32,8 @@ tmp-php.ini
 *.req
 Makefile*
 
-tests/*
-!tests/*.phpt
+/tests/*
+!/tests/*.phpt
 
-config*
-!config.[m4,w32]
+/config*
+!/config.[m4,w32]
