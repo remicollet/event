@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2019-06-16</date>
+  <date>2020-01-20</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.5.3</release>
+    <release>2.5.4</release>
     <api>2.5.0</api>
   </version>
   <stability>
@@ -44,8 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed #56: a warning occurred randomly when PHP stream cast via php_stream_cast() without the PHP_STREAM_CAST_INTERNAL flag.
-    Fixed build warnings with PHP 7.4.0-alpha1: 'incompatible pointer type' warnings occurred in assignments to the write property handlers (thanks to Remi Collet).
+    Fixed #59: PHP7 build errors with disabled SSL support
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -205,6 +204,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.5.4 -->
+    <release>
+      <version>
+        <release>2.5.4</release>
+        <api>2.5.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Fixed #59: PHP7 build errors with disabled SSL support
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 2.5.3 -->
     <release>
       <version>
