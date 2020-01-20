@@ -5,6 +5,12 @@ Check for EventHttp* objects debug info
 if (!class_exists(EVENT_NS . '\\EventHttp')) {
 	die("skip Event extra functions are disabled");
 }
+if (!class_exists(EVENT_NS . '\\EventBufferEvent')) {
+    die('skip Event is built without EventBufferEvent support');
+}
+if (!class_exists(EVENT_NS . '\\EventSslContext')) {
+    die('skip Event is built without SSL support');
+}
 ?>
 --FILE--
 <?php

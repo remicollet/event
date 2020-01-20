@@ -218,7 +218,7 @@ static zval * event_bevent_output_prop_ptr_ptr(void *obj)/*{{{*/
 }/*}}}*/
 
 
-#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100 && defined(HAVE_EVENT_OPENSSL_LIB)
 static int event_bevent_allow_ssl_dirty_shutdown_prop_write(void *obj, zval *value)/*{{{*/
 {
 	php_event_bevent_t *bev = (php_event_bevent_t *)obj;
@@ -299,7 +299,7 @@ const php_event_property_entry_t event_bevent_property_entries[] = {
 	{"input",    sizeof("input")    - 1, event_bevent_input_prop_read,    NULL,                             event_bevent_input_prop_ptr_ptr},
 	{"output",   sizeof("output")   - 1, event_bevent_output_prop_read,   NULL,                             event_bevent_output_prop_ptr_ptr},
 
-#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100 && defined(HAVE_EVENT_OPENSSL_LIB)
 	{"allow_ssl_dirty_shutdown", sizeof("allow_ssl_dirty_shutdown") - 1,
 		event_bevent_allow_ssl_dirty_shutdown_prop_read,
 		event_bevent_allow_ssl_dirty_shutdown_prop_write, NULL },

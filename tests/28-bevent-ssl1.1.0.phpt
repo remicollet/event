@@ -5,6 +5,9 @@ Check for EventBufferEvent SSL features, OpenSSL version 1.1.0 and above
 if (!class_exists('EventBufferEvent')) {
 	die('skip Event is built without EventBufferEvent support');
 }
+if (!class_exists(EVENT_NS . '\\EventSslContext')) {
+    die('skip Event is built without SSL support');
+}
 $class = 'EventBufferEvent';
 $prop = 'allow_ssl_dirty_shutdown';
 
