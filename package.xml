@@ -32,7 +32,7 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2020-01-20</date>
+  <date>2020-02-23</date>
   <!--{{{ Current version -->
   <version>
     <release>2.5.4</release>
@@ -45,6 +45,7 @@
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
     Fixed #59: PHP7 build errors with disabled SSL support
+    Fixed build error with disabled sockets support
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -217,6 +218,7 @@
       <license uri="http://www.php.net/license">PHP</license>
       <notes><![CDATA[
     Fixed #59: PHP7 build errors with disabled SSL support
+    Fixed build error with disabled sockets support
     ]]></notes>
     </release>
     <!--}}}-->

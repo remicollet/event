@@ -18,7 +18,7 @@ PHP_ARG_WITH(event-core, for Event core support,
 [  --with-event-core        Include core libevent support])
 
 PHP_ARG_WITH(event-pthreads, for Event thread safety support,
-[  --with-event-pthreads    Include libevent's pthreads library and enable thread safety support in Event], no, no)
+[  ---event-pthreads    Include libevent's pthreads library and enable thread safety support in Event], no, no)
 
 PHP_ARG_WITH(event-extra, for Event extra functionality support,
 [  --with-event-extra       Include libevent protocol-specific functionality support including HTTP, DNS, and RPC], yes, no)

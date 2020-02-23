@@ -1,7 +1,8 @@
 #!/bin/bash -
 set -x
+phpize --clean
 phpize
-aclocal && libtoolize --force && autoreconf
+#aclocal && libtoolize --force && autoreconf
 ./configure --with-event-core --with-event-ns='MyNs' --with-event-extra --with-event-openssl --enable-event-debug "$@"
 make clean
 make -j3

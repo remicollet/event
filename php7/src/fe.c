@@ -640,7 +640,9 @@ const zend_function_entry php_event_util_ce_functions[] = {/* {{{ */
 	PHP_ME(EventUtil, getSocketName,   arginfo_event_util_get_socket_name,   ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventUtil, getSocketFd,     arginfo_event_util_get_socket_fd,     ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(EventUtil, setSocketOption, arginfo_event_util_set_socket_option, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+#ifdef PHP_EVENT_SOCKETS_SUPPORT
 	PHP_ME(EventUtil, createSocket,    arginfo_event_util_create_socket,     ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+#endif
 
 	PHP_FE_END
 };

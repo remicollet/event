@@ -30,6 +30,7 @@ tmp-php.ini
 *.pem
 *.key
 *.req
+*.loT
 Makefile*
 
 /tests/*
