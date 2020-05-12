@@ -451,6 +451,11 @@ PHP_METHOD(Event, add)
 
 	e = Z_EVENT_EVENT_OBJ_P(zevent);
 
+	if (!e->event) {
+		php_error_docref(NULL, E_WARNING, "Failed adding event: Event object is malformed or freed");
+		RETURN_FALSE;
+	}
+
 	if (timeout == -1) {
 		res = event_add(e->event, NULL);
 	} else {
