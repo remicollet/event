@@ -28,6 +28,7 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 {
 	php_socket_t  file_desc = -1;
 	php_stream   *stream;
+	FILE *fp = NULL;
 #ifdef PHP_EVENT_SOCKETS_SUPPORT
 	php_socket   *php_sock;
 #endif
@@ -57,9 +58,10 @@ php_socket_t php_event_zval_to_fd(zval **ppfd TSRMLS_DC)
 				}
 			} else if (php_stream_can_cast(stream, PHP_STREAM_AS_STDIO | PHP_STREAM_CAST_INTERNAL) == SUCCESS) {
 				if (php_stream_cast(stream, PHP_STREAM_AS_STDIO | PHP_STREAM_CAST_INTERNAL,
-							(void*) &file_desc, 1) != SUCCESS || file_desc < 0) {
+							(void**) &fp, 1) != SUCCESS) {
 					return -1;
 				}
+				file_desc = fileno(fp);
 			} else { /* STDIN, STDOUT, STDERR etc. */
 				file_desc = Z_LVAL_P(*ppfd);
 			}
