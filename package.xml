@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2020-05-12</date>
+  <date>2020-05-20</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.5.5</release>
+    <release>2.5.6</release>
     <api>2.5.0</api>
   </version>
   <stability>
@@ -44,7 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Issue #60: fixed a segfault which appeared when Event::add was called on malformed or freed Event object
+    Fixed a bug where numeric file descriptor was fetched from stdio stream incorrectly (issue #60)
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -204,6 +204,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.5.6 -->
+    <release>
+      <version>
+        <release>2.5.6</release>
+        <api>2.5.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Fixed a bug where numeric file descriptor was fetched from stdio stream incorrectly (issue #60)
+    ]]></notes>
+      <!--}}}-->
+    </release>
     <!--{{{ 2.5.5 -->
     <release>
       <version>
