@@ -15,8 +15,8 @@ pipelines:
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
     - step:
-        name: Build and run tests for PHP 7.1
-        image: php:7.1-cli
+        name: Build and run tests for PHP 7.3
+        image: php:7.3-cli
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
             - docker-php-ext-install sockets
@@ -29,8 +29,8 @@ pipelines:
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
     - step:
-        name: Build and run tests for PHP 7.2
-        image: php:7.2-cli
+        name: Build and run tests for PHP 7.4
+        image: php:7.4-cli
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
             - docker-php-ext-install sockets
