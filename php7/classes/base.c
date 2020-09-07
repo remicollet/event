@@ -145,7 +145,6 @@ PHP_METHOD(EventBase, loop)
 	zval             *zbase            = getThis();
 	zend_long         flags            = -1;
 	php_event_base_t *b;
-	zval              exception_object;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|l",
 				&flags) == FAILURE) {
@@ -163,10 +162,6 @@ PHP_METHOD(EventBase, loop)
 		RETURN_FALSE;
 	}
 
-	if (EG(exception)) {
-		ZVAL_OBJ(&exception_object, EG(exception));
-		zend_throw_exception_object(&exception_object);
-	}
 	/* Since 2.1.2-alpha we can call event_base_loopcontinue(b->base);*/
 
 	RETVAL_TRUE;
@@ -179,7 +174,6 @@ PHP_METHOD(EventBase, loop)
 PHP_METHOD(EventBase, dispatch)
 {
 	zval             *zbase            = getThis();
-	zval              exception_object;
 	php_event_base_t *b;
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -190,11 +184,6 @@ PHP_METHOD(EventBase, dispatch)
 
 	if (event_base_dispatch(b->base) == -1) {
 		RETURN_FALSE;
-	}
-
-	if (EG(exception)) {
-		ZVAL_OBJ(&exception_object, EG(exception));
-		zend_throw_exception_object(&exception_object);
 	}
 
 	RETVAL_TRUE;

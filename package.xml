@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2020-05-20</date>
+  <date>2020-09-07</date>
   <!--{{{ Current version -->
   <version>
-    <release>2.5.6</release>
+    <release>2.5.7</release>
     <api>2.5.0</api>
   </version>
   <stability>
@@ -44,7 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed a bug where numeric file descriptor was fetched from stdio stream incorrectly (issue #60)
+    Issue #61: fixed segfault that appeared after throwing exception from event handler in PHP 7.4.9+
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -177,6 +177,7 @@
         <file role="test" name="30-listener-free.phpt"/>
         <file role="test" name="49-issue.phpt"/>
         <file role="test" name="54-event-config-set-flags.phpt"/>
+        <file role="test" name="61-issue.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -204,6 +205,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 2.5.7 -->
+    <release>
+      <version>
+        <release>2.5.7</release>
+        <api>2.5.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Issue #61: fixed segfault that appeared after throwing exception from event handler in PHP 7.4.9+
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 2.5.6 -->
     <release>
       <version>
