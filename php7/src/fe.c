@@ -35,10 +35,6 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base__construct, 0, 0, 0)
 	ZEND_ARG_INFO(0, cfg)
 ZEND_END_ARG_INFO();
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_void, 0, 0, 0)
-	ZEND_ARG_INFO(0, cfg)
-ZEND_END_ARG_INFO();
-
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_priority_init, 0, 0, 1)
 	ZEND_ARG_INFO(0, n_priorities)
 ZEND_END_ARG_INFO();
@@ -521,9 +517,9 @@ const zend_function_entry php_event_ce_functions[] = {/* {{{ */
 
 const zend_function_entry php_event_base_ce_functions[] = {/* {{{ */
 	PHP_ME(EventBase, __construct,        arginfo_event_base__construct,    ZEND_ACC_PUBLIC  | ZEND_ACC_CTOR)
-	PHP_ME(EventBase, __sleep,            arginfo_event_base_void,          ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
-	PHP_ME(EventBase, __wakeup,           arginfo_event_base_void,          ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
-	PHP_ME(EventBase, getMethod,          arginfo_event_base_void,          ZEND_ACC_PUBLIC)
+	PHP_ME(EventBase, __sleep,            arginfo_event__void,              ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
+	PHP_ME(EventBase, __wakeup,           arginfo_event__void,              ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
+	PHP_ME(EventBase, getMethod,          arginfo_event__void,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, getFeatures,        arginfo_event__void,              ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, priorityInit,       arginfo_event_base_priority_init, ZEND_ACC_PUBLIC)
 	PHP_ME(EventBase, loop,               arginfo_event_base_loop,          ZEND_ACC_PUBLIC)
@@ -707,7 +703,7 @@ const zend_function_entry php_event_http_req_ce_functions[] = {
 	PHP_ME(EventHttpRequest, __construct, arginfo_event_http_req__construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 
 	PHP_ME(EventHttpRequest, __sleep,          arginfo_event__void,                     ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
-	PHP_ME(EventHttpRequest, __wakeup,         arginfo_event_base_void,                 ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
+	PHP_ME(EventHttpRequest, __wakeup,         arginfo_event__void,                     ZEND_ACC_PUBLIC  | ZEND_ACC_FINAL)
 	PHP_ME(EventHttpRequest, free,             arginfo_event__void,                     ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpRequest, getCommand,       arginfo_event__void,                     ZEND_ACC_PUBLIC)
 	PHP_ME(EventHttpRequest, getHost,          arginfo_event__void,                     ZEND_ACC_PUBLIC)
