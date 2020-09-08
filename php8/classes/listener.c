@@ -104,7 +104,7 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &l->cb.func_name);
 
-	if (!zend_is_callable(&zcallable,  IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable,  0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -156,19 +156,10 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 		ZVAL_COPY(&argv[3], &l->data);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &l->cb.fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 4;
-	fci.no_separation  = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -201,7 +192,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &l->cb_err.func_name);
 
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable, 0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -218,19 +209,10 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 		ZVAL_COPY(&argv[1], &l->data);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &l->cb.fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 2;
-	fci.no_separation  = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -429,17 +411,18 @@ PHP_METHOD(EventListener, disable)
 PHP_METHOD(EventListener, setCallback)
 {
 	php_event_listener_t *l;
-	zval                 *zcb;
+	zend_fcall_info       fci = {0};
+	zend_fcall_info_cache fci_cache;
 	zval                 *zarg      = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z!", &zcb, &zarg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f|z!", &fci, &fci_cache, &zarg) == FAILURE) {
 		return;
 	}
 
 	l = Z_EVENT_LISTENER_OBJ_P(getThis());
 	_ret_if_invalid_listener_ptr(l);
 
-	php_event_replace_callback(&l->cb, zcb);
+	php_event_replace_callback(&l->cb, &fci.function_name);
 	php_event_replace_zval(&l->data, zarg);
 
 	/*
@@ -456,16 +439,17 @@ PHP_METHOD(EventListener, setCallback)
 PHP_METHOD(EventListener, setErrorCallback)
 {
 	php_event_listener_t *l;
-	zval                 *zcb;
+	zend_fcall_info       fci = {0};
+	zend_fcall_info_cache fci_cache;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &zcb) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f", &fci, &fci_cache) == FAILURE) {
 		return;
 	}
 
 	l = Z_EVENT_LISTENER_OBJ_P(getThis());
 	_ret_if_invalid_listener_ptr(l);
 
-	php_event_replace_callback(&l->cb_err, zcb);
+	php_event_replace_callback(&l->cb_err, &fci.function_name);
 
 	/*
 	 * No much sense in the following call, since the callback and the pointer

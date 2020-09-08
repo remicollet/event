@@ -707,20 +707,13 @@ static int write_property_default(void *obj, zval *newval)/*{{{*/
 	return FAILURE;
 }/*}}}*/
 
-static zval * read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv, void *obj, HashTable *prop_handler)/*{{{*/
+static zval * read_property(zend_object *object, zend_string *member, int type, void **cache_slot, zval *rv, void *obj, HashTable *prop_handler)/*{{{*/
 {
-	zval                      tmp_member;
 	zval                     *retval;
 	php_event_prop_handler_t *hnd        = NULL;
 
-	if (Z_TYPE_P(member) != IS_STRING) {
-		ZVAL_COPY(&tmp_member, member);
-		convert_to_string(&tmp_member);
-		member = &tmp_member;
-	}
-
 	if (prop_handler != NULL) {
-		hnd = zend_hash_find_ptr(prop_handler, Z_STR_P(member));
+		hnd = zend_hash_find_ptr(prop_handler, member);
 	}
 
 	if (hnd) {
@@ -733,26 +726,15 @@ static zval * read_property(zval *object, zval *member, int type, void **cache_s
 		retval = std_hnd->read_property(object, member, type, cache_slot, rv);
 	}
 
-	if (member == &tmp_member) {
-		zval_dtor(&tmp_member);
-	}
-
 	return retval;
 }/*}}}*/
 
-static void write_property(zval *object, zval *member, zval *value, void **cache_slot, void *obj, HashTable *prop_handler)/*{{{*/
+static void write_property(zend_object *object, zend_string *member, zval *value, void **cache_slot, void *obj, HashTable *prop_handler)/*{{{*/
 {
-	zval                      tmp_member;
 	php_event_prop_handler_t *hnd        = NULL;
 
-	if (Z_TYPE_P(member) != IS_STRING) {
-		ZVAL_COPY(&tmp_member, member);
-		convert_to_string(&tmp_member);
-		member = &tmp_member;
-	}
-
 	if (prop_handler != NULL) {
-	    hnd = zend_hash_find_ptr(prop_handler, Z_STR_P(member));
+	    hnd = zend_hash_find_ptr(prop_handler, member);
 	}
 
 	if (hnd) {
@@ -761,18 +743,14 @@ static void write_property(zval *object, zval *member, zval *value, void **cache
 		const zend_object_handlers *std_hnd = zend_get_std_object_handlers();
 	    std_hnd->write_property(object, member, value, cache_slot);
 	}
-
-	if (member == &tmp_member) {
-		zval_dtor(member);
-	}
 }/*}}}*/
 
-static int object_has_property(zval *object, zval *member, int has_set_exists, void **cache_slot, void *obj, HashTable *prop_handler)/*{{{*/
+static int object_has_property(zend_object *object, zend_string *member, int has_set_exists, void **cache_slot, void *obj, HashTable *prop_handler)/*{{{*/
 {
 	php_event_prop_handler_t *p;
 	int                       ret = 0;
 
-	if ((p = zend_hash_find_ptr(prop_handler, Z_STR_P(member))) != NULL) {
+	if ((p = zend_hash_find_ptr(prop_handler, member)) != NULL) {
 		switch (has_set_exists) {
 			case 2:
 				ret = 1;
@@ -806,7 +784,7 @@ static int object_has_property(zval *object, zval *member, int has_set_exists, v
 	return ret;
 }/*}}}*/
 
-static HashTable * object_get_debug_info(zval *object, int *is_temp, void *obj, HashTable *prop_handler)/*{{{*/
+static HashTable * object_get_debug_info(zend_object *object, int *is_temp, void *obj, HashTable *prop_handler)/*{{{*/
 {
 	HashTable                *props = prop_handler;
 	HashTable                *retval;
@@ -819,7 +797,7 @@ static HashTable * object_get_debug_info(zval *object, int *is_temp, void *obj, 
 		zval rv, member;
 		zval *value;
 		ZVAL_STR(&member, entry->name);
-		value = read_property(object, &member, BP_VAR_IS, 0, &rv, obj, prop_handler);
+		value = read_property(object, Z_STR_P(&member), BP_VAR_IS, 0, &rv, obj, prop_handler);
 		if (value != &EG(uninitialized_zval)) {
 			zend_hash_add(retval, Z_STR(member), value);
 		}
@@ -828,21 +806,13 @@ static HashTable * object_get_debug_info(zval *object, int *is_temp, void *obj, 
 	return retval;
 }/*}}}*/
 
-static zval * get_property_ptr_ptr(zval *object, zval *member, int type, void **cache_slot, void *obj, HashTable *prop_handler)/*{{{*/
+static zval * get_property_ptr_ptr(zend_object *object, zend_string *member, int type, void **cache_slot, void *obj, HashTable *prop_handler)/*{{{*/
 {
 	zval                     *retval     = NULL;
 	php_event_prop_handler_t *hnd        = NULL;
-	zval                      tmp_member;
-
-	if (Z_TYPE_P(member) != IS_STRING) {
-		ZVAL_COPY(&tmp_member, member);
-		convert_to_string(&tmp_member);
-		member = &tmp_member;
-		cache_slot = NULL;
-	}
 
 	if (prop_handler != NULL) {
-		hnd = zend_hash_find_ptr(prop_handler, Z_STR_P(member));
+		hnd = zend_hash_find_ptr(prop_handler, member);
 	}
 
 	if (hnd && hnd->get_ptr_ptr_func != NULL) {
@@ -856,14 +826,10 @@ static zval * get_property_ptr_ptr(zval *object, zval *member, int type, void **
 		ZVAL_NULL(retval);
 	}
 
-	if (member == &tmp_member) {
-		zval_dtor(member);
-	}
-
 	return retval;
 }/*}}}*/
 
-static HashTable * get_properties(zval *object, void *obj, HashTable *prop_handler)/*{{{*/
+static HashTable * get_properties(zend_object *object, void *obj, HashTable *prop_handler)/*{{{*/
 {
 	HashTable                *props = zend_std_get_properties(object);
 	php_event_prop_handler_t *hnd;
@@ -882,7 +848,7 @@ static HashTable * get_properties(zval *object, void *obj, HashTable *prop_handl
 
 	return props;
 }/*}}}*/
-static HashTable * get_gc(zval *object, zval **gc_data, int *gc_count)/*{{{*/
+static HashTable * get_gc(zend_object *object, zval **gc_data, int *gc_count)/*{{{*/
 {
 	*gc_data = NULL;
 	*gc_count = 0;
@@ -890,42 +856,31 @@ static HashTable * get_gc(zval *object, zval **gc_data, int *gc_count)/*{{{*/
 }/*}}}*/
 
 
-#if PHP_VERSION_ID >= 70400
 #define PHP_EVENT_X_PROP_WRITE_HND_DECL(x)                                                                  \
-static zval *php_event_ ## x ## _write_property(zval *object, zval *member, zval *value, void **cache_slot) \
+static zval *php_event_ ## x ## _write_property(zend_object *object, zend_string *member, zval *value, void **cache_slot) \
 {                                                                                                           \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                   \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_FETCH_OBJ(x, object);                                                   \
 	if (EXPECTED(obj)) {                                                                                    \
 		write_property(object, member, value, cache_slot, (void *)obj, obj->prop_handler);                  \
 	}                                                                                                       \
 	return value;                                                                                           \
 }
-#else
-#define PHP_EVENT_X_PROP_WRITE_HND_DECL(x)                                                                  \
-static void php_event_ ## x ## _write_property(zval *object, zval *member, zval *value, void **cache_slot)  \
-{                                                                                                           \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                   \
-	if (EXPECTED(obj)) {                                                                                    \
-		write_property(object, member, value, cache_slot, (void *)obj, obj->prop_handler);                  \
-	}                                                                                                       \
-}
-#endif /* PHP_VERSION >= 70400 */
 
 #define PHP_EVENT_X_PROP_HND_DECL(x)                                                                                 \
 PHP_EVENT_X_PROP_WRITE_HND_DECL(x)                                                                                   \
-static zval * php_event_ ## x ## _read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv) { \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                            \
+static zval * php_event_ ## x ## _read_property(zend_object *object, zend_string *member, int type, void **cache_slot, zval *rv) { \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_FETCH_OBJ(x, object);                                                            \
 	return (obj ? read_property(object, member, type, cache_slot, rv, (void *)obj, obj->prop_handler) : NULL);       \
 }                                                                                                                    \
-static int php_event_ ## x ## _has_property(zval *object, zval *member, int has_set_exists, void **cache_slot)              \
+static int php_event_ ## x ## _has_property(zend_object *object, zend_string *member, int has_set_exists, void **cache_slot)              \
 {                                                                                                                           \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_FETCH_OBJ(x, object);                                                                   \
 	return (obj ? object_has_property(object, member, has_set_exists, cache_slot, (void *)obj, obj->prop_handler) : 0);     \
 }                                                                                                                           \
-static HashTable * php_event_ ## x ## _get_debug_info(zval *object, int *is_temp)        \
+static HashTable * php_event_ ## x ## _get_debug_info(zend_object *object, int *is_temp)        \
 {                                                                                        \
 	HashTable *retval;                                                                   \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_FETCH_OBJ(x, object);                                \
 	if (EXPECTED(obj) && obj->prop_handler) {                                            \
 		retval = object_get_debug_info(object, is_temp, (void *)obj, obj->prop_handler); \
 	} else {                                                                             \
@@ -935,15 +890,15 @@ static HashTable * php_event_ ## x ## _get_debug_info(zval *object, int *is_temp
 	*is_temp = 1;                                                                        \
 	return retval;                                                                       \
 }                                                                                        \
-static zval * php_event_ ## x ## _get_property_ptr_ptr(zval *object, zval *member, int type, void **cache_slot)             \
+static zval * php_event_ ## x ## _get_property_ptr_ptr(zend_object *object, zend_string *member, int type, void **cache_slot)             \
 {                                                                                                                           \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_FETCH_OBJ(x, object);                                                                   \
 	return (EXPECTED(obj) ? get_property_ptr_ptr(object, member, type, cache_slot, (void *)obj, obj->prop_handler) : NULL); \
 }                                                                                                                           \
-static HashTable * php_event_ ## x ## _get_properties(zval *object)                                                         \
+static HashTable * php_event_ ## x ## _get_properties(zend_object *object)                                                         \
 {                                                                                                                           \
 	HashTable *retval;                                                                                                      \
-	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_OBJ_P(x, object);                                                                   \
+	Z_EVENT_X_OBJ_T(x) *obj = Z_EVENT_X_FETCH_OBJ(x, object);                                                                   \
 	if (EXPECTED(obj)) {                                                                                                    \
 		retval = get_properties(object, (void *)obj, obj->prop_handler);                                                    \
 	} else {                                                                                                                \

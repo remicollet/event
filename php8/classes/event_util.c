@@ -252,7 +252,6 @@ PHP_METHOD(EventUtil, getSocketFd) {
 PHP_METHOD(EventUtil, createSocket) {
 	zend_long  fd;
 	php_socket *php_sock;
-	socklen_t  opt_length;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &fd) == FAILURE) {
 		return;
@@ -263,22 +262,10 @@ PHP_METHOD(EventUtil, createSocket) {
 		RETURN_FALSE;
 	}
 
-	php_sock = php_create_socket();
-	php_sock->bsd_socket = fd;
+	object_init_ex(return_value, socket_ce);
+	php_sock = Z_SOCKET_P(return_value);
 
-	opt_length = sizeof(php_sock->type);
-	if (getsockopt(fd, SOL_SOCKET, SO_TYPE, &php_sock->type, &opt_length) != 0) {
-		php_error_docref(NULL, E_WARNING, "Unable to retrieve socket type");
-		RETURN_FALSE;
-	}
-
-#ifndef PHP_WIN32
-	php_sock->blocking = (fcntl(fd, F_GETFL) & O_NONBLOCK) == 0 ? 0 : 1;
-#else
-	php_sock->blocking = 1;
-#endif
-
-	RETURN_RES(zend_register_resource(php_sock, php_sockets_le_socket()));
+	socket_import_file_descriptor(fd, php_sock);
 } /* }}} */
 #endif /* PHP_EVENT_SOCKETS_SUPPORT */
 

@@ -72,31 +72,24 @@ php_socket_t php_event_zval_to_fd(zval *pfd)
 				file_desc = Z_LVAL_P(pfd);
 			}
 		} else {
-			/* PHP socket resource */
-#ifdef PHP_EVENT_SOCKETS_SUPPORT
-			if ((php_sock = (php_socket *)zend_fetch_resource(Z_RES_P(pfd),
-							php_sockets_le_socket_name, php_sockets_le_socket())) != NULL) {
-				if (php_sock->error) {
-					if (!php_sock->blocking && php_sock->error == EINPROGRESS) {
-#ifdef PHP_EVENT_DEBUG
-						php_error_docref(NULL, E_NOTICE, "Operation in progress");
-#endif
-					} else {
-						return -1;
-					}
-				}
-				return php_sock->bsd_socket;
-			} else {
-				zend_throw_exception(zend_ce_exception,
-						"Expected either valid PHP stream or valid PHP socket resource", 0);
-				return -1;
-			}
-#else
 			zend_throw_exception(zend_ce_exception,
 					"valid PHP stream resource expected", 0);
-#endif
 			return -1;
 		}
+#ifdef PHP_EVENT_SOCKETS_SUPPORT
+	} else if (Z_TYPE_P(pfd) == IS_OBJECT && Z_OBJCE_P(pfd) == socket_ce) {
+		php_sock = Z_SOCKET_P(pfd);
+		if (php_sock->error) {
+			if (!php_sock->blocking && php_sock->error == EINPROGRESS) {
+#ifdef PHP_EVENT_DEBUG
+				php_error_docref(NULL, E_NOTICE, "Operation in progress");
+#endif
+			} else {
+				return -1;
+			}
+		}
+		return php_sock->bsd_socket;
+#endif
 	} else if (Z_TYPE_P(pfd) == IS_LONG) {
 		file_desc = Z_LVAL_P(pfd);
 		if (file_desc < 0) {

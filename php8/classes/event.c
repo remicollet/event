@@ -55,7 +55,7 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &e->cb.func_name);
 
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable, 0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -67,19 +67,10 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 		ZVAL_COPY(&argv[0], &e->data);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &e->cb.fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 1;
-	fci.no_separation  = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -110,7 +101,7 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &e->cb.func_name);
 
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable, 0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -133,19 +124,10 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 		ZVAL_NULL(&argv[2]);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &e->cb.fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 3;
-	fci.no_separation  = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -179,7 +161,7 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &e->cb.func_name);
 
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable, 0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -193,19 +175,10 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 		ZVAL_COPY(&argv[1], &e->data);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &e->cb.fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 2;
-	fci.no_separation  = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -333,12 +306,13 @@ PHP_METHOD(Event, set)
 	zval             *pzfd  = NULL;
 	evutil_socket_t   fd    = -1;
 	zend_long         what  = -1;
-	zval             *zcb   = NULL;
+	zend_fcall_info   fci = {0};
+	zend_fcall_info_cache fci_cache;
 	zval             *zarg   = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Oz!|lz!z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Oz!|lf!z!",
 				&zbase, php_event_base_ce, &pzfd,
-				&what, &zcb, &zarg) == FAILURE) {
+				&what, &fci, &fci_cache, &zarg) == FAILURE) {
 		return;
 	}
 
@@ -385,8 +359,8 @@ PHP_METHOD(Event, set)
 		}
 	}
 
-	if (zcb) {
-		php_event_replace_callback(&e->cb, zcb);
+	if (ZEND_FCI_INITIALIZED(fci)) {
+		php_event_replace_callback(&e->cb, &fci.function_name);
 	}
 
 	if (zarg) {
@@ -612,12 +586,13 @@ PHP_METHOD(Event, setTimer)
 	zval             *zbase;
 	php_event_base_t *b;
 	php_event_t      *e;
-	zval             *zcb;
+    zend_fcall_info   fci;
+    zend_fcall_info_cache fci_cache;
 	zval             *zarg   = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Oz|z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Of|z!",
 				&zbase, php_event_base_ce,
-				&zcb, &zarg) == FAILURE) {
+				&fci, &fci_cache, &zarg) == FAILURE) {
 		return;
 	}
 
@@ -634,7 +609,7 @@ PHP_METHOD(Event, setTimer)
 
 	b = Z_EVENT_BASE_OBJ_P(zbase);
 
-	php_event_replace_callback(&e->cb, zcb);
+	php_event_replace_callback(&e->cb, &fci.function_name);
 	if (zarg) {
 		ZVAL_COPY(&e->data, zarg);
 	} else {

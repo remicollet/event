@@ -75,7 +75,7 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &http_req->cb.func_name);
 
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable, 0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -98,18 +98,11 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 	}
 
 	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
 	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
 	fci.object = NULL;
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 2;
-	fci.no_separation  = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	/* Tell Libevent that we will free the request ourselves(evhttp_request_free in the free-storage handler)*/
 	/*evhttp_request_own(http_req->ptr);*/

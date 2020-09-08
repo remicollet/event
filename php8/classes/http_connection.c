@@ -50,19 +50,10 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 		ZVAL_COPY(&argv[1], &evcon->data_closecb);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table); /* XXX fetch TSRMLS_CACHE? */
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object        = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &evcon->cb_close.fci_cache, NULL, NULL);
 	fci.retval        = &retval;
 	fci.param_count   = 2;
 	fci.params        = argv;
-	fci.no_separation = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table  = NULL;
-#endif
 
 	if (zend_call_function(&fci, &evcon->cb_close.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -415,17 +406,18 @@ PHP_METHOD(EventHttpConnection, makeRequest)
 PHP_METHOD(EventHttpConnection, setCloseCallback)
 {
 	php_event_http_conn_t *evcon;
-	zval                  *zcb;
+	zend_fcall_info   fci = {0};
+	zend_fcall_info_cache fci_cache;
 	zval                  *zarg  = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z!", &zcb, &zarg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f|z!", &fci, &fci_cache, &zarg) == FAILURE) {
 		return;
 	}
 
 	evcon = Z_EVENT_HTTP_CONN_OBJ_P(getThis());
 	PHP_EVENT_ASSERT(evcon);
 
-	php_event_replace_callback(&evcon->cb_close, zcb);
+	php_event_replace_callback(&evcon->cb_close, &fci.function_name);
 	php_event_replace_zval(&evcon->data_closecb, zarg);
 
 	evhttp_connection_set_closecb(evcon->conn, _conn_close_cb, (void *)evcon);

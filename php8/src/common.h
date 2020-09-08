@@ -39,12 +39,6 @@
 # define PHP_EVENT_SOCKETS_SUPPORT
 #endif
 
-/* zend_fcall_info.symbol_table removed from PHP 7.1.x */
-#if PHP_VERSION_ID < 70100
-# define HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE 1
-# define HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE 1
-#endif
-
 #include <event2/event.h>
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>

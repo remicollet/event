@@ -66,7 +66,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &cb->cb.func_name);
 
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable, 0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -89,19 +89,10 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 		ZVAL_COPY(&argv[1], &cb->data);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &cb->cb.fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 2;
-	fci.no_separation = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	if (zend_call_function(&fci, &cb->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -152,7 +143,7 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &http->cb.func_name);
 
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable, 0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -175,19 +166,10 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 		ZVAL_COPY(&argv[1], &http->data);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &http->cb.fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 2;
-	fci.no_separation  = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	if (zend_call_function(&fci, &http->cb.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -438,16 +420,17 @@ PHP_METHOD(EventHttp, setCallback)
 PHP_METHOD(EventHttp, setDefaultCallback)
 {
 	php_event_http_t *http;
-	zval             *zcb;
+	zend_fcall_info   fci = {0};
+	zend_fcall_info_cache fci_cache;
 	zval             *zarg  = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z!", &zcb, &zarg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f|z!", &fci, &fci_cache, &zarg) == FAILURE) {
 		return;
 	}
 
 	http = Z_EVENT_HTTP_OBJ_P(getThis());
 
-	php_event_replace_callback(&http->cb, zcb);
+	php_event_replace_callback(&http->cb, &fci.function_name);
 
 	if (zarg) {
 		ZVAL_COPY(&http->data, zarg);

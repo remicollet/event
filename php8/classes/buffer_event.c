@@ -52,7 +52,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &pcb->func_name);
 
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable, 0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -75,19 +75,10 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 		ZVAL_COPY(&argv[1], &bev->data);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &pcb->fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 2;
-	fci.no_separation  = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	if (zend_call_function(&fci, &pcb->fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -154,7 +145,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	/* Protect against accidental destruction of the func name before zend_call_function() finished */
 	ZVAL_COPY(&zcallable, &bev->cb_event.func_name);
 
-	if (!zend_is_callable(&zcallable, IS_CALLABLE_STRICT, &func_name)) {
+	if (!zend_is_callable(&zcallable, 0, &func_name)) {
 		zend_string_release(func_name);
 		return;
 	}
@@ -180,19 +171,10 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 		ZVAL_COPY(&argv[2], &bev->data);
 	}
 
-	fci.size = sizeof(fci);
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_FUNCTION_TABLE
-	fci.function_table = EG(function_table);
-#endif
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &bev->cb_event.fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 3;
-	fci.no_separation  = 1;
-#ifdef HAVE_PHP_ZEND_FCALL_INFO_SYMBOL_TABLE
-	fci.symbol_table = NULL;
-#endif
 
 	if (zend_call_function(&fci, &bev->cb_event.fci_cache) == SUCCESS) {
 		if (!Z_ISUNDEF(retval)) {
@@ -348,19 +330,18 @@ PHP_METHOD(EventBufferEvent, __construct)
 	zend_long             options   = 0;
 	php_event_bevent_t   *bev;
 	struct bufferevent   *bevent;
-	zval                 *zcb_read  = NULL;
-	zval                 *zcb_write = NULL;
-	zval                 *zcb_event = NULL;
+	zend_fcall_info       fci_read = {0}, fci_write = {0}, fci_event = {0};
+	zend_fcall_info_cache fcc_read, fcc_write, fcc_event;
 	zval                 *zarg      = NULL;
 	bufferevent_data_cb   read_cb;
 	bufferevent_data_cb   write_cb;
 	bufferevent_event_cb  event_cb;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "o|z!lz!z!z!z!",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "o|z!lf!f!f!z!",
 				&zbase, &pzfd, &options,
-				&zcb_read,
-				&zcb_write,
-				&zcb_event,
+				&fci_read,  &fcc_read,
+				&fci_write, &fcc_write,
+				&fci_event, &fcc_event,
 				&zarg) == FAILURE) {
 		return;
 	}
@@ -411,25 +392,25 @@ PHP_METHOD(EventBufferEvent, __construct)
 	ZVAL_UNDEF(&bev->input);
 	ZVAL_UNDEF(&bev->output);
 
-	if (zcb_read) {
+	if (ZEND_FCI_INITIALIZED(fci_read)) {
 		read_cb = bevent_read_cb;
-		php_event_replace_callback(&bev->cb_read, zcb_read);
+		php_event_replace_callback(&bev->cb_read, &fci_read.function_name);
 	} else {
 		php_event_init_callback(&bev->cb_read);
 		read_cb = NULL;
 	}
 
-	if (zcb_write) {
+	if (ZEND_FCI_INITIALIZED(fci_write)) {
 		write_cb = bevent_write_cb;
-		php_event_replace_callback(&bev->cb_write, zcb_write);
+		php_event_replace_callback(&bev->cb_write, &fci_write.function_name);
 	} else {
 		php_event_init_callback(&bev->cb_write);
 		write_cb = NULL;
 	}
 
-	if (zcb_event) {
+	if (ZEND_FCI_INITIALIZED(fci_event)) {
 		event_cb = bevent_event_cb;
-		php_event_replace_callback(&bev->cb_event, zcb_event);
+		php_event_replace_callback(&bev->cb_event, &fci_event.function_name);
 	} else {
 		php_event_init_callback(&bev->cb_event);
 		event_cb = NULL;
@@ -755,18 +736,17 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 {
 	zval                 *zbevent   = getThis();
 	php_event_bevent_t   *bev;
-	zval                 *zcb_read;
-	zval                 *zcb_write;
-	zval                 *zcb_event;
+	zend_fcall_info       fci_read = {0}, fci_write = {0}, fci_event = {0};
+	zend_fcall_info_cache fcc_read, fcc_write, fcc_event;
 	zval                 *zarg      = NULL;
 	bufferevent_data_cb   read_cb;
 	bufferevent_data_cb   write_cb;
 	bufferevent_event_cb  event_cb;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z!z!z!|z!",
-				&zcb_read,
-				&zcb_write,
-				&zcb_event,
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "f!f!f!|z!",
+				&fci_read,  &fcc_read,
+				&fci_write, &fcc_write,
+				&fci_event, &fcc_event,
 				&zarg) == FAILURE) {
 		return;
 	}
@@ -774,25 +754,25 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 	bev = Z_EVENT_BEVENT_OBJ_P(zbevent);
 	_ret_if_invalid_bevent_ptr(bev);
 
-	if (zcb_read) {
+	if (ZEND_FCI_INITIALIZED(fci_read)) {
 		read_cb = bevent_read_cb;
-		php_event_replace_callback(&bev->cb_read, zcb_read);
+		php_event_replace_callback(&bev->cb_read, &fci_read.function_name);
 	} else {
 		php_event_free_callback(&bev->cb_read);
 		read_cb = NULL;
 	}
 
-	if (zcb_write) {
+	if (ZEND_FCI_INITIALIZED(fci_write)) {
 		write_cb = bevent_write_cb;
-		php_event_replace_callback(&bev->cb_write, zcb_write);
+		php_event_replace_callback(&bev->cb_write, &fci_write.function_name);
 	} else {
 		php_event_free_callback(&bev->cb_write);
 		write_cb = NULL;
 	}
 
-	if (zcb_event) {
+	if (ZEND_FCI_INITIALIZED(fci_event)) {
 		event_cb = bevent_event_cb;
-		php_event_replace_callback(&bev->cb_event, zcb_event);
+		php_event_replace_callback(&bev->cb_event, &fci_event.function_name);
 	} else {
 		php_event_free_callback(&bev->cb_event);
 		event_cb = NULL;

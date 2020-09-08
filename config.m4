@@ -60,8 +60,17 @@ if test "$PHP_EVENT_CORE" != "no"; then
       PHP_EVENT_SUBDIR=php5
       AC_MSG_RESULT([PHP 5.x])
     ],[
-      PHP_EVENT_SUBDIR=php7
-      AC_MSG_RESULT([PHP 7.x])
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <php_version.h>]], [[
+      #if PHP_MAJOR_VERSION > 7
+      # error PHP > 7
+      #endif
+      ]])],[
+        PHP_EVENT_SUBDIR=php7
+        AC_MSG_RESULT([PHP 7.x])
+      ],[
+        PHP_EVENT_SUBDIR=php8
+        AC_MSG_RESULT([PHP 8.x])
+      ])
     ])
     export CPPFLAGS="$OLD_CPPFLAGS"
 
