@@ -20,7 +20,7 @@
 #include "priv.h"
 
 # define PHP_EVENT_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null) \
-  	ZEND_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null)
+	{ #name, ZEND_TYPE_INIT_CLASS_CONST(PHP_EVENT_NS_NAME(classname), allow_null, _ZEND_ARG_INFO_FLAGS(pass_by_ref, 0)), NULL },
 
 /* {{{ ARGINFO */
 ZEND_BEGIN_ARG_INFO(arginfo_event__void, 0)
