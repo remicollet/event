@@ -2,8 +2,8 @@
 Check for EventUtil::createSocket
 --SKIPIF--
 <?php
-if (PHP_VERSION_ID >= 80000) {
-	die("skip only for PHP < 8");
+if (PHP_VERSION_ID < 80000) {
+	die("skip only for PHP > 8");
 }
 if (!extension_loaded('sockets')) {
 	die("skip sockets extension is not available");
@@ -36,6 +36,7 @@ var_dump($fd);
 var_dump($eventUtilClass::getSocketFD($sock2) === $fd);
 ?>
 --EXPECTF--
-resource(%d) of type (Socket)
+object(Socket)#%d (0) {
+}
 int(%d)
 bool(true)
