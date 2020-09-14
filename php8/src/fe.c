@@ -21,6 +21,8 @@
 
 # define PHP_EVENT_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null) \
 	{ #name, ZEND_TYPE_INIT_CLASS_CONST(PHP_EVENT_NS_NAME(classname), allow_null, _ZEND_ARG_INFO_FLAGS(pass_by_ref, 0)), NULL },
+# define PHP_EVENT_ARG_OBJ_INFO_WITH_DEFAULT_VALUE(pass_by_ref, name, classname, allow_null, default_value) \
+	{ #name, ZEND_TYPE_INIT_CLASS_CONST(PHP_EVENT_NS_NAME(classname), allow_null, _ZEND_ARG_INFO_FLAGS(pass_by_ref, 0)), default_value },
 
 /* {{{ ARGINFO */
 ZEND_BEGIN_ARG_INFO(arginfo_event__void, 0)
@@ -266,12 +268,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_socket_1, 0, 0, 0)
 ZEND_END_ARG_INFO();
 
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection__construct, 0, 0, 5)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection__construct, 0, 0, 4)
 	PHP_EVENT_ARG_OBJ_INFO(0, base, EventBase, 0)
 	ZEND_ARG_INFO(0, dns_base)
 	ZEND_ARG_INFO(0, address)
 	ZEND_ARG_INFO(0, port)
-	PHP_EVENT_ARG_OBJ_INFO(0, ctx, EventSslContext, 0)
+	PHP_EVENT_ARG_OBJ_INFO_WITH_DEFAULT_VALUE(0, ctx, EventSslContext, 1, "null")
 ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_evhttp_connection_get_peer, 0, 0, 2)
@@ -301,9 +303,8 @@ ZEND_END_ARG_INFO();
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http__construct, 0, 0, 1)
 	PHP_EVENT_ARG_OBJ_INFO(0, base, EventBase, 0)
-	PHP_EVENT_ARG_OBJ_INFO(0, ctx, EventSslContext, 0)
+	PHP_EVENT_ARG_OBJ_INFO_WITH_DEFAULT_VALUE(0, ctx, EventSslContext, 1, "null")
 ZEND_END_ARG_INFO();
-
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_http_accept, 0, 0, 1)
 	ZEND_ARG_INFO(0, socket)
