@@ -23,7 +23,7 @@
 /* {{{ proto EventConfig::__construct(void);
  * On success returns an object representing an event configuration
  * which can be passed to EventBase::__construct. */
-PHP_METHOD(EventConfig, __construct)
+PHP_EVENT_METHOD(EventConfig, __construct)
 {
 	php_event_config_t *cfg;
 
@@ -38,14 +38,14 @@ PHP_METHOD(EventConfig, __construct)
 /* }}} */
 
 /*{{{ proto int EventConfig::__sleep */
-PHP_METHOD(EventConfig, __sleep)
+PHP_EVENT_METHOD(EventConfig, __sleep)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventConfig instances are not serializable");
 }
 /*}}}*/
 
 /*{{{ proto int EventConfig::__wakeup */
-PHP_METHOD(EventConfig, __wakeup)
+PHP_EVENT_METHOD(EventConfig, __wakeup)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventConfig instances are not serializable");
 }
@@ -55,7 +55,7 @@ PHP_METHOD(EventConfig, __wakeup)
  * Tells libevent to avoid specific event method.
  * See http://www.wangafu.net/~nickm/libevent-book/Ref2_eventbase.html#_creating_an_event_base
  * Returns &true; on success, otherwise &false;.*/
-PHP_METHOD(EventConfig, avoidMethod)
+PHP_EVENT_METHOD(EventConfig, avoidMethod)
 {
 	zval               *zcfg       = getThis();
 	char               *method;
@@ -79,7 +79,7 @@ PHP_METHOD(EventConfig, avoidMethod)
 
 /* {{{ proto bool EventConfig::requireFeatures(int feature);
  * Enters a required event method feature that the application demands. */
-PHP_METHOD(EventConfig, requireFeatures)
+PHP_EVENT_METHOD(EventConfig, requireFeatures)
 {
 	zval               *zcfg    = getThis();
 	zend_long               feature;
@@ -105,7 +105,7 @@ PHP_METHOD(EventConfig, requireFeatures)
  * Prevents priority inversion by limiting how many low-priority event
  * callbacks can be invoked before checking for more high-priority events.
  * Available since libevent 2.1.0-alpha. */
-PHP_METHOD(EventConfig, setMaxDispatchInterval)
+PHP_EVENT_METHOD(EventConfig, setMaxDispatchInterval)
 {
 	zval                  *zcfg          = getThis();
 	php_event_timestamp_t  max_interval;
@@ -136,7 +136,7 @@ PHP_METHOD(EventConfig, setMaxDispatchInterval)
 /*{{{ proto bool EventConfig::setFlags(int flags)
  * Sets one or more flags to configure what parts of the eventual EventBase
  * will be initialized, and how they'll work. */
-PHP_METHOD(EventConfig, setFlags)
+PHP_EVENT_METHOD(EventConfig, setFlags)
 {
 	zend_long           flags;
 	php_event_config_t *cfg;

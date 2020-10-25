@@ -125,21 +125,21 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 /* }}} */
 
 /*{{{ proto int EventHttpRequest::__sleep */
-PHP_METHOD(EventHttpRequest, __sleep)
+PHP_EVENT_METHOD(EventHttpRequest, __sleep)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttpRequest instances are not serializable");
 }
 /*}}}*/
 
 /*{{{ proto int EventHttpRequest::__wakeup */
-PHP_METHOD(EventHttpRequest, __wakeup)
+PHP_EVENT_METHOD(EventHttpRequest, __wakeup)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttpRequest instances are not serializable");
 }
 /*}}}*/
 
 /* {{{ proto EventHttpRequest::__construct(callable callback[, mixed data = NULL]); */
-PHP_METHOD(EventHttpRequest, __construct)
+PHP_EVENT_METHOD(EventHttpRequest, __construct)
 {
 	zval                  *zself    = getThis();
 	php_event_http_req_t  *http_req;
@@ -174,7 +174,7 @@ PHP_METHOD(EventHttpRequest, __construct)
 
 /* {{{ proto void EventHttpRequest::free(void);
  * Frees the object and removes associated events. */
-PHP_METHOD(EventHttpRequest, free)
+PHP_EVENT_METHOD(EventHttpRequest, free)
 {
 	php_event_http_req_t *http_req;
 
@@ -211,7 +211,7 @@ PHP_METHOD(EventHttpRequest, free)
 
 /* {{{ proto int EventHttpRequest::getCommand(void);
  * Returns the request command, one of EventHttpRequest::CMD_* constants. XXX Make property? */
-PHP_METHOD(EventHttpRequest, getCommand)
+PHP_EVENT_METHOD(EventHttpRequest, getCommand)
 {
 	php_event_http_req_t *http_req;
 
@@ -229,7 +229,7 @@ PHP_METHOD(EventHttpRequest, getCommand)
 
 /* {{{ proto string EventHttpRequest::getHost(void);
  * Returns the request host. XXX make a property? */
-PHP_METHOD(EventHttpRequest, getHost)
+PHP_EVENT_METHOD(EventHttpRequest, getHost)
 {
 	php_event_http_req_t *http_req;
 
@@ -245,9 +245,9 @@ PHP_METHOD(EventHttpRequest, getHost)
 }
 /* }}} */
 
-/* {{{ proto int EventHttpRequest::getUri(void);
+/* {{{ proto string EventHttpRequest::getUri(void);
  * Returns the request URI. XXX make a property? */
-PHP_METHOD(EventHttpRequest, getUri)
+PHP_EVENT_METHOD(EventHttpRequest, getUri)
 {
 	php_event_http_req_t *http_req;
 
@@ -265,7 +265,7 @@ PHP_METHOD(EventHttpRequest, getUri)
 
 /* {{{ proto int EventHttpRequest::getResponseCode(void);
  * Returns the the response code. XXX make a property? */
-PHP_METHOD(EventHttpRequest, getResponseCode)
+PHP_EVENT_METHOD(EventHttpRequest, getResponseCode)
 {
 	php_event_http_req_t *http_req;
 
@@ -283,7 +283,7 @@ PHP_METHOD(EventHttpRequest, getResponseCode)
 
 /* {{{ proto array EventHttpRequest::getInputHeaders(void);
  * Returns associative array of the input headers. */
-PHP_METHOD(EventHttpRequest, getInputHeaders)
+PHP_EVENT_METHOD(EventHttpRequest, getInputHeaders)
 {
 	php_event_http_req_t *http_req;
 	struct evkeyvalq     *headers;
@@ -311,7 +311,7 @@ PHP_METHOD(EventHttpRequest, getInputHeaders)
 
 /* {{{ proto array EventHttpRequest::getOutputHeaders(void);
  * Returns associative array of the output headers. */
-PHP_METHOD(EventHttpRequest, getOutputHeaders)
+PHP_EVENT_METHOD(EventHttpRequest, getOutputHeaders)
 {
 	php_event_http_req_t *http_req;
 	struct evkeyvalq     *headers;
@@ -337,7 +337,7 @@ PHP_METHOD(EventHttpRequest, getOutputHeaders)
 
 /* {{{ proto EventBuffer EventHttpRequest::getInputBuffer(void);
  * Returns input buffer. */
-PHP_METHOD(EventHttpRequest, getInputBuffer)
+PHP_EVENT_METHOD(EventHttpRequest, getInputBuffer)
 {
 	php_event_http_req_t *http_req;
 	php_event_buffer_t   *b;
@@ -359,7 +359,7 @@ PHP_METHOD(EventHttpRequest, getInputBuffer)
 
 /* {{{ proto EventBuffer EventHttpRequest::getOutputBuffer(void);
  * Returns output buffer. */
-PHP_METHOD(EventHttpRequest, getOutputBuffer)
+PHP_EVENT_METHOD(EventHttpRequest, getOutputBuffer)
 {
 	php_event_http_req_t *http_req;
 	php_event_buffer_t   *b;
@@ -382,7 +382,7 @@ PHP_METHOD(EventHttpRequest, getOutputBuffer)
 #if LIBEVENT_VERSION_NUMBER >= 0x02001100
 /* {{{ proto EventBufferEvent EventHttpRequest::getBufferEvent(void);
  * Returns EventBufferEvent object on success, otherwise &null. */
-PHP_METHOD(EventHttpRequest, getBufferEvent)
+PHP_EVENT_METHOD(EventHttpRequest, getBufferEvent)
 {
 	php_event_http_req_t     *http_req;
 	struct evhttp_connection *conn;
@@ -413,7 +413,7 @@ PHP_METHOD(EventHttpRequest, getBufferEvent)
 /* }}} */
 #endif
 
-/* {{{ proto EventHttpConnection EventHttpRequest::getConnection(void);
+/* {{{ proto ?EventHttpConnection EventHttpRequest::getConnection(void);
  * Returns EventHttpConnection object.
  *
  * Warning! Libevent API allows http request objects not bound to any http connection.
@@ -424,7 +424,7 @@ PHP_METHOD(EventHttpRequest, getBufferEvent)
  * If somebody finds some way to return full-value EventHttpConnection object,
  * please don't hesitate to make a pull request.
  */
-PHP_METHOD(EventHttpRequest, getConnection)
+PHP_EVENT_METHOD(EventHttpRequest, getConnection)
 {
 	php_event_http_req_t     *http_req;
 	struct evhttp_connection *conn;
@@ -465,7 +465,7 @@ PHP_METHOD(EventHttpRequest, getConnection)
 
 /* {{{ proto void EventHttpRequest::closeConnection(void);
  */
-PHP_METHOD(EventHttpRequest, closeConnection)
+PHP_EVENT_METHOD(EventHttpRequest, closeConnection)
 {
 	php_event_http_req_t     *http_req;
 	struct evhttp_connection *conn;
@@ -489,7 +489,7 @@ PHP_METHOD(EventHttpRequest, closeConnection)
 /* {{{ proto void EventHttpRequest::sendError(int error[, string reason = NULL]);
  * Send an HTML error message to the client.
  */
-PHP_METHOD(EventHttpRequest, sendError)
+PHP_EVENT_METHOD(EventHttpRequest, sendError)
 {
 	php_event_http_req_t *http_req;
 	zend_long             error;
@@ -509,11 +509,11 @@ PHP_METHOD(EventHttpRequest, sendError)
 }
 /* }}} */
 
-/* {{{ proto void EventHttpRequest::sendReply(int code, string reason[, EventBuffer buf=&null;]);
+/* {{{ proto void EventHttpRequest::sendReply(int code, string reason[, EventBuffer buf=null]);
  * Send an HTML reply to client.
  *
  * The body of the reply consists of data in <parameter>buf</parameter>. */
-PHP_METHOD(EventHttpRequest, sendReply)
+PHP_EVENT_METHOD(EventHttpRequest, sendReply)
 {
 	php_event_http_req_t *http_req;
 	zend_long             code;
@@ -546,7 +546,7 @@ PHP_METHOD(EventHttpRequest, sendReply)
  * Send another data chunk as part of an ongoing chunked reply.
  *
  * After calling this method <parameter>buf</parameter> will be	empty. */
-PHP_METHOD(EventHttpRequest, sendReplyChunk)
+PHP_EVENT_METHOD(EventHttpRequest, sendReplyChunk)
 {
 	php_event_http_req_t *http_req;
 	zval                 *zbuf;
@@ -572,7 +572,7 @@ PHP_METHOD(EventHttpRequest, sendReplyChunk)
 /* {{{ proto void EventHttpRequest::sendReplyEnd(void);
  * Complete a chunked reply, freeing the request as appropriate.
  */
-PHP_METHOD(EventHttpRequest, sendReplyEnd)
+PHP_EVENT_METHOD(EventHttpRequest, sendReplyEnd)
 {
 	php_event_http_req_t *http_req;
 
@@ -600,7 +600,7 @@ PHP_METHOD(EventHttpRequest, sendReplyEnd)
  * <method>EventHttpRequest::sendReplyChunk</method> and complete the reply by
  * calling <method>EventHttpRequest::sendReplyEnd</method>.
  */
-PHP_METHOD(EventHttpRequest, sendReplyStart)
+PHP_EVENT_METHOD(EventHttpRequest, sendReplyStart)
 {
 	php_event_http_req_t *http_req;
 	zend_long             code;
@@ -632,7 +632,7 @@ PHP_METHOD(EventHttpRequest, sendReplyStart)
  * A request cannot be canceled if its callback has executed already. A request
  * may be canceled reentrantly from its chunked callback.
  */
-PHP_METHOD(EventHttpRequest, cancel)
+PHP_EVENT_METHOD(EventHttpRequest, cancel)
 {
 	php_event_http_req_t *http_req;
 
@@ -653,7 +653,7 @@ PHP_METHOD(EventHttpRequest, cancel)
  * <parameter>type</parameter> is one of <literal>EventHttpRequest::*_HEADER</literal>
  * constants.
  */
-PHP_METHOD(EventHttpRequest, addHeader)
+PHP_EVENT_METHOD(EventHttpRequest, addHeader)
 {
 	php_event_http_req_t *http_req;
 	char                 *key;
@@ -685,7 +685,7 @@ PHP_METHOD(EventHttpRequest, addHeader)
 /* {{{ proto void EventHttpRequest::clearHeaders(string key, string value);
  * Removes all output headers from the header list of the request.
  */
-PHP_METHOD(EventHttpRequest, clearHeaders)
+PHP_EVENT_METHOD(EventHttpRequest, clearHeaders)
 {
 	php_event_http_req_t *http_req;
 	struct evkeyvalq     *out_headers;
@@ -709,7 +709,7 @@ PHP_METHOD(EventHttpRequest, clearHeaders)
  * <parameter>type</parameter> is one of <literal>EventHttpRequest::*_HEADER</literal>
  * constants.
  */
-PHP_METHOD(EventHttpRequest, removeHeader)
+PHP_EVENT_METHOD(EventHttpRequest, removeHeader)
 {
 	php_event_http_req_t *http_req;
 	char                 *key;
@@ -742,7 +742,7 @@ PHP_METHOD(EventHttpRequest, removeHeader)
  * constants.
  * Returns &null; if header not found.
  */
-PHP_METHOD(EventHttpRequest, findHeader)
+PHP_EVENT_METHOD(EventHttpRequest, findHeader)
 {
 	php_event_http_req_t *http_req;
 	char                 *key;

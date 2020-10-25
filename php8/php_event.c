@@ -23,6 +23,8 @@
 #include "zend_exceptions.h"
 #include "ext/spl/spl_exceptions.h"
 
+#include "arginfo.h"
+
 zend_class_entry *php_event_ce;
 zend_class_entry *php_event_base_ce;
 zend_class_entry *php_event_config_ce;
@@ -954,7 +956,7 @@ static zend_always_inline void register_classes()/*{{{*/
 	zend_class_entry *ce;
 	zend_class_entry ce_exception;
 
-	PHP_EVENT_REGISTER_CLASS("Event", event_object_create, php_event_ce, php_event_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("Event", event_object_create, php_event_ce, PHP_EVENT_METHODS(Event));
 	ce = php_event_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 	zend_hash_init(&event_properties, 2, NULL, free_prop_handler, 1);
@@ -963,18 +965,15 @@ static zend_always_inline void register_classes()/*{{{*/
 	PHP_EVENT_DECL_PROP_NULL(ce, data,    ZEND_ACC_PUBLIC);
 	zend_hash_add_ptr(&classes, ce->name, &event_properties);
 
-	PHP_EVENT_REGISTER_CLASS("EventBase", event_base_object_create, php_event_base_ce,
-			php_event_base_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventBase", event_base_object_create, php_event_base_ce, PHP_EVENT_METHODS(EventBase));
 	ce = php_event_base_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 
-	PHP_EVENT_REGISTER_CLASS("EventConfig", event_config_object_create, php_event_config_ce,
-			php_event_config_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventConfig", event_config_object_create, php_event_config_ce, PHP_EVENT_METHODS(EventConfig));
 	ce = php_event_config_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 
-	PHP_EVENT_REGISTER_CLASS("EventBufferEvent", event_bevent_object_create, php_event_bevent_ce,
-			php_event_bevent_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventBufferEvent", event_bevent_object_create, php_event_bevent_ce, PHP_EVENT_METHODS(EventBufferEvent));
 	ce = php_event_bevent_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 	zend_hash_init(&event_bevent_properties, 4, NULL, free_prop_handler, 1);
@@ -988,8 +987,7 @@ static zend_always_inline void register_classes()/*{{{*/
 #endif
 	zend_hash_add_ptr(&classes, ce->name, &event_bevent_properties);
 
-	PHP_EVENT_REGISTER_CLASS("EventBuffer", event_buffer_object_create, php_event_buffer_ce,
-			php_event_buffer_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventBuffer", event_buffer_object_create, php_event_buffer_ce, PHP_EVENT_METHODS(EventBuffer));
 	ce = php_event_buffer_ce;
 	zend_hash_init(&event_buffer_properties, 2, NULL, free_prop_handler, 1);
 	PHP_EVENT_ADD_CLASS_PROPERTIES(&event_buffer_properties, event_buffer_property_entries);
@@ -998,13 +996,11 @@ static zend_always_inline void register_classes()/*{{{*/
 	zend_hash_add_ptr(&classes, ce->name, &event_buffer_properties);
 
 #if HAVE_EVENT_EXTRA_LIB
-	PHP_EVENT_REGISTER_CLASS("EventDnsBase", event_dns_base_object_create, php_event_dns_base_ce,
-			php_event_dns_base_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventDnsBase", event_dns_base_object_create, php_event_dns_base_ce, PHP_EVENT_METHODS(EventDnsBase));
 	ce = php_event_dns_base_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 
-	PHP_EVENT_REGISTER_CLASS("EventListener", event_listener_object_create, php_event_listener_ce,
-			php_event_listener_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventListener", event_listener_object_create, php_event_listener_ce, PHP_EVENT_METHODS(EventListener));
 	ce = php_event_listener_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 	zend_hash_init(&event_listener_properties, 1, NULL, free_prop_handler, 1);
@@ -1012,32 +1008,27 @@ static zend_always_inline void register_classes()/*{{{*/
 	PHP_EVENT_DECL_PROP_NULL(ce, fd, ZEND_ACC_PUBLIC);
 	zend_hash_add_ptr(&classes, ce->name, &event_listener_properties);
 
-	PHP_EVENT_REGISTER_CLASS("EventHttpConnection", event_http_conn_object_create,
-			php_event_http_conn_ce,
-			php_event_http_conn_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventHttpConnection", event_http_conn_object_create, php_event_http_conn_ce, PHP_EVENT_METHODS(EventHttpConnection));
 	ce = php_event_http_conn_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 
-	PHP_EVENT_REGISTER_CLASS("EventHttp", event_http_object_create, php_event_http_ce,
-			php_event_http_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventHttp", event_http_object_create, php_event_http_ce, PHP_EVENT_METHODS(EventHttp));
 	ce = php_event_http_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 
-	PHP_EVENT_REGISTER_CLASS("EventHttpRequest", event_http_req_object_create, php_event_http_req_ce,
-			php_event_http_req_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventHttpRequest", event_http_req_object_create, php_event_http_req_ce, PHP_EVENT_METHODS(EventHttpRequest));
 	ce = php_event_http_req_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 #endif /* HAVE_EVENT_EXTRA_LIB */
 
-	PHP_EVENT_REGISTER_CLASS("EventUtil", zend_objects_new, php_event_util_ce,
-			php_event_util_ce_functions);
+	PHP_EVENT_REGISTER_CLASS("EventUtil", zend_objects_new, php_event_util_ce, PHP_EVENT_METHODS(EventUtil));
 	ce = php_event_util_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 
 #ifdef HAVE_EVENT_OPENSSL_LIB
 	PHP_EVENT_REGISTER_CLASS("EventSslContext", event_ssl_context_object_create,
 			php_event_ssl_context_ce,
-			php_event_ssl_context_ce_functions);
+			PHP_EVENT_METHODS(EventSslContext));
 	ce = php_event_ssl_context_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 	zend_hash_init(&event_ssl_context_properties, 2, NULL, free_prop_handler, 1);

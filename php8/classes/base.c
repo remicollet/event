@@ -21,7 +21,7 @@
 #include "zend_exceptions.h"
 
 /* {{{ proto EventBase EventBase::__construct([EventConfig cfg = null]); */
-PHP_METHOD(EventBase, __construct)
+PHP_EVENT_METHOD(EventBase, __construct)
 {
 	php_event_base_t   *b;
 	php_event_config_t *cfg;
@@ -49,22 +49,22 @@ PHP_METHOD(EventBase, __construct)
 }
 /* }}} */
 
-/*{{{ proto int EventBase::__sleep */
-PHP_METHOD(EventBase, __sleep)
+/*{{{ proto void EventBase::__sleep */
+PHP_EVENT_METHOD(EventBase, __sleep)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventBase instances are not serializable");
 }
 /*}}}*/
 
-/*{{{ proto int EventBase::__wakeup */
-PHP_METHOD(EventBase, __wakeup)
+/*{{{ proto void EventBase::__wakeup */
+PHP_EVENT_METHOD(EventBase, __wakeup)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventBase instances are not serializable");
 }
 /*}}}*/
 
 /* {{{ proto void EventBase::free(void); */
-PHP_METHOD(EventBase, free)
+PHP_EVENT_METHOD(EventBase, free)
 {
 	zval *zbase = getThis();
 	php_event_base_t *b;
@@ -84,7 +84,7 @@ PHP_METHOD(EventBase, free)
 
 /* {{{ proto string EventBase::getMethod(void);
  * Returns event method in use. */
-PHP_METHOD(EventBase, getMethod)
+PHP_EVENT_METHOD(EventBase, getMethod)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -101,7 +101,7 @@ PHP_METHOD(EventBase, getMethod)
 
 /* {{{ proto int EventBase::getFeatures(void);
  * Returns bitmask of features supported. See EVENT_FEATURE_* constants. */
-PHP_METHOD(EventBase, getFeatures)
+PHP_EVENT_METHOD(EventBase, getFeatures)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -118,7 +118,7 @@ PHP_METHOD(EventBase, getFeatures)
 
 /* {{{ proto bool EventBase::priorityInit(int n_priorities);
  * Sets number of priorities per event base. Returns &true; on success, otherwise &false; */
-PHP_METHOD(EventBase, priorityInit)
+PHP_EVENT_METHOD(EventBase, priorityInit)
 {
 	zval             *zbase = getThis();
 	zend_long             n_priorities;
@@ -140,7 +140,7 @@ PHP_METHOD(EventBase, priorityInit)
 
 /* {{{ proto bool EventBase::loop([int flags]);
  * Wait for events to become active, and run their callbacks. */
-PHP_METHOD(EventBase, loop)
+PHP_EVENT_METHOD(EventBase, loop)
 {
 	zval             *zbase            = getThis();
 	zend_long         flags            = -1;
@@ -171,7 +171,7 @@ PHP_METHOD(EventBase, loop)
 /* {{{ proto bool EventBase::dispatch(void);
  * Wait for events to become active, and run their callbacks.
  * The same as EventBase::loop() with no flags set*/
-PHP_METHOD(EventBase, dispatch)
+PHP_EVENT_METHOD(EventBase, dispatch)
 {
 	zval             *zbase            = getThis();
 	php_event_base_t *b;
@@ -192,7 +192,7 @@ PHP_METHOD(EventBase, dispatch)
 
 /* {{{ proto bool EventBase::exit([double timeout = 0.0]);
  * Tells event_base to stop optionally after given number of seconds. */
-PHP_METHOD(EventBase, exit)
+PHP_EVENT_METHOD(EventBase, exit)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -224,7 +224,7 @@ PHP_METHOD(EventBase, exit)
 
 /* {{{ proto bool EventBase::stop(void);
  * Tells event_base to stop. */
-PHP_METHOD(EventBase, stop)
+PHP_EVENT_METHOD(EventBase, stop)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -244,7 +244,7 @@ PHP_METHOD(EventBase, stop)
 
 /* {{{ proto bool EventBase::set(Event event);
  * Associate event base with an event. */
-PHP_METHOD(EventBase, set)
+PHP_EVENT_METHOD(EventBase, set)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -275,7 +275,7 @@ PHP_METHOD(EventBase, set)
 /* {{{ proto bool EventBase::gotStop(void);
  *
  * Checks if the event loop was told to abort immediately by EventBase::stop() */
-PHP_METHOD(EventBase, gotStop)
+PHP_EVENT_METHOD(EventBase, gotStop)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -295,7 +295,7 @@ PHP_METHOD(EventBase, gotStop)
 
 /* {{{ proto bool EventBase::gotExit(void);
  * Checks if the event loop was told to exit by EventBase::exit */
-PHP_METHOD(EventBase, gotExit)
+PHP_EVENT_METHOD(EventBase, gotExit)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -319,7 +319,7 @@ PHP_METHOD(EventBase, gotExit)
  * at the cached value in 'base' if possible, and calling gettimeofday() or
  * clock_gettime() as appropriate if there is no cached time. On failure
  * returns NULL. */
-PHP_METHOD(EventBase, getTimeOfDayCached)
+PHP_EVENT_METHOD(EventBase, getTimeOfDayCached)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -342,7 +342,7 @@ PHP_METHOD(EventBase, getTimeOfDayCached)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 /* {{{ proto bool EventBase::updateCacheTime(void);
  * Updates cache time. Available since libevent 2.1.1-alpha */
-PHP_METHOD(EventBase, updateCacheTime)
+PHP_EVENT_METHOD(EventBase, updateCacheTime)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -364,7 +364,7 @@ PHP_METHOD(EventBase, updateCacheTime)
 /* {{{ proto bool EventBase::reInit(void);
  * Re-initialize event base. Should be called after a fork.
  * XXX pthread_atfork() in MINIT */
-PHP_METHOD(EventBase, reInit)
+PHP_EVENT_METHOD(EventBase, reInit)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;
@@ -387,7 +387,7 @@ PHP_METHOD(EventBase, reInit)
 /* {{{ proto bool EventBase::resume(void);
  * Tells event_base to resume previously stopped event.
  * Available since libevent version 2.1.2-alpha. */
-PHP_METHOD(EventBase, resume)
+PHP_EVENT_METHOD(EventBase, resume)
 {
 	zval             *zbase = getThis();
 	php_event_base_t *b;

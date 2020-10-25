@@ -77,7 +77,7 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
  *
  * If <parameter>ctx</parameter> is available since Libevent-2.1.0-alpha.
  */
-PHP_METHOD(EventHttpConnection, __construct)
+PHP_EVENT_METHOD(EventHttpConnection, __construct)
 {
 	zval                     *zself       = getThis();
 	zval                     *zbase;
@@ -179,14 +179,14 @@ PHP_METHOD(EventHttpConnection, __construct)
 /* }}} */
 
 /*{{{ proto int EventHttpConnection::__sleep */
-PHP_METHOD(EventHttpConnection, __sleep)
+PHP_EVENT_METHOD(EventHttpConnection, __sleep)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttpConnection instances are not serializable");
 }
 /*}}}*/
 
 /*{{{ proto int EventHttpConnection::__wakeup */
-PHP_METHOD(EventHttpConnection, __wakeup)
+PHP_EVENT_METHOD(EventHttpConnection, __wakeup)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttpConnection instances are not serializable");
 }
@@ -196,7 +196,7 @@ PHP_METHOD(EventHttpConnection, __wakeup)
  *
  * Get event base associated with the http connection.
  */
-PHP_METHOD(EventHttpConnection, getBase)
+PHP_EVENT_METHOD(EventHttpConnection, getBase)
 {
 	zval                 *zevcon = getThis();
 	php_event_http_conn_t *evcon;
@@ -222,7 +222,7 @@ PHP_METHOD(EventHttpConnection, getBase)
 
 /* {{{ proto void EventHttpConnection::getPeer(string &address, int &port);
  * Get the remote address and port associated with this connection. */
-PHP_METHOD(EventHttpConnection, getPeer)
+PHP_EVENT_METHOD(EventHttpConnection, getPeer)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
@@ -253,7 +253,7 @@ PHP_METHOD(EventHttpConnection, getPeer)
 
 /* {{{ proto void EventHttpConnection::setLocalAddress(string address);
  * Sets the ip address from which http connections are made */
-PHP_METHOD(EventHttpConnection, setLocalAddress)
+PHP_EVENT_METHOD(EventHttpConnection, setLocalAddress)
 {
 	zval                  *zevcon      = getThis();
 	php_event_http_conn_t *evcon;
@@ -273,7 +273,7 @@ PHP_METHOD(EventHttpConnection, setLocalAddress)
 
 /* {{{ proto void EventHttpConnection::setLocalPort(int port);
  * Sets the port from which http connections are made */
-PHP_METHOD(EventHttpConnection, setLocalPort)
+PHP_EVENT_METHOD(EventHttpConnection, setLocalPort)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
@@ -292,7 +292,7 @@ PHP_METHOD(EventHttpConnection, setLocalPort)
 
 /* {{{ proto void EventHttpConnection::setTimeout(int timeout);
  */
-PHP_METHOD(EventHttpConnection, setTimeout)
+PHP_EVENT_METHOD(EventHttpConnection, setTimeout)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
@@ -311,7 +311,7 @@ PHP_METHOD(EventHttpConnection, setTimeout)
 
 /* {{{ proto void EventHttpConnection::setMaxHeadersSize(int max_size);
  */
-PHP_METHOD(EventHttpConnection, setMaxHeadersSize)
+PHP_EVENT_METHOD(EventHttpConnection, setMaxHeadersSize)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
@@ -330,7 +330,7 @@ PHP_METHOD(EventHttpConnection, setMaxHeadersSize)
 
 /* {{{ proto void EventHttpConnection::setMaxBodySize(int max_size);
  */
-PHP_METHOD(EventHttpConnection, setMaxBodySize)
+PHP_EVENT_METHOD(EventHttpConnection, setMaxBodySize)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
@@ -349,7 +349,7 @@ PHP_METHOD(EventHttpConnection, setMaxBodySize)
 
 /* {{{ proto void EventHttpConnection::setRetries(int retries);
  */
-PHP_METHOD(EventHttpConnection, setRetries)
+PHP_EVENT_METHOD(EventHttpConnection, setRetries)
 {
 	zval                  *zevcon = getThis();
 	php_event_http_conn_t *evcon;
@@ -370,7 +370,7 @@ PHP_METHOD(EventHttpConnection, setRetries)
  * Makes an HTTP request over the specified connection.
  * <parameter>type</parameter> is one of <literal>EventHttpRequest::CMD_*</literal> constants.
  */
-PHP_METHOD(EventHttpConnection, makeRequest)
+PHP_EVENT_METHOD(EventHttpConnection, makeRequest)
 {
 	zval                  *zevcon   = getThis();
 	php_event_http_conn_t *evcon;
@@ -403,7 +403,7 @@ PHP_METHOD(EventHttpConnection, makeRequest)
 
 /* {{{ void EventHttpConnection::setCloseCallback(callable callback[, mixed data]);
  * Set callback for connection close. */
-PHP_METHOD(EventHttpConnection, setCloseCallback)
+PHP_EVENT_METHOD(EventHttpConnection, setCloseCallback)
 {
 	php_event_http_conn_t *evcon;
 	zend_fcall_info   fci = {0};

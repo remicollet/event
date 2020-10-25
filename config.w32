@@ -13,6 +13,8 @@ if (PHP_EVENT != "no") {
 		configure_module_dirname = configure_module_dirname + "\\php5";
 	} else if (null != dll.match(/^php7/)) {
 		configure_module_dirname = configure_module_dirname + "\\php7";
+	} else if (null != dll.match(/^php8/)) {
+		configure_module_dirname = configure_module_dirname + "\\php8";
 	} else {
 		ERROR("Cannot match any known PHP version with '" + dll + "'");
 	}
@@ -39,7 +41,7 @@ if (PHP_EVENT != "no") {
 
 		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_PTHREADS_LIB=1");
 		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_OPENSSL_LIB=1");
-		ADD_FLAG("CFLAGS_EVENT", "/D _EVENT_HAVE_OPENSSL=1"); 
+		ADD_FLAG("CFLAGS_EVENT", "/D _EVENT_HAVE_OPENSSL=1");
 		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_EXTRA_LIB=1");
 
 		ARG_WITH("event-ns", "for custom PHP namespace in Event", "no");

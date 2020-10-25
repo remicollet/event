@@ -198,9 +198,9 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 /* }}} */
 
 
-/* {{{ proto Event Event::__construct(EventBase base, mixed fd, int what, callable cb[, zval arg = NULL]);
+/* {{{ proto Event Event::__construct(EventBase base, mixed fd, int what, callable cb[, mixed arg = NULL]);
  * Creates new event */
-PHP_METHOD(Event, __construct)
+PHP_EVENT_METHOD(Event, __construct)
 {
 	struct event     *event;
 	zval             *zbase;
@@ -277,7 +277,7 @@ PHP_METHOD(Event, __construct)
 /* }}} */
 
 /* {{{ proto void Event::free(void); */
-PHP_METHOD(Event, free)
+PHP_EVENT_METHOD(Event, free)
 {
 	php_event_t *e;
 
@@ -298,7 +298,7 @@ PHP_METHOD(Event, free)
  *
  * Re-configures event.
  * Note, this function doesn't invoke obsolete libevent's event_set. It calls event_assign instead.  */
-PHP_METHOD(Event, set)
+PHP_EVENT_METHOD(Event, set)
 {
 	zval             *zbase;
 	php_event_base_t *b;
@@ -386,7 +386,7 @@ PHP_METHOD(Event, set)
 
 /* {{{ proto array Event::getSupportedMethods(void);
  * Returns array with of the names of the methods supported in this version of Libevent */
-PHP_METHOD(Event, getSupportedMethods)
+PHP_EVENT_METHOD(Event, getSupportedMethods)
 {
 	int i;
 	const char **methods;
@@ -409,9 +409,9 @@ PHP_METHOD(Event, getSupportedMethods)
 }
 /* }}} */
 
-/* {{{ proto bool Event::add([double timeout]);
+/* {{{ proto bool Event::add([double timeout = -1.0]);
  * Make event pending. */
-PHP_METHOD(Event, add)
+PHP_EVENT_METHOD(Event, add)
 {
 	zval        *zevent = getThis();
 	php_event_t *e;
@@ -449,7 +449,7 @@ PHP_METHOD(Event, add)
 
 /* {{{ proto bool Event::del(void);
  * Remove an event from the set of monitored events. */
-PHP_METHOD(Event, del)
+PHP_EVENT_METHOD(Event, del)
 {
 	zval        *zevent = getThis();
 	php_event_t *e;
@@ -472,7 +472,7 @@ PHP_METHOD(Event, del)
 /* {{{ proto bool Event::removeTimer(void);
  * Remove a pending event’s timeout completely without deleting its IO or signal components.
  * Available since libevent 2.1.2-alpha. */
-PHP_METHOD(Event, removeTimer)
+PHP_EVENT_METHOD(Event, removeTimer)
 {
 	zval        *zevent = getThis();
 	php_event_t *e;
@@ -494,7 +494,7 @@ PHP_METHOD(Event, removeTimer)
 
 /* {{{ proto bool Event::setPriority(int priority);
  * Set event priority. */
-PHP_METHOD(Event, setPriority)
+PHP_EVENT_METHOD(Event, setPriority)
 {
 	zval        *zevent = getThis();
 	php_event_t *e;
@@ -517,7 +517,7 @@ PHP_METHOD(Event, setPriority)
 
 /* {{{ proto bool Event::pending(int flags);
  *  Detect whether event is pending or scheduled. */
-PHP_METHOD(Event, pending)
+PHP_EVENT_METHOD(Event, pending)
 {
 	zval        *zevent = getThis();
 	php_event_t *e;
@@ -538,9 +538,9 @@ PHP_METHOD(Event, pending)
 /* }}} */
 
 
-/* {{{ proto Event Event::timer(EventBase base, callable cb[, zval arg = NULL]);
+/* {{{ proto Event Event::timer(EventBase base, callable cb[, mixed arg = NULL]);
  * Factory method for timer event */
-PHP_METHOD(Event, timer)
+PHP_EVENT_METHOD(Event, timer)
 {
 	zval             *zbase;
 	php_event_base_t *b;
@@ -578,10 +578,10 @@ PHP_METHOD(Event, timer)
 }
 /* }}} */
 
-/* {{{ proto bool Event::setTimer(EventBase base, callable cb[, zval arg = NULL]);
+/* {{{ proto bool Event::setTimer(EventBase base, callable cb[, mixed arg = NULL]);
  * Re-configures timer event.
  * Note, this function doesn't invoke obsolete libevent's event_set. It calls event_assign instead. */
-PHP_METHOD(Event, setTimer)
+PHP_EVENT_METHOD(Event, setTimer)
 {
 	zval             *zbase;
 	php_event_base_t *b;
@@ -625,9 +625,9 @@ PHP_METHOD(Event, setTimer)
 }
 /* }}} */
 
-/* {{{ proto Event signal(EventBase base, int signum, callable cb[, zval arg = NULL]);
+/* {{{ proto Event signal(EventBase base, int signum, callable cb[, mixed arg = NULL]);
  * Factory method for signal event */
-PHP_METHOD(Event, signal)
+PHP_EVENT_METHOD(Event, signal)
 {
 	struct event     *event;
 	zval             *zbase;

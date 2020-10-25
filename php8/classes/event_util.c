@@ -23,16 +23,16 @@
 # include <fcntl.h>
 #endif
 
-PHP_METHOD(EventUtil, __construct)
+PHP_EVENT_METHOD(EventUtil, __construct)
 {
 	zend_throw_exception(NULL, "An object of this type cannot be created "
 			"with the new operator", 0 );
 }
 
-/* {{{ proto int EventUtil::getLastSocketErrno([mixed socket = null]);
+/* {{{ proto int|false EventUtil::getLastSocketErrno(?Socket socket = null);
  *
  * Returns the most recent socket error number(errno). */
-PHP_METHOD(EventUtil, getLastSocketErrno)
+PHP_EVENT_METHOD(EventUtil, getLastSocketErrno)
 {
 	zval *pzfd = NULL;
 
@@ -57,7 +57,7 @@ PHP_METHOD(EventUtil, getLastSocketErrno)
 /* {{{ proto string EventUtil::getLastSocketError([resource socket = null]);
  *
  * Returns the most recent socket error */
-PHP_METHOD(EventUtil, getLastSocketError)
+PHP_EVENT_METHOD(EventUtil, getLastSocketError)
 {
 	zval *pzfd = NULL;
 
@@ -84,7 +84,7 @@ PHP_METHOD(EventUtil, getLastSocketError)
  *
  * Generates entropy by means of OpenSSL's RAND_poll()
  */
-PHP_METHOD(EventUtil, sslRandPoll)
+PHP_EVENT_METHOD(EventUtil, sslRandPoll)
 {
 	RETVAL_BOOL((zend_bool) RAND_poll());
 }
@@ -98,7 +98,7 @@ PHP_METHOD(EventUtil, sslRandPoll)
  * associated with a socket.
  *
  * Returns &true; on success. Otherwise &false;.*/
-PHP_METHOD(EventUtil, getSocketName)
+PHP_EVENT_METHOD(EventUtil, getSocketName)
 {
 	zval            *pzfd;
 	zval            *zaddress;
@@ -125,7 +125,7 @@ PHP_METHOD(EventUtil, getSocketName)
 
 /* {{{ proto bool EventUtil::setSocketOption(mixed socket, int level, int optname, int|array optval)
    Sets socket options for the socket */
-PHP_METHOD(EventUtil, setSocketOption)
+PHP_EVENT_METHOD(EventUtil, setSocketOption)
 {
 	zval            *zfd;
 	zval            *zoptval;
@@ -233,9 +233,9 @@ PHP_METHOD(EventUtil, setSocketOption)
 }
 /* }}} */
 
-/* {{{ proto bool EventUtil::getSocketFd(mixed socket)
+/* {{{ proto int EventUtil::getSocketFd(mixed socket)
  *    Gets numeric file descriptor of a socket. */
-PHP_METHOD(EventUtil, getSocketFd) {
+PHP_EVENT_METHOD(EventUtil, getSocketFd) {
 	zval *pzfd = NULL;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &pzfd) == FAILURE) {
@@ -249,7 +249,7 @@ PHP_METHOD(EventUtil, getSocketFd) {
 #ifdef PHP_EVENT_SOCKETS_SUPPORT
 /* {{{ proto resource EventUtil::createSocket(int fd)
  *    Creates socket resource from a numeric file descriptor. */
-PHP_METHOD(EventUtil, createSocket) {
+PHP_EVENT_METHOD(EventUtil, createSocket) {
 	zend_long  fd;
 	php_socket *php_sock;
 

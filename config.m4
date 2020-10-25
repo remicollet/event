@@ -1,7 +1,7 @@
 dnl +----------------------------------------------------------------------+
 dnl | PHP Version 8                                                        |
 dnl +----------------------------------------------------------------------+
-dnl | Copyrght (C) 1997-2019 The PHP Group                                 |
+dnl | Copyrght (C) 1997-2020 The PHP Group                                 |
 dnl +----------------------------------------------------------------------+
 dnl | This source file is subject to version 3.01 of the PHP license,      |
 dnl | that is bundled with this package in the file LICENSE, and is        |
@@ -215,6 +215,14 @@ if test "$PHP_EVENT_CORE" != "no"; then
     fi
     PHP_EVENT_NS=$(echo "$PHP_EVENT_NS" | $SED -e 's/\\/\\\\/g')
     AC_DEFINE_UNQUOTED(PHP_EVENT_NS, ["$PHP_EVENT_NS"], [Custom PHP namespace for all Event classes])
+    AC_DEFINE_UNQUOTED(PHP_EVENT_NS_RAW, [$PHP_EVENT_NS], [Custom PHP namespace for all Event classes for macros])
+  fi
+  PHP_EVENT_STUB_PHP_IN="$PHP_EVENT_SUBDIR/php_event.stub.php.in"
+  if test -e "$PHP_EVENT_STUB_PHP_IN"; then
+    PHP_EVENT_STUB_PHP="$PHP_EVENT_SUBDIR/php_event.stub.php"
+    AC_SUBST(PHP_EVENT_NS)
+    AC_CONFIG_FILES(["$PHP_EVENT_STUB_PHP":"$PHP_EVENT_STUB_PHP_IN"])
+    dnl# $SED -i.bak -e 's/^namespace *PHP_EVENT_NS/namespace '"$PHP_EVENT_NS"'/g' "$PHP_EVENT_STUB_PHP_IN"
   fi
 
   PHP_NEW_EXTENSION(event, $event_src, $ext_shared,,$CFLAGS -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)

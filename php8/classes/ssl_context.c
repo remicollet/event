@@ -520,7 +520,7 @@ static zend_always_inline SSL_METHOD *get_ssl_method(zend_long in_method)
  * Creates SSL context holding pointer to SSL_CTX.
  * method parameter is one of EventSslContext::*_METHOD constants.
  * options parameter is an associative array of SSL context options */
-PHP_METHOD(EventSslContext, __construct)
+PHP_EVENT_METHOD(EventSslContext, __construct)
 {
 	php_event_ssl_context_t *ectx;
 	HashTable               *ht_options;
@@ -567,7 +567,7 @@ PHP_METHOD(EventSslContext, __construct)
  *
  * Sets minimum supported protocol version for the SSL context.
  */
-PHP_METHOD(EventSslContext, setMinProtoVersion)
+PHP_EVENT_METHOD(EventSslContext, setMinProtoVersion)
 {
 	php_event_ssl_context_t *ectx;
 	zend_long                proto;
@@ -588,7 +588,7 @@ PHP_METHOD(EventSslContext, setMinProtoVersion)
  *
  * Sets max supported protocol version for the SSL context.
  */
-PHP_METHOD(EventSslContext, setMaxProtoVersion)
+PHP_EVENT_METHOD(EventSslContext, setMaxProtoVersion)
 {
 	php_event_ssl_context_t *ectx;
 	zend_long                proto;

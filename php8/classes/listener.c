@@ -242,7 +242,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
  *
  * Returns object representing the event connection listener.
  */
-PHP_METHOD(EventListener, __construct)
+PHP_EVENT_METHOD(EventListener, __construct)
 {
 	struct evconnlistener *listener;
 	zval                  *zself    = getThis();
@@ -327,21 +327,21 @@ PHP_METHOD(EventListener, __construct)
 /* }}} */
 
 /*{{{ proto int EventListener::__sleep */
-PHP_METHOD(EventListener, __sleep)
+PHP_EVENT_METHOD(EventListener, __sleep)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventListener instances are not serializable");
 }
 /*}}}*/
 
 /*{{{ proto int EventListener::__wakeup */
-PHP_METHOD(EventListener, __wakeup)
+PHP_EVENT_METHOD(EventListener, __wakeup)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventListener instances are not serializable");
 }
 /*}}}*/
 
 /*{{{ proto void EventListener::free(void); */
-PHP_METHOD(EventListener, free)
+PHP_EVENT_METHOD(EventListener, free)
 {
 	zval *self = getThis();
 	php_event_listener_t *l;
@@ -360,7 +360,7 @@ PHP_METHOD(EventListener, free)
 
 /* {{{ proto bool EventListener::enable(void);
  * Enable an event connect listener resource */
-PHP_METHOD(EventListener, enable)
+PHP_EVENT_METHOD(EventListener, enable)
 {
 	zval                 *zlistener = getThis();
 	php_event_listener_t *l;
@@ -383,7 +383,7 @@ PHP_METHOD(EventListener, enable)
 /* {{{ proto bool EventListener::disable(void);
  *
  * Disable an event connect listener resource */
-PHP_METHOD(EventListener, disable)
+PHP_EVENT_METHOD(EventListener, disable)
 {
 	zval                 *zlistener = getThis();
 	php_event_listener_t *l;
@@ -408,7 +408,7 @@ PHP_METHOD(EventListener, disable)
  * Adjust event connect listener's callback and optionally the callback argument.
  * Both cb and arg may be NULL.
  */
-PHP_METHOD(EventListener, setCallback)
+PHP_EVENT_METHOD(EventListener, setCallback)
 {
 	php_event_listener_t *l;
 	zend_fcall_info       fci = {0};
@@ -436,7 +436,7 @@ PHP_METHOD(EventListener, setCallback)
 /* {{{ proto void EventListener::setErrorCallback(callable cb);
  * Set event listener's error callback
  */
-PHP_METHOD(EventListener, setErrorCallback)
+PHP_EVENT_METHOD(EventListener, setErrorCallback)
 {
 	php_event_listener_t *l;
 	zend_fcall_info       fci = {0};
@@ -463,7 +463,7 @@ PHP_METHOD(EventListener, setErrorCallback)
 /* {{{ proto EventBase EventListener::getBase(void);
  * Get event base associated with the connection listener
  */
-PHP_METHOD(EventListener, getBase)
+PHP_EVENT_METHOD(EventListener, getBase)
 {
 	php_event_listener_t *l;
 	zval                 *zlistener = getThis();
@@ -493,7 +493,7 @@ PHP_METHOD(EventListener, getBase)
 /* {{{ proto bool EventListener::getSocketName(string &address[, int &port]);
  * Retreives the current address to which the listener's socket is bound.
  * Returns &true; on success. Otherwise &false;.*/
-PHP_METHOD(EventListener, getSocketName)
+PHP_EVENT_METHOD(EventListener, getSocketName)
 {
 	php_event_listener_t  *l;
 	zval                  *zlistener = getThis();

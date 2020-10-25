@@ -228,14 +228,14 @@ static struct bufferevent* _bev_ssl_callback(struct event_base *base, void *arg)
 /* }}} */
 
 /*{{{ proto int EventHttp::__sleep */
-PHP_METHOD(EventHttp, __sleep)
+PHP_EVENT_METHOD(EventHttp, __sleep)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttp instances are not serializable");
 }
 /*}}}*/
 
 /*{{{ proto int EventHttp::__wakeup */
-PHP_METHOD(EventHttp, __wakeup)
+PHP_EVENT_METHOD(EventHttp, __wakeup)
 {
 	zend_throw_exception_ex(php_event_get_exception(), 0, "EventHttp instances are not serializable");
 }
@@ -258,7 +258,7 @@ void _php_event_free_http_cb(php_event_http_cb_t *http_cb)/*{{{*/
 /* {{{ proto EventHttp EventHttp::__construct(EventBase base[, EventSslContext ctx = NULL]);
  * Creates new http server object.
  */
-PHP_METHOD(EventHttp, __construct)
+PHP_EVENT_METHOD(EventHttp, __construct)
 {
 	zval             *zbase;
 	php_event_base_t *b;
@@ -316,7 +316,7 @@ PHP_METHOD(EventHttp, __construct)
  * Makes an HTTP server accept connections on the specified socket stream or resource.
  * The socket should be ready to accept connections.
  * Can be called multiple times to accept connections on different sockets. */
-PHP_METHOD(EventHttp, accept)
+PHP_EVENT_METHOD(EventHttp, accept)
 {
 	php_event_http_t  *http;
 	zval              *zhttp = getThis();
@@ -347,7 +347,7 @@ PHP_METHOD(EventHttp, accept)
  *
  * Binds an HTTP server on the specified address and port.
  * Can be called multiple times to bind the same http server to multiple different ports. */
-PHP_METHOD(EventHttp, bind)
+PHP_EVENT_METHOD(EventHttp, bind)
 {
 	zval             *zhttp       = getThis();
 	php_event_http_t *http;
@@ -375,7 +375,7 @@ PHP_METHOD(EventHttp, bind)
 /* {{{ proto bool EventHttp::setCallback(string path, callable cb[, mixed arg = NULL]);
  * Sets a callback for specified URI.
  */
-PHP_METHOD(EventHttp, setCallback)
+PHP_EVENT_METHOD(EventHttp, setCallback)
 {
 	php_event_http_t    *http;
 	char                *path;
@@ -417,7 +417,7 @@ PHP_METHOD(EventHttp, setCallback)
 /* {{{ proto void EventHttp::setDefaultCallback(callable cb[, mixed arg = NULL]);
  * Sets default callback to handle requests that are not caught by specific callbacks
  */
-PHP_METHOD(EventHttp, setDefaultCallback)
+PHP_EVENT_METHOD(EventHttp, setDefaultCallback)
 {
 	php_event_http_t *http;
 	zend_fcall_info   fci = {0};
@@ -452,7 +452,7 @@ PHP_METHOD(EventHttp, setDefaultCallback)
  * By default this includes the following methods: GET, POST, HEAD, PUT, DELETE.
  * See <literal>EventHttpRequest::CMD_*</literal> constants.
  */
-PHP_METHOD(EventHttp, setAllowedMethods)
+PHP_EVENT_METHOD(EventHttp, setAllowedMethods)
 {
 	php_event_http_t *http;
 	zend_long         methods;
@@ -469,7 +469,7 @@ PHP_METHOD(EventHttp, setAllowedMethods)
 
 /* {{{ proto void EventHttp::setMaxBodySize(int value);
  */
-PHP_METHOD(EventHttp, setMaxBodySize)
+PHP_EVENT_METHOD(EventHttp, setMaxBodySize)
 {
 	zval             *zhttp   = getThis();
 	php_event_http_t *http;
@@ -488,7 +488,7 @@ PHP_METHOD(EventHttp, setMaxBodySize)
 
 /* {{{ proto void EventHttp::setMaxHeadersSize(int value);
  */
-PHP_METHOD(EventHttp, setMaxHeadersSize)
+PHP_EVENT_METHOD(EventHttp, setMaxHeadersSize)
 {
 	zval             *zhttp   = getThis();
 	php_event_http_t *http;
@@ -508,7 +508,7 @@ PHP_METHOD(EventHttp, setMaxHeadersSize)
 /* {{{ proto void EventHttp::setTimeout(int value);
  * Sets timeout for an HTTP request
  */
-PHP_METHOD(EventHttp, setTimeout)
+PHP_EVENT_METHOD(EventHttp, setTimeout)
 {
 	zval             *zhttp   = getThis();
 	php_event_http_t *http;
@@ -528,7 +528,7 @@ PHP_METHOD(EventHttp, setTimeout)
 /* {{{ proto bool EventHttp::addServerAlias(string alias);
  * Adds a server alias to the object.
  */
-PHP_METHOD(EventHttp, addServerAlias)
+PHP_EVENT_METHOD(EventHttp, addServerAlias)
 {
 	zval             *zhttp     = getThis();
 	php_event_http_t *http;
@@ -552,7 +552,7 @@ PHP_METHOD(EventHttp, addServerAlias)
 /* {{{ proto bool EventHttp::removeServerAlias(string alias);
  * Removes a server alias from the object.
  */
-PHP_METHOD(EventHttp, removeServerAlias)
+PHP_EVENT_METHOD(EventHttp, removeServerAlias)
 {
 	zval             *zhttp     = getThis();
 	php_event_http_t *http;

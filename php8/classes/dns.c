@@ -28,7 +28,7 @@
  * event dns base empty, with no nameservers or options configured. In the latter
  * case you should configure dns base yourself, e.g. with
  * EventDnsBase::parseResolvConf() */
-PHP_METHOD(EventDnsBase, __construct)
+PHP_EVENT_METHOD(EventDnsBase, __construct)
 {
 	php_event_base_t     *base;
 	zval                 *zbase;
@@ -53,7 +53,7 @@ PHP_METHOD(EventDnsBase, __construct)
 /* {{{ proto bool EventDnsBase::parseResolvConf(int flags, string filename);
  * Scans the resolv.conf formatted file stored in filename, and read in all the
  * options from it that are listed in flags */
-PHP_METHOD(EventDnsBase, parseResolvConf)
+PHP_EVENT_METHOD(EventDnsBase, parseResolvConf)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base    = getThis();
@@ -114,7 +114,7 @@ PHP_METHOD(EventDnsBase, parseResolvConf)
  * text string, either as an IPv4 address, an IPv6 address, an IPv4 address
  * with a port (IPv4:Port), or an IPv6 address with a port ([IPv6]:Port).
  */
-PHP_METHOD(EventDnsBase, addNameserverIp)
+PHP_EVENT_METHOD(EventDnsBase, addNameserverIp)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();
@@ -139,7 +139,7 @@ PHP_METHOD(EventDnsBase, addNameserverIp)
 /* {{{ proto bool EventDnsBase::loadHosts(string hosts);
  *  Loads a hosts file (in the same format as /etc/hosts) from hosts file
  */
-PHP_METHOD(EventDnsBase, loadHosts)
+PHP_EVENT_METHOD(EventDnsBase, loadHosts)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();
@@ -165,7 +165,7 @@ PHP_METHOD(EventDnsBase, loadHosts)
  * Removes all current search suffixes (as configured by the search option)
  * from the evdns_base; the evdns_base_search_add() function adds a suffix
  */
-PHP_METHOD(EventDnsBase, clearSearch)
+PHP_EVENT_METHOD(EventDnsBase, clearSearch)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();
@@ -182,7 +182,7 @@ PHP_METHOD(EventDnsBase, clearSearch)
 
 /* {{{ proto void EventDnsBase::addSearch(string domain);
  */
-PHP_METHOD(EventDnsBase, addSearch)
+PHP_EVENT_METHOD(EventDnsBase, addSearch)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base  = getThis();
@@ -202,13 +202,13 @@ PHP_METHOD(EventDnsBase, addSearch)
 
 /* {{{ proto void EventDnsBase::setSearchNdots(int ndots);
  */
-PHP_METHOD(EventDnsBase, setSearchNdots)
+PHP_EVENT_METHOD(EventDnsBase, setSearchNdots)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();
-	zend_long                 ndots;
+	zend_long             ndots;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s",
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l",
 				&ndots) == FAILURE) {
 		return;
 	}
@@ -221,7 +221,7 @@ PHP_METHOD(EventDnsBase, setSearchNdots)
 
 /* {{{ proto bool EventDnsBase::setOption(string option, string value);
  */
-PHP_METHOD(EventDnsBase, setOption)
+PHP_EVENT_METHOD(EventDnsBase, setOption)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base  = getThis();
@@ -247,7 +247,7 @@ PHP_METHOD(EventDnsBase, setOption)
 
 /* {{{ proto int EventDnsBase::countNameservers(void);
  */
-PHP_METHOD(EventDnsBase, countNameservers)
+PHP_EVENT_METHOD(EventDnsBase, countNameservers)
 {
 	php_event_dns_base_t *dnsb;
 	zval                 *zdns_base = getThis();

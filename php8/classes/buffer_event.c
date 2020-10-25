@@ -19,7 +19,6 @@
 #include "../src/util.h"
 #include "../src/priv.h"
 
-extern const zend_function_entry php_event_dns_base_ce_functions[];
 extern zend_class_entry *php_event_dns_base_ce;
 
 /* {{{ Private */
@@ -227,84 +226,6 @@ static zend_always_inline zend_bool is_valid_ssl_state(zend_long state)
 			|| state == BUFFEREVENT_SSL_ACCEPTING);
 }
 /* }}} */
-
-static void _create_ssl_filter(INTERNAL_FUNCTION_PARAMETERS, zend_bool deprecated)
-{
-	php_event_base_t        *base;
-	zval                    *zunused;
-	zval                    *zunderlying;
-	php_event_bevent_t      *bev_underlying;
-	zval                    *zctx;
-	php_event_ssl_context_t *ectx;
-	zend_long                state;
-	zend_long                options        = 0;
-	php_event_bevent_t      *bev;
-	struct bufferevent      *bevent;
-	SSL                     *ssl;
-
-	if (!deprecated) {
-		if (zend_parse_parameters(ZEND_NUM_ARGS(), "OOl|l",
-					&zunderlying, php_event_bevent_ce,
-					&zctx, php_event_ssl_context_ce,
-					&state, &options) == FAILURE) {
-			return;
-		}
-	} else {
-		if (zend_parse_parameters(ZEND_NUM_ARGS(), "zOOl|l",
-					&zunused,
-					&zunderlying, php_event_bevent_ce,
-					&zctx, php_event_ssl_context_ce,
-					&state, &options) == FAILURE) {
-			return;
-		}
-	}
-
-	if (!is_valid_ssl_state(state)) {
-		php_error_docref(NULL, E_WARNING, "Invalid state specified");
-		RETURN_FALSE;
-	}
-
-	bev_underlying = Z_EVENT_BEVENT_OBJ_P(zunderlying);
-	_ret_if_invalid_bevent_ptr(bev_underlying);
-
-	/* Must also be the base for the underlying bufferevent. See Libevent reference. */
-	base = Z_EVENT_BASE_OBJ_P(&bev_underlying->base);
-
-	ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(zctx);
-
-	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
-	bev = Z_EVENT_BEVENT_OBJ_P(return_value);
-
-	if (UNEXPECTED(ectx->ctx == NULL)) {
-		RETURN_FALSE;
-	}
-	ssl = SSL_new(ectx->ctx);
-	if (UNEXPECTED(!ssl)) {
-		php_error_docref(NULL, E_WARNING, "Event: Failed creating SSL handle");
-		RETURN_FALSE;
-	}
-	/* Attach ectx to ssl for callbacks */
-	SSL_set_ex_data(ssl, php_event_ssl_data_index, ectx);
-
-#ifdef HAVE_EVENT_PTHREADS_LIB
-	options |= BEV_OPT_THREADSAFE;
-#endif
-	bevent = bufferevent_openssl_filter_new(base->base,
-			bev_underlying->bevent,
-			ssl, state, options);
-	if (bevent == NULL) {
-		php_error_docref(NULL, E_WARNING, "Failed to allocate bufferevent filter");
-		RETURN_FALSE;
-	}
-	bev->bevent = bevent;
-
-	ZVAL_COPY_VALUE(&bev->self, return_value);
-	ZVAL_COPY(&bev->base, &bev_underlying->base);
-
-	ZVAL_UNDEF(&bev->input);
-	ZVAL_UNDEF(&bev->output);
-	ZVAL_UNDEF(&bev->data);
-}
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
 /* Private }}} */
@@ -320,7 +241,7 @@ static void _create_ssl_filter(INTERNAL_FUNCTION_PARAMETERS, zend_bool deprecate
  * socket parameter may be created as a stream(not necessarily by means of sockets extension)
  *
  * Returns buffer event resource optionally associated with socket resource. */
-PHP_METHOD(EventBufferEvent, __construct)
+PHP_EVENT_METHOD(EventBufferEvent, __construct)
 {
 	zval                 *zself     = getThis();
 	zval                 *zbase;
@@ -337,8 +258,9 @@ PHP_METHOD(EventBufferEvent, __construct)
 	bufferevent_data_cb   write_cb;
 	bufferevent_event_cb  event_cb;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "o|z!lf!f!f!z!",
-				&zbase, &pzfd, &options,
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "O|z!lf!f!f!z!",
+				&zbase, php_event_base_ce,
+				&pzfd, &options,
 				&fci_read,  &fcc_read,
 				&fci_write, &fcc_write,
 				&fci_event, &fcc_event,
@@ -429,7 +351,7 @@ PHP_METHOD(EventBufferEvent, __construct)
 /* }}} */
 
 /* {{{ proto void EventBufferEvent::free(void); */
-PHP_METHOD(EventBufferEvent, free)
+PHP_EVENT_METHOD(EventBufferEvent, free)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -470,7 +392,7 @@ PHP_METHOD(EventBufferEvent, free)
 /* }}} */
 
 /* {{{ proto bool EventBufferEvent::close(void); */
-PHP_METHOD(EventBufferEvent, close)
+PHP_EVENT_METHOD(EventBufferEvent, close)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -491,7 +413,7 @@ PHP_METHOD(EventBufferEvent, close)
 }
 /* }}} */
 
-/* {{{ proto array EventBufferEvent::createPair(EventBase base[, int options = 0]);
+/* {{{ proto ?array EventBufferEvent::createPair(EventBase base[, int options = 0]);
  *
  * options is one of EVENT_BEV_OPT_* constants, or 0.
  *
@@ -499,7 +421,7 @@ PHP_METHOD(EventBufferEvent, close)
  * All the usual options are supported, except for EVENT_BEV_OPT_CLOSE_ON_FREE,
  * which has no effect, and EVENT_BEV_OPT_DEFER_CALLBACKS, which is always on.
  */
-PHP_METHOD(EventBufferEvent, createPair)
+PHP_EVENT_METHOD(EventBufferEvent, createPair)
 {
 	zval               *zbase;
 	php_event_base_t   *base;
@@ -552,7 +474,7 @@ PHP_METHOD(EventBufferEvent, createPair)
  *    IPv4Address
  *    unix:path-to-socket-file
  */
-PHP_METHOD(EventBufferEvent, connect)
+PHP_EVENT_METHOD(EventBufferEvent, connect)
 {
 	php_event_bevent_t      *bev;
 	zval                    *zbevent  = getThis();
@@ -606,7 +528,7 @@ PHP_METHOD(EventBufferEvent, connect)
 }
 /* }}} */
 
-/* {{{ proto bool EventBufferEvent::connectHost(EventDnsBase dns_base, string hostname, int port[, int family = EventUtil::AF_UNSPEC]);
+/* {{{ proto bool EventBufferEvent::connectHost(?EventDnsBase dns_base, string hostname, int port[, int family = EventUtil::AF_UNSPEC]);
  *
  * Resolves the DNS name hostname, looking for addresses of type
  * family(EVENT_AF_* constants). If the name resolution fails, it invokes the
@@ -624,7 +546,7 @@ PHP_METHOD(EventBufferEvent, connect)
  * ::1 (ipv6address)
  * [::1] ([ipv6address])
  */
-PHP_METHOD(EventBufferEvent, connectHost)
+PHP_EVENT_METHOD(EventBufferEvent, connectHost)
 {
 #if LIBEVENT_VERSION_NUMBER < 0x02000300
 	PHP_EVENT_LIBEVENT_VERSION_REQUIRED(bufferevent_socket_connect_hostname, 2.0.3-alpha);
@@ -705,7 +627,7 @@ PHP_METHOD(EventBufferEvent, connectHost)
  * Returns string describing the last failed DNS lookup attempt made by
  * bufferevent_socket_connect_hostname(), or an empty string, if no DNS error
  * detected. */
-PHP_METHOD(EventBufferEvent, getDnsErrorString)
+PHP_EVENT_METHOD(EventBufferEvent, getDnsErrorString)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -732,7 +654,7 @@ PHP_METHOD(EventBufferEvent, getDnsErrorString)
  * A callback may be disabled by passing NULL instead of the callable.
  * arg is an argument passed to the callbacks.
  */
-PHP_METHOD(EventBufferEvent, setCallbacks)
+PHP_EVENT_METHOD(EventBufferEvent, setCallbacks)
 {
 	zval                 *zbevent   = getThis();
 	php_event_bevent_t   *bev;
@@ -786,7 +708,7 @@ PHP_METHOD(EventBufferEvent, setCallbacks)
 
 /* {{{ proto bool EventBufferEvent::enable(int events);
  * Enable events EVENT_READ, EVENT_WRITE, or EVENT_READ | EVENT_WRITE on a buffer event. */
-PHP_METHOD(EventBufferEvent, enable)
+PHP_EVENT_METHOD(EventBufferEvent, enable)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -810,7 +732,7 @@ PHP_METHOD(EventBufferEvent, enable)
 
 /* {{{ proto bool EventBufferEvent::disable(int events);
  * Disable events EVENT_READ, EVENT_WRITE, or EVENT_READ | EVENT_WRITE on a buffer event. */
-PHP_METHOD(EventBufferEvent,disable)
+PHP_EVENT_METHOD(EventBufferEvent,disable)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -834,7 +756,7 @@ PHP_METHOD(EventBufferEvent,disable)
 
 /* {{{ proto int EventBufferEvent::getEnabled(void);
  * Returns bitmask of events currently enabled on the buffer event. */
-PHP_METHOD(EventBufferEvent, getEnabled)
+PHP_EVENT_METHOD(EventBufferEvent, getEnabled)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -854,7 +776,7 @@ PHP_METHOD(EventBufferEvent, getEnabled)
 /* {{{ proto EventBuffer EventBufferEvent::getInput(void);
  *
  * Returns an input EventBuffer object associated with the buffer event */
-PHP_METHOD(EventBufferEvent, getInput)
+PHP_EVENT_METHOD(EventBufferEvent, getInput)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -881,7 +803,7 @@ PHP_METHOD(EventBufferEvent, getInput)
 /* {{{ proto EventBuffer EventBufferEvent::getOutput(void);
  *
  * Returns an output EventBuffer object associated with the buffer event */
-PHP_METHOD(EventBufferEvent, getOutput)
+PHP_EVENT_METHOD(EventBufferEvent, getOutput)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -907,7 +829,7 @@ PHP_METHOD(EventBufferEvent, getOutput)
 
 /* {{{ proto void EventBufferEvent::setWatermark(int events, int lowmark, int highmark);
  * Adjusts the read watermarks, the write watermarks, or both, of a single bufferevent. */
-PHP_METHOD(EventBufferEvent, setWatermark)
+PHP_EVENT_METHOD(EventBufferEvent, setWatermark)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -929,7 +851,7 @@ PHP_METHOD(EventBufferEvent, setWatermark)
 
 /* {{{ proto bool EventBufferEvent::write(string data);
  * Adds `data' to a buffer event's output buffer. */
-PHP_METHOD(EventBufferEvent, write)
+PHP_EVENT_METHOD(EventBufferEvent, write)
 {
 	zval               *zbevent  = getThis();
 	php_event_bevent_t *bev;
@@ -953,7 +875,7 @@ PHP_METHOD(EventBufferEvent, write)
 
 /* {{{ proto bool EventBufferEvent::writeBuffer(EventBuffer buf);
  * Adds contents of the entire buffer to a buffer event's output buffer. */
-PHP_METHOD(EventBufferEvent, writeBuffer)
+PHP_EVENT_METHOD(EventBufferEvent, writeBuffer)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -978,10 +900,10 @@ PHP_METHOD(EventBufferEvent, writeBuffer)
 }
 /* }}} */
 
-/* {{{ proto string EventBufferEvent::read(int size);
+/* {{{ proto ?string EventBufferEvent::read(int size);
  * Removes up to size bytes from the input buffer, storing them into the memory at data.
  */
-PHP_METHOD(EventBufferEvent, read)
+PHP_EVENT_METHOD(EventBufferEvent, read)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -1018,7 +940,7 @@ PHP_METHOD(EventBufferEvent, read)
 
 /* {{{ proto bool EventBufferEvent::readBuffer(EventBuffer buf);
  * Drains the entire contents of the input buffer and places them into buf */
-PHP_METHOD(EventBufferEvent, readBuffer)
+PHP_EVENT_METHOD(EventBufferEvent, readBuffer)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -1046,7 +968,7 @@ PHP_METHOD(EventBufferEvent, readBuffer)
 /* {{{ proto bool EventBufferEvent::setPriority(int priority);
  * Assign a priority to a bufferevent.
  * Only supported for socket bufferevents. */
-PHP_METHOD(EventBufferEvent, setPriority)
+PHP_EVENT_METHOD(EventBufferEvent, setPriority)
 {
 	zval               *zbevent  = getThis();
 	php_event_bevent_t *bev;
@@ -1070,7 +992,7 @@ PHP_METHOD(EventBufferEvent, setPriority)
 
 /* {{{ proto bool EventBufferEvent::setTimeouts(double timeout_read, double timeout_write);
  * Set the read and write timeout for a bufferevent. */
-PHP_METHOD(EventBufferEvent, setTimeouts)
+PHP_EVENT_METHOD(EventBufferEvent, setTimeouts)
 {
 	zval               *zbevent       = getThis();
 	php_event_bevent_t *bev;
@@ -1099,25 +1021,80 @@ PHP_METHOD(EventBufferEvent, setTimeouts)
 /* }}} */
 
 #ifdef HAVE_EVENT_OPENSSL_LIB /* {{{ */
-/* {{{ proto EventBufferEvent EventBufferEvent::sslFilter(zval unused, EventBufferEvent underlying, EventSslContext ctx, int state[, int options = 0]);
- */
-PHP_METHOD(EventBufferEvent, sslFilter)
-{
-	_create_ssl_filter(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
-}
-/* }}} */
 
 /* {{{ proto EventBufferEvent EventBufferEvent::createSslFilter(EventBufferEvent underlying, EventSslContext ctx, int state[, int options = 0]);
  */
-PHP_METHOD(EventBufferEvent, createSslFilter)
+PHP_EVENT_METHOD(EventBufferEvent, createSslFilter)
 {
-	_create_ssl_filter(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
+	php_event_base_t        *base;
+	zval                    *zunderlying;
+	php_event_bevent_t      *bev_underlying;
+	zval                    *zctx;
+	php_event_ssl_context_t *ectx;
+	zend_long                state;
+	zend_long                options        = 0;
+	php_event_bevent_t      *bev;
+	struct bufferevent      *bevent;
+	SSL                     *ssl;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "OOl|l",
+				&zunderlying, php_event_bevent_ce,
+				&zctx, php_event_ssl_context_ce,
+				&state, &options) == FAILURE) {
+		return;
+	}
+
+	if (!is_valid_ssl_state(state)) {
+		php_error_docref(NULL, E_WARNING, "Invalid state specified");
+		RETURN_FALSE;
+	}
+
+	bev_underlying = Z_EVENT_BEVENT_OBJ_P(zunderlying);
+	_ret_if_invalid_bevent_ptr(bev_underlying);
+
+	/* Must also be the base for the underlying bufferevent. See Libevent reference. */
+	base = Z_EVENT_BASE_OBJ_P(&bev_underlying->base);
+
+	ectx = Z_EVENT_SSL_CONTEXT_OBJ_P(zctx);
+
+	PHP_EVENT_INIT_CLASS_OBJECT(return_value, php_event_bevent_ce);
+	bev = Z_EVENT_BEVENT_OBJ_P(return_value);
+
+	if (UNEXPECTED(ectx->ctx == NULL)) {
+		RETURN_FALSE;
+	}
+	ssl = SSL_new(ectx->ctx);
+	if (UNEXPECTED(!ssl)) {
+		php_error_docref(NULL, E_WARNING, "Event: Failed creating SSL handle");
+		RETURN_FALSE;
+	}
+	/* Attach ectx to ssl for callbacks */
+	SSL_set_ex_data(ssl, php_event_ssl_data_index, ectx);
+
+#ifdef HAVE_EVENT_PTHREADS_LIB
+	options |= BEV_OPT_THREADSAFE;
+#endif
+	bevent = bufferevent_openssl_filter_new(base->base,
+			bev_underlying->bevent,
+			ssl, state, options);
+	if (bevent == NULL) {
+		php_error_docref(NULL, E_WARNING, "Failed to allocate bufferevent filter");
+		RETURN_FALSE;
+	}
+	bev->bevent = bevent;
+
+	ZVAL_COPY_VALUE(&bev->self, return_value);
+	ZVAL_COPY(&bev->base, &bev_underlying->base);
+
+	ZVAL_UNDEF(&bev->input);
+	ZVAL_UNDEF(&bev->output);
+	ZVAL_UNDEF(&bev->data);
 }
 /* }}} */
 
 /* {{{ proto EventBufferEvent EventBufferEvent::sslSocket(EventBase base, mixed socket, EventSslContext ctx, int state[, int options = 0]);
  * */
-PHP_METHOD(EventBufferEvent, sslSocket)
+PHP_EVENT_METHOD(EventBufferEvent, sslSocket)
 {
 	zval                     *zbase;
 	php_event_base_t         *base;
@@ -1195,7 +1172,7 @@ PHP_METHOD(EventBufferEvent, sslSocket)
  *
  * Returns most recent OpenSSL error reported on the buffer event. The function
  * returns FALSE, if there is no more error to return. */
-PHP_METHOD(EventBufferEvent, sslError)
+PHP_EVENT_METHOD(EventBufferEvent, sslError)
 {
 	zval               *zbevent  = getThis();
 	php_event_bevent_t *bev;
@@ -1228,7 +1205,7 @@ PHP_METHOD(EventBufferEvent, sslError)
  * especially since many SSL versions have had known security issues related to
  * renegotiation.
  **/
-PHP_METHOD(EventBufferEvent, sslRenegotiate)
+PHP_EVENT_METHOD(EventBufferEvent, sslRenegotiate)
 {
 	zval               *zbevent  = getThis();
 	php_event_bevent_t *bev;
@@ -1248,7 +1225,7 @@ PHP_METHOD(EventBufferEvent, sslRenegotiate)
  *
  * Returns the current Cipher of the connexion as
  * SSL_get_current_cipher/SSL_CIPHER_description do. Otherwise FALSE. */
-PHP_METHOD(EventBufferEvent, sslGetCipherInfo)
+PHP_EVENT_METHOD(EventBufferEvent, sslGetCipherInfo)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -1282,7 +1259,7 @@ PHP_METHOD(EventBufferEvent, sslGetCipherInfo)
  *
  * Returns the current Cipher Name of the connection as SSL_get_cipher_name does.
  * returns FALSE, if there is no more error to return. */
-PHP_METHOD(EventBufferEvent, sslGetCipherName)
+PHP_EVENT_METHOD(EventBufferEvent, sslGetCipherName)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;
@@ -1307,7 +1284,7 @@ PHP_METHOD(EventBufferEvent, sslGetCipherName)
  *
  * Returns the current cipher version of the connection as SSL_get_cipher_version does.
  * returns FALSE, if there is no more error to return. */
-PHP_METHOD(EventBufferEvent, sslGetCipherVersion)
+PHP_EVENT_METHOD(EventBufferEvent, sslGetCipherVersion)
 {
 	zval               *zbevent  = getThis();
 	php_event_bevent_t *bev;
@@ -1332,7 +1309,7 @@ PHP_METHOD(EventBufferEvent, sslGetCipherVersion)
  *
  * Returns the current Protocol of the connection as SSL_get_version does,
  * otherwise FALSE. */
-PHP_METHOD(EventBufferEvent, sslGetProtocol)
+PHP_EVENT_METHOD(EventBufferEvent, sslGetProtocol)
 {
 	zval               *zbevent = getThis();
 	php_event_bevent_t *bev;

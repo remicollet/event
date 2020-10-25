@@ -15,16 +15,32 @@
    | Author: Ruslan Osmanov <osmanov@php.net>                             |
    +----------------------------------------------------------------------+
 */
+#ifndef PHP_EVENT_ARGINFO_LKS393_H
+#define PHP_EVENT_ARGINFO_LKS393_H
 
-#include "common.h"
-#include "priv.h"
-#include "arginfo.h"
+#include "src/common.h"
+#include "src/util.h"
 
+# define PHP_EVENT_ARG_OBJ_INFO(pass_by_ref, name, classname, allow_null) \
+	{ #name, ZEND_TYPE_INIT_CLASS_CONST(PHP_EVENT_NS_NAME(classname), allow_null, _ZEND_ARG_INFO_FLAGS(pass_by_ref, 0)), NULL },
+
+# define PHP_EVENT_ARG_OBJ_INFO_WITH_DEFAULT_VALUE(pass_by_ref, name, classname, allow_null, default_value) \
+	{ #name, ZEND_TYPE_INIT_CLASS_CONST(PHP_EVENT_NS_NAME(classname), allow_null, _ZEND_ARG_INFO_FLAGS(pass_by_ref, 0)), default_value },
+
+#include "php_event_arginfo.h" /* Generated arginfo */
+
+#ifdef PHP_EVENT_NS_RAW
+# define PHP_EVENT_METHODS(class_name) PHP_EVENT_CAT(class_, PHP_EVENT_CAT(PHP_EVENT_NS_RAW, PHP_EVENT_CAT(_, PHP_EVENT_CAT(class_name, _methods))))
+#else
+# define PHP_EVENT_METHODS(class_name) PHP_EVENT_CAT(class_, PHP_EVENT_CAT(_, PHP_EVENT_CAT(class_name, _methods)))
+#endif /* PHP_EVENT_NS_RAW */
+
+#endif /* PHP_EVENT_ARGINFO_LKS393_H */
 /*
  * Local variables:
  * tab-width: 4
  * c-basic-offset: 4
  * End:
- * vim600: fdm=marker
- * vim: noet sts=4 sw=4 ts=4
+ * vim600: noet sw=4 ts=4 sts=4 fdm=marker
+ * vim<600: noet sw=4 ts=4 sts=4
  */

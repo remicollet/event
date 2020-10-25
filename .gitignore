@@ -38,3 +38,4 @@ Makefile*
 
 /config*
 !/config.[m4,w32]
+/php8/php_event.stub.php

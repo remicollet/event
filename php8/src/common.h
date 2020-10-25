@@ -95,7 +95,7 @@
 #include "../php_event.h"
 #include "structs.h"
 
-#endif
+#endif /* PHP_EVENT_COMMON_H */
 
 /*
  * Local variables:
