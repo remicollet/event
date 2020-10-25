@@ -214,13 +214,18 @@ if test "$PHP_EVENT_CORE" != "no"; then
       AC_PATH_PROG(SED, sed)
     fi
     PHP_EVENT_NS=$(echo "$PHP_EVENT_NS" | $SED -e 's/\\/\\\\/g')
+    PHP_EVENT_ALIAS_PREFIX="${PHP_EVENT_NS}\\"
     AC_DEFINE_UNQUOTED(PHP_EVENT_NS, ["$PHP_EVENT_NS"], [Custom PHP namespace for all Event classes])
     AC_DEFINE_UNQUOTED(PHP_EVENT_NS_RAW, [$PHP_EVENT_NS], [Custom PHP namespace for all Event classes for macros])
+  else
+    PHP_EVENT_NS=
+    PHP_EVENT_ALIAS_PREFIX=
   fi
   PHP_EVENT_STUB_PHP_IN="$PHP_EVENT_SUBDIR/php_event.stub.php.in"
   if test -e "$PHP_EVENT_STUB_PHP_IN"; then
     PHP_EVENT_STUB_PHP="$PHP_EVENT_SUBDIR/php_event.stub.php"
     AC_SUBST(PHP_EVENT_NS)
+    AC_SUBST(PHP_EVENT_ALIAS_PREFIX)
     AC_CONFIG_FILES(["$PHP_EVENT_STUB_PHP":"$PHP_EVENT_STUB_PHP_IN"])
     dnl# $SED -i.bak -e 's/^namespace *PHP_EVENT_NS/namespace '"$PHP_EVENT_NS"'/g' "$PHP_EVENT_STUB_PHP_IN"
   fi

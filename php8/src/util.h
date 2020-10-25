@@ -31,7 +31,7 @@
 #define PHP_EVENT_CAT(x, y) PHP_EVENT_CAT_(x, y)
 #define PHP_EVENT_MN(x) ZEND_MN(x)
 
-#ifdef PHP_EVENT_NS_RAW
+#if defined(PHP_EVENT_NS) && defined(PHP_EVENT_NS_RAW)
 # define PHP_EVENT_METHOD(classname, name) \
     ZEND_NAMED_FUNCTION(PHP_EVENT_MN(PHP_EVENT_CAT(PHP_EVENT_NS_RAW, PHP_EVENT_CAT(_, PHP_EVENT_CAT(classname, PHP_EVENT_CAT(_, name))))))
 #else

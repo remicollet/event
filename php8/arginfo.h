@@ -29,10 +29,10 @@
 
 #include "php_event_arginfo.h" /* Generated arginfo */
 
-#ifdef PHP_EVENT_NS_RAW
-# define PHP_EVENT_METHODS(class_name) PHP_EVENT_CAT(class_, PHP_EVENT_CAT(PHP_EVENT_NS_RAW, PHP_EVENT_CAT(_, PHP_EVENT_CAT(class_name, _methods))))
+#if defined(PHP_EVENT_NS) && defined(PHP_EVENT_NS_RAW)
+# define PHP_EVENT_METHODS(classname) PHP_EVENT_CAT(class_, PHP_EVENT_CAT(PHP_EVENT_NS_RAW, PHP_EVENT_CAT(_, PHP_EVENT_CAT(classname, _methods))))
 #else
-# define PHP_EVENT_METHODS(class_name) PHP_EVENT_CAT(class_, PHP_EVENT_CAT(_, PHP_EVENT_CAT(class_name, _methods)))
+# define PHP_EVENT_METHODS(classname) class_##classname##_methods
 #endif /* PHP_EVENT_NS_RAW */
 
 #endif /* PHP_EVENT_ARGINFO_LKS393_H */
