@@ -27,7 +27,7 @@ foreach ($methods as $method) {
 $base = new $eventBaseClass();
 $b = new $eventBufferEventClass($base);
 $ctx = new $eventSslContextClass($method, []);
-$eventBufferEventClass::createSslFilter($b, $ctx, $eventBufferEventClass::SSL_ACCEPTING);
+$eventBufferEventClass::createSslFilter($b, $ctx, (int)$eventBufferEventClass::SSL_ACCEPTING, 0);
 echo 'ok';
 ?>
 --EXPECT--

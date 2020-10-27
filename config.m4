@@ -1,7 +1,7 @@
 dnl +----------------------------------------------------------------------+
-dnl | PHP Version 7                                                        |
+dnl | PHP Version 8                                                        |
 dnl +----------------------------------------------------------------------+
-dnl | Copyrght (C) 1997-2019 The PHP Group                                 |
+dnl | Copyrght (C) 1997-2020 The PHP Group                                 |
 dnl +----------------------------------------------------------------------+
 dnl | This source file is subject to version 3.01 of the PHP license,      |
 dnl | that is bundled with this package in the file LICENSE, and is        |
@@ -60,8 +60,17 @@ if test "$PHP_EVENT_CORE" != "no"; then
       PHP_EVENT_SUBDIR=php5
       AC_MSG_RESULT([PHP 5.x])
     ],[
-      PHP_EVENT_SUBDIR=php7
-      AC_MSG_RESULT([PHP 7.x])
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <php_version.h>]], [[
+      #if PHP_MAJOR_VERSION > 7
+      # error PHP > 7
+      #endif
+      ]])],[
+        PHP_EVENT_SUBDIR=php7
+        AC_MSG_RESULT([PHP 7.x])
+      ],[
+        PHP_EVENT_SUBDIR=php8
+        AC_MSG_RESULT([PHP 8.x])
+      ])
     ])
     export CPPFLAGS="$OLD_CPPFLAGS"
 
@@ -205,7 +214,20 @@ if test "$PHP_EVENT_CORE" != "no"; then
       AC_PATH_PROG(SED, sed)
     fi
     PHP_EVENT_NS=$(echo "$PHP_EVENT_NS" | $SED -e 's/\\/\\\\/g')
+    PHP_EVENT_ALIAS_PREFIX="${PHP_EVENT_NS}\\"
     AC_DEFINE_UNQUOTED(PHP_EVENT_NS, ["$PHP_EVENT_NS"], [Custom PHP namespace for all Event classes])
+    AC_DEFINE_UNQUOTED(PHP_EVENT_NS_RAW, [$PHP_EVENT_NS], [Custom PHP namespace for all Event classes for macros])
+  else
+    PHP_EVENT_NS=
+    PHP_EVENT_ALIAS_PREFIX=
+  fi
+  PHP_EVENT_STUB_PHP_IN="$PHP_EVENT_SUBDIR/php_event.stub.php.in"
+  if test -e "$PHP_EVENT_STUB_PHP_IN"; then
+    PHP_EVENT_STUB_PHP="$PHP_EVENT_SUBDIR/php_event.stub.php"
+    AC_SUBST(PHP_EVENT_NS)
+    AC_SUBST(PHP_EVENT_ALIAS_PREFIX)
+    AC_CONFIG_FILES(["$PHP_EVENT_STUB_PHP":"$PHP_EVENT_STUB_PHP_IN"])
+    dnl# $SED -i.bak -e 's/^namespace *PHP_EVENT_NS/namespace '"$PHP_EVENT_NS"'/g' "$PHP_EVENT_STUB_PHP_IN"
   fi
 
   PHP_NEW_EXTENSION(event, $event_src, $ext_shared,,$CFLAGS -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)

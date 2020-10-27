@@ -7,7 +7,7 @@ $eventConfigClass = EVENT_NS . '\\EventConfig';
 $eventClass = EVENT_NS . '\\Event';
 
 $base = new $eventBaseClass();
-$e = new $eventClass($base, -1, Event::TIMEOUT, function () {
+$e = new $eventClass($base, -1, $eventClass::TIMEOUT, function () {
     throw new \Exception('issue61');
 });
 $e->addTimer(0);
