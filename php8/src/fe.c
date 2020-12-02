@@ -18,7 +18,7 @@
 
 #include "common.h"
 #include "priv.h"
-#include "arginfo.h"
+#include "../arginfo.h"
 
 /*
  * Local variables:
