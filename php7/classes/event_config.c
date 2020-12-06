@@ -51,7 +51,7 @@ PHP_METHOD(EventConfig, __wakeup)
 }
 /*}}}*/
 
-/* {{{ proto bool EventConfig::avoidMethod(EventConfig cfg, string method);
+/* {{{ proto bool EventConfig::avoidMethod(string method);
  * Tells libevent to avoid specific event method.
  * See http://www.wangafu.net/~nickm/libevent-book/Ref2_eventbase.html#_creating_an_event_base
  * Returns &true; on success, otherwise &false;.*/

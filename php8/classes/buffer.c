@@ -449,7 +449,7 @@ PHP_EVENT_METHOD(EventBuffer, readLine)
 }
 /* }}} */
 
-/* {{{ proto int|false EventBuffer::search(int what[, int start = -1[, int end = -1]]);
+/* {{{ proto int|false EventBuffer::search(string what[, int start = -1[, int end = -1]]);
  *
  * Scans the buffer for an occurrence of the len-character string what. It
  * returns object representing the position of the string, or NULL if the

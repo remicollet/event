@@ -1,15 +1,16 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 058f9d439a13de47f33c56d64c39e9318a4104de */
+ * Stub hash: 774bc13107781407ed667172e6a84beeb062ab10 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_EventConfig___construct, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_EventConfig___sleep arginfo_class_EventConfig___construct
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventConfig___sleep, 0, 0, IS_ARRAY, 0)
+ZEND_END_ARG_INFO()
 
-#define arginfo_class_EventConfig___wakeup arginfo_class_EventConfig___construct
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventConfig___wakeup, 0, 0, IS_VOID, 0)
+ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventConfig_avoidMethod, 0, 2, _IS_BOOL, 0)
-	ZEND_ARG_OBJ_INFO(0, cfg, EventConfig, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventConfig_avoidMethod, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, method, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
@@ -35,9 +36,9 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_class_EventBase___construct, 0, 0, 0)
 	ZEND_ARG_OBJ_INFO_WITH_DEFAULT_VALUE(0, cfg, EventConfig, 1, "null")
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_EventBase___sleep arginfo_class_EventConfig___construct
+#define arginfo_class_EventBase___sleep arginfo_class_EventConfig___sleep
 
-#define arginfo_class_EventBase___wakeup arginfo_class_EventConfig___construct
+#define arginfo_class_EventBase___wakeup arginfo_class_EventConfig___wakeup
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventBase_getMethod, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()
@@ -75,8 +76,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_EventBase_reInit arginfo_class_EventBase_dispatch
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventBase_free, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
+#define arginfo_class_EventBase_free arginfo_class_EventConfig___wakeup
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventBase_updateCacheTime, 0, 0, _IS_BOOL, 0)
@@ -96,7 +96,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Event___construct, 0, 0, 4)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, arg, IS_MIXED, 1, "null")
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_Event_free arginfo_class_EventBase_free
+#define arginfo_class_Event_free arginfo_class_EventConfig___wakeup
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Event_set, 0, 2, _IS_BOOL, 0)
 	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
@@ -106,8 +106,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Event_set, 0, 2, _IS_BOOL,
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, arg, IS_MIXED, 1, "null")
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Event_getSupportedMethods, 0, 0, IS_ARRAY, 0)
-ZEND_END_ARG_INFO()
+#define arginfo_class_Event_getSupportedMethods arginfo_class_EventConfig___sleep
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Event_add, 0, 0, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, timeout, IS_DOUBLE, 0, "-1")
@@ -229,12 +228,12 @@ ZEND_END_ARG_INFO()
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
-ZEND_BEGIN_ARG_INFO_EX(arginfo_class_EventHttpConnection___sleep, 0, 0, 0)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventHttpConnection___sleep, 0, 0, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
-#define arginfo_class_EventHttpConnection___wakeup arginfo_class_EventHttpConnection___sleep
+#define arginfo_class_EventHttpConnection___wakeup arginfo_class_EventDnsBase_clearSearch
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
@@ -316,7 +315,7 @@ ZEND_END_ARG_INFO()
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
-#define arginfo_class_EventHttp___wakeup arginfo_class_EventHttpConnection___sleep
+#define arginfo_class_EventHttp___wakeup arginfo_class_EventDnsBase_clearSearch
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
@@ -389,7 +388,7 @@ ZEND_END_ARG_INFO()
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
-#define arginfo_class_EventHttpRequest___wakeup arginfo_class_EventHttpConnection___sleep
+#define arginfo_class_EventHttpRequest___wakeup arginfo_class_EventDnsBase_clearSearch
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
@@ -414,12 +413,11 @@ ZEND_END_ARG_INFO()
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventHttpRequest_getInputHeaders, 0, 0, IS_ARRAY, 0)
-ZEND_END_ARG_INFO()
+#define arginfo_class_EventHttpRequest_getInputHeaders arginfo_class_EventHttpConnection___sleep
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
-#define arginfo_class_EventHttpRequest_getOutputHeaders arginfo_class_EventHttpRequest_getInputHeaders
+#define arginfo_class_EventHttpRequest_getOutputHeaders arginfo_class_EventHttpConnection___sleep
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
@@ -523,7 +521,7 @@ ZEND_END_ARG_INFO()
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
-#define arginfo_class_EventListener___wakeup arginfo_class_EventHttpConnection___sleep
+#define arginfo_class_EventListener___wakeup arginfo_class_EventDnsBase_clearSearch
 #endif
 
 #if HAVE_EVENT_EXTRA_LIB
@@ -567,7 +565,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_EventUtil_getLastSocketErr
 	ZEND_ARG_OBJ_INFO_WITH_DEFAULT_VALUE(0, socket, Socket, 1, "null")
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_EventUtil_getLastSocketError, 0, 0, MAY_BE_LONG|MAY_BE_FALSE)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_EventUtil_getLastSocketError, 0, 0, MAY_BE_STRING|MAY_BE_FALSE)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, socket, IS_MIXED, 1, "null")
 ZEND_END_ARG_INFO()
 
@@ -613,7 +611,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_EventBuffer_unlock arginfo_class_EventBuffer_lock
 
-#define arginfo_class_EventBuffer_enableLocking arginfo_class_EventBase_free
+#define arginfo_class_EventBuffer_enableLocking arginfo_class_EventConfig___wakeup
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventBuffer_add, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, data, IS_STRING, 0)
@@ -652,7 +650,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventBuffer_readLine, 0, 1
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_EventBuffer_search, 0, 1, MAY_BE_LONG|MAY_BE_FALSE)
-	ZEND_ARG_TYPE_INFO(0, what, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, what, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, start, IS_LONG, 0, "-1")
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, end, IS_LONG, 0, "-1")
 ZEND_END_ARG_INFO()
@@ -688,9 +686,9 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_class_EventBufferEvent___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, arg, IS_MIXED, 1, "null")
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_EventBufferEvent_free arginfo_class_EventBase_free
+#define arginfo_class_EventBufferEvent_free arginfo_class_EventConfig___wakeup
 
-#define arginfo_class_EventBufferEvent_close arginfo_class_EventBase_free
+#define arginfo_class_EventBufferEvent_close arginfo_class_EventConfig___wakeup
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_EventBufferEvent_connect, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, addr, IS_STRING, 0)

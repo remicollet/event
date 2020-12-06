@@ -5,9 +5,9 @@ namespace @PHP_EVENT_NS@ {
 
 class EventConfig {
     public function __construct() {}
-    final public function __sleep() {}
-    final public function __wakeup() {}
-    public static function avoidMethod(EventConfig $cfg, string $method): bool {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
+    public static function avoidMethod(string $method): bool {}
     public function requireFeatures(int $feature): bool {}
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
     public function setMaxDispatchInterval(int $max_interval, int $max_callbacks, int $min_priority): void {}
@@ -19,8 +19,8 @@ class EventConfig {
 
 class EventBase {
     public function __construct(?EventConfig $cfg = null) {}
-    final public function __sleep() {}
-    final public function __wakeup() {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
     public function getMethod(): string {}
     public function getFeatures(): int {}
     public function priorityInit(int $n_priorities): bool {}
@@ -94,8 +94,8 @@ class EventHttpConnection {
 #else
     public function __construct(EventBase $base, ?EventDnsBase $dns_base, string $address, int $port) {}
 #endif
-    final public function __sleep() {}
-    final public function __wakeup() {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
     public function getBase() : EventBase|false {}
     public function getPeer(?mixed &$address, ?mixed &$port) : void {}
     public function setLocalAddress(string $address) : void {}
@@ -114,8 +114,8 @@ class EventHttp {
 #else
 	public function __construct(EventBase $base) {}
 #endif
-    final public function __sleep() {}
-    final public function __wakeup() {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
 	public function accept(mixed $socket): bool {}
 	public function bind(string $address, int $port): bool {}
 	public function setCallback(string $path, callable $cb, ?mixed $arg = null): bool {}
@@ -131,8 +131,8 @@ class EventHttp {
 class EventHttpRequest {
 
 	public function __construct(callable $callback, ?mixed $data = null) {}
-    final public function __sleep() {}
-    final public function __wakeup() {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
     public function free(): void {}
     public function getCommand(): int {}
     public function getHost(): string {}
@@ -161,8 +161,8 @@ class EventHttpRequest {
 
 class EventListener {
     public function __construct(EventBase $base, callable $cb, ?mixed $data, int $flags, int $backlog, mixed $target) {}
-    final public function __sleep() {}
-    final public function __wakeup() {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
     public function free(): void {}
     public function enable(): bool {}
     public function disable(): bool {}
@@ -179,7 +179,7 @@ class EventListener {
 class EventUtil {
     private function __construct() {}
     public static function getLastSocketErrno(?\Socket $socket = null): int|false {}
-    public static function getLastSocketError(?mixed $socket = null): int|false {}
+    public static function getLastSocketError(?mixed $socket = null): string|false {}
 #ifdef HAVE_EVENT_OPENSSL_LIB
 	public static function sslRandPoll(): bool {}
 #endif
@@ -208,7 +208,7 @@ class EventBuffer {
     public function drain(int $len): bool {}
     public function copyout(string &$data, int $max_bytes): int {}
     public function readLine(int $eol_style): ?string {}
-    public function search(int $what, int $start = -1, int $end = -1): int|false {}
+    public function search(string $what, int $start = -1, int $end = -1): int|false {}
     public function searchEol(int $start = -1, int $eol_style = EventBuffer::EOL_ANY): int|false {}
     public function pullup(int $size): ?string {}
     public function write(mixed $fd, int $howmuch = -1): int|false {}
