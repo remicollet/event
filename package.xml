@@ -32,11 +32,11 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2020-12-02</date>
+  <date>2020-12-06</date>
   <!--{{{ Current version -->
   <version>
-    <release>3.0.1</release>
-    <api>3.0.0</api>
+    <release>3.0.2</release>
+    <api>3.0.2</api>
   </version>
   <stability>
     <release>beta</release>
@@ -44,7 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    - Fixed #64: build failed to find arginfo.h when invoked via pecl install event-beta
+    - Fixed #65: some methods had wrong argument/return type hints
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -238,6 +238,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 3.0.2-beta -->
+    <release>
+      <version>
+        <release>3.0.2</release>
+        <api>3.0.2</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    - Fixed #65: some methods had wrong argument/return type hints
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 3.0.1-beta -->
     <release>
       <version>
