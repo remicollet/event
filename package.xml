@@ -32,11 +32,11 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2021-02-15</date>
+  <date>2021-03-26</date>
   <!--{{{ Current version -->
   <version>
-    <release>3.0.2r1</release>
-    <api>3.0.2r1</api>
+    <release>3.0.3</release>
+    <api>3.0.3</api>
   </version>
   <stability>
     <release>stable</release>
@@ -44,7 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Stable version release.
+    Fixed #66: Segmentation fault when calling EventConfig::avoidMethod because of incorrect arg info
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -238,6 +238,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 3.0.3 -->
+    <release>
+      <version>
+        <release>3.0.3</release>
+        <api>3.0.3</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Fixed #66: Segmentation fault when calling EventConfig::avoidMethod because of incorrect arg info
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 3.0.2r1 -->
     <release>
       <version>
