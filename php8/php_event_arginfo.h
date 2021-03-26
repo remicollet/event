@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 774bc13107781407ed667172e6a84beeb062ab10 */
+ * Stub hash: a6b73da1aafb89d8e74bbc59e9a57eca55a67645 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_EventConfig___construct, 0, 0, 0)
 ZEND_END_ARG_INFO()
@@ -1184,7 +1184,7 @@ static const zend_function_entry class_EventConfig_methods[] = {
 	ZEND_ME(EventConfig, __construct, arginfo_class_EventConfig___construct, ZEND_ACC_PUBLIC)
 	ZEND_ME(EventConfig, __sleep, arginfo_class_EventConfig___sleep, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
 	ZEND_ME(EventConfig, __wakeup, arginfo_class_EventConfig___wakeup, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
-	ZEND_ME(EventConfig, avoidMethod, arginfo_class_EventConfig_avoidMethod, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(EventConfig, avoidMethod, arginfo_class_EventConfig_avoidMethod, ZEND_ACC_PUBLIC)
 	ZEND_ME(EventConfig, requireFeatures, arginfo_class_EventConfig_requireFeatures, ZEND_ACC_PUBLIC)
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
 	ZEND_ME(EventConfig, setMaxDispatchInterval, arginfo_class_EventConfig_setMaxDispatchInterval, ZEND_ACC_PUBLIC)

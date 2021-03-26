@@ -7,7 +7,7 @@ class EventConfig {
     public function __construct() {}
     final public function __sleep() : array {}
     final public function __wakeup() : void {}
-    public static function avoidMethod(string $method): bool {}
+    public function avoidMethod(string $method): bool {}
     public function requireFeatures(int $feature): bool {}
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
     public function setMaxDispatchInterval(int $max_interval, int $max_callbacks, int $min_priority): void {}
