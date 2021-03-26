@@ -43,8 +43,8 @@ pipelines:
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
     - step:
-        name: Build and run tests for PHP 8.0.0RC2
-        image: php:8.0.0RC2-cli
+        name: Build and run tests for PHP 8
+        image: php:8-cli
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
             - docker-php-ext-install sockets
