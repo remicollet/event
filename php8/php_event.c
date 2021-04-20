@@ -535,6 +535,10 @@ static void php_event_ssl_context_dtor_obj(zend_object *object)/*{{{*/
 }/*}}}*/
 #endif /* HAVE_EVENT_OPENSSL_LIB */
 
+static zend_object * event_zend_objects_new(zend_class_entry *ce)/*{{{*/
+{
+	return zend_objects_new(ce);
+}/*}}}*/
 
 static zend_object * event_object_create(zend_class_entry *ce)/*{{{*/
 {
@@ -1021,7 +1025,7 @@ static zend_always_inline void register_classes()/*{{{*/
 	ce->ce_flags |= ZEND_ACC_FINAL;
 #endif /* HAVE_EVENT_EXTRA_LIB */
 
-	PHP_EVENT_REGISTER_CLASS("EventUtil", zend_objects_new, php_event_util_ce, PHP_EVENT_METHODS(EventUtil));
+	PHP_EVENT_REGISTER_CLASS("EventUtil", event_zend_objects_new, php_event_util_ce, PHP_EVENT_METHODS(EventUtil));
 	ce = php_event_util_ce;
 	ce->ce_flags |= ZEND_ACC_FINAL;
 
