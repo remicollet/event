@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2021-03-26</date>
+  <date>2021-04-20</date>
   <!--{{{ Current version -->
   <version>
-    <release>3.0.3</release>
+    <release>3.0.4</release>
     <api>3.0.3</api>
   </version>
   <stability>
@@ -44,7 +44,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed #66: Segmentation fault when calling EventConfig::avoidMethod because of incorrect arg info
+    Internal changes: Created a non-fastcall wrapper for zend_objects_new().
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -238,6 +238,22 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 3.0.4 -->
+    <release>
+      <version>
+        <release>3.0.4</release>
+        <api>3.0.3</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Internal changes: Created a non-fastcall wrapper for zend_objects_new().
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 3.0.3 -->
     <release>
       <version>
