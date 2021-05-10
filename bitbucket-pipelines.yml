@@ -5,13 +5,12 @@ pipelines:
         image: php:5.6-cli
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
-            - docker-php-ext-install sockets
-            - sockets_ini=$(php -i | grep -m 1 -o -E '/.*sockets\.ini') && test -z "$sockets_ini" || mv -v "$sockets_ini" "$(echo "$sockets_ini" | sed -e 's/sockets.ini/0-sockets.ini/')"
+            - docker-php-ext-install sockets && docker-php-ext-enable --ini-name 0-sockets.ini sockets
             - docker-php-source extract
             - phpize
             - ./configure --with-event-core --with-event-extra --with-event-openssl
             - make install
-            - echo 'extension=event.so' > /usr/local/etc/php/conf.d/z-event.ini
+            - docker-php-ext-enable --ini-name z-event.ini event
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
     - step:
@@ -19,13 +18,12 @@ pipelines:
         image: php:7.3-cli
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
-            - docker-php-ext-install sockets
-            - sockets_ini=$(php -i | grep -m 1 -o -E '/.*sockets\.ini') && test -z "$sockets_ini" || mv -v "$sockets_ini" "$(echo "$sockets_ini" | sed -e 's/sockets.ini/0-sockets.ini/')"
+            - docker-php-ext-install sockets && docker-php-ext-enable --ini-name 0-sockets.ini sockets
             - docker-php-source extract
             - phpize
             - ./configure --with-event-core --with-event-extra --with-event-openssl
             - make install
-            - echo 'extension=event.so' > /usr/local/etc/php/conf.d/z-event.ini
+            - docker-php-ext-enable --ini-name z-event.ini event
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
     - step:
@@ -33,13 +31,12 @@ pipelines:
         image: php:7.4-cli
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
-            - docker-php-ext-install sockets
-            - sockets_ini=$(php -i | grep -m 1 -o -E '/.*sockets\.ini') && test -z "$sockets_ini" || mv -v "$sockets_ini" "$(echo "$sockets_ini" | sed -e 's/sockets.ini/0-sockets.ini/')"
+            - docker-php-ext-install sockets && docker-php-ext-enable --ini-name 0-sockets.ini sockets
             - docker-php-source extract
             - phpize
             - ./configure --with-event-core --with-event-extra --with-event-openssl
             - make install
-            - echo 'extension=event.so' > /usr/local/etc/php/conf.d/z-event.ini
+            - docker-php-ext-enable --ini-name z-event.ini event
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
     - step:
@@ -47,12 +44,11 @@ pipelines:
         image: php:8-cli
         script:
             - apt-get update && apt-get install -y libevent-dev libssl-dev
-            - docker-php-ext-install sockets
-            - sockets_ini=$(php -i | grep -m 1 -o -E '/.*sockets\.ini') && test -z "$sockets_ini" || mv -v "$sockets_ini" "$(echo "$sockets_ini" | sed -e 's/sockets.ini/0-sockets.ini/')"
+            - docker-php-ext-install sockets && docker-php-ext-enable --ini-name 0-sockets.ini sockets
             - docker-php-source extract
             - phpize
             - ./configure --with-event-core --with-event-extra --with-event-openssl
             - make install
-            - echo 'extension=event.so' > /usr/local/etc/php/conf.d/z-event.ini
+            - docker-php-ext-enable --ini-name z-event.ini event
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
             - docker-php-source delete
