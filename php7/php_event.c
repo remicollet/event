@@ -1392,9 +1392,6 @@ PHP_MINIT_FUNCTION(event)
 PHP_MSHUTDOWN_FUNCTION(event)
 {
 #ifdef HAVE_EVENT_OPENSSL_LIB
-# ifndef LIBRESSL_VERSION_NUMBER
-	FIPS_mode_set(0);
-# endif
 	CONF_modules_unload(1);
 	/* Removes memory allocated when loading digest and cipher names
 	 * in the OpenSSL_add_all_ family of functions */
