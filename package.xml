@@ -32,10 +32,10 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2021-06-11</date>
+  <date>2021-09-23</date>
   <!--{{{ Current version -->
   <version>
-    <release>3.0.5</release>
+    <release>3.0.6</release>
     <api>3.0.3</api>
   </version>
   <stability>
@@ -44,7 +44,8 @@
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed a test not working with PHP 8.1.0alpha1
+    Fixed tests for the builds in debug mode where libevent complained about STDIN and STDOUT being not set to non-blocking mode
+    Fixed build with OpenSSL 3.0 (Thanks to Remi Collet).
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -238,6 +239,23 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 3.0.6 -->
+    <release>
+      <version>
+        <release>3.0.6</release>
+        <api>3.0.3</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Fixed tests for the builds in debug mode where libevent complained about STDIN and STDOUT being not set to non-blocking mode
+    Fixed build with OpenSSL 3.0 (Thanks to Remi Collet).
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 3.0.5 -->
     <release>
       <version>
