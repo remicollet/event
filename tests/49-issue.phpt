@@ -6,7 +6,13 @@ $eventBaseClass = EVENT_NS . '\\EventBase';
 $eventClass = EVENT_NS . '\\Event';
 
 $base = new $eventBaseClass;
-$stream = STDOUT;
+
+$stream = fopen("php://stdout", 'w');
+stream_set_blocking($stream, false);
+register_shutdown_function(function () use (&$stream) {
+	fclose($stream);
+});
+
 $event = new $eventClass($base, $stream, $eventClass::READ | $eventClass::PERSIST, function () {
     echo "ok\n";
 });
