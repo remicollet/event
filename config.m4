@@ -91,8 +91,8 @@ if test "$PHP_EVENT_CORE" != "no"; then
 
     if test -n "$PHP_VERSION_ID"; then
       EVENT_PHP_VERSION_ID="$PHP_VERSION_ID"
-    elif test -n "$SWOW_PHP_VERSION"; then
-      EVENT_PHP_VERSION_ID=`echo "${SWOW_PHP_VERSION}" | $AWK 'BEGIN { FS = "."; } { printf "%d", ([$]1 * 100 + [$]2) * 100 + [$]3;}'`
+    elif test -n "$EVENT_PHP_VERSION"; then
+      EVENT_PHP_VERSION_ID=`echo "${EVENT_PHP_VERSION}" | $AWK 'BEGIN { FS = "."; } { printf "%d", ([$]1 * 100 + [$]2) * 100 + [$]3;}'`
     else
       AC_MSG_ERROR([failed to detect PHP version, please report])
     fi
