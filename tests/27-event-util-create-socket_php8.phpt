@@ -20,7 +20,7 @@ if (!$sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) {
 	exit('socket_create failed');
 }
 
-$ip = '127.0.0.2';
+$ip = '127.0.0.1';
 if (!socket_bind($sock, $ip)) {
 	exit('socket_bind failed');
 }
