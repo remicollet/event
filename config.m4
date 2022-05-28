@@ -77,8 +77,32 @@ if test "$PHP_EVENT_CORE" != "no"; then
     PHP_ADD_BUILD_DIR($abs_builddir/$PHP_EVENT_SUBDIR, 1)
     PHP_ADD_INCLUDE([$ext_srcdir/$PHP_EVENT_SUBDIR])
   else
-    AC_MSG_ERROR([unknown source])
-    PHP_EVENT_SUBDIR="."
+    dnl use PHP_VERSION/php-config/PHP_VERSION_ID to check php version to support in-tree build
+    dnl this works for php7/8, not sure php5 is supported
+    if test -n "$PHP_VERSION"; then
+      EVENT_PHP_VERSION="$PHP_VERSION"
+    else
+      if test -n "$PHP_CONFIG"; then
+        EVENT_PHP_VERSION=`$PHP_CONFIG --version`
+      else
+        EVENT_PHP_VERSION=""
+      fi
+    fi
+
+    if test -n "$PHP_VERSION_ID"; then
+      EVENT_PHP_VERSION_ID="$PHP_VERSION_ID"
+    elif test -n "$EVENT_PHP_VERSION"; then
+      EVENT_PHP_VERSION_ID=`echo "${EVENT_PHP_VERSION}" | $AWK 'BEGIN { FS = "."; } { printf "%d", ([$]1 * 100 + [$]2) * 100 + [$]3;}'`
+    else
+      AC_MSG_ERROR([failed to detect PHP version, please report])
+    fi
+
+    AS_CASE([$EVENT_PHP_VERSION_ID],
+      [8*], [PHP_EVENT_SUBDIR=php8;AC_MSG_RESULT([PHP 8.x])],
+      [7*], [PHP_EVENT_SUBDIR=php7;AC_MSG_RESULT([PHP 7.x])],
+      [5*], [PHP_EVENT_SUBDIR=php5;AC_MSG_RESULT([PHP 5.x])],
+      [AC_MSG_ERROR([unknown php version $EVENT_PHP_VERSION_ID])]
+    )
   fi
   dnl }}}
 
@@ -187,14 +211,7 @@ if test "$PHP_EVENT_CORE" != "no"; then
 
   dnl {{{ --with-event-openssl
   if test "$PHP_EVENT_OPENSSL" != "no"; then
-    test -z "$PHP_OPENSSL" && PHP_OPENSSL=no
-
-    if test -z "$PHP_OPENSSL_DIR" || test $PHP_OPENSSL_DIR == "no"; then
-      PHP_OPENSSL_DIR=yes
-    else
-      PHP_OPENSSL="$PHP_OPENSSL_DIR"
-    fi
-
+    dnl let php build system handle PHP_OPENSSL things
     PHP_SETUP_OPENSSL(EVENT_SHARED_LIBADD)
 
     AC_CHECK_LIB(event_openssl, bufferevent_openssl_get_ssl, [
@@ -238,18 +255,30 @@ if test "$PHP_EVENT_CORE" != "no"; then
   PHP_ADD_INCLUDE($ext_builddir/$PHP_EVENT_SUBDIR)
   PHP_SUBST(EVENT_SHARED_LIBADD)
 
-  LDFLAGS=$OLD_LDFLAGS
-  LIBS=$OLD_LIBS
-
-  dnl This works with static building only
-  dnl test -z $PHP_SOCKETS && PHP_SOCKETS="no"
+  if test x"$ext_shared" = x"yes"; then
+    LDFLAGS=$OLD_LDFLAGS
+    LIBS=$OLD_LIBS
+  fi
 
   if test "$PHP_EVENT_SOCKETS" != "no"; then
-    AC_CHECK_HEADERS([$phpincludedir/ext/sockets/php_sockets.h], ,
-      [
-        AC_MSG_ERROR([Couldn't find $phpincludedir/sockets/php_sockets.h. Please check if sockets extension installed])
-      ]
-    )
+    if test x"${PHP_PECL_EXTENSION}" != x"event"; then
+      dnl in-tree build
+
+      dnl hack for in-tree build
+      PHP_ARG_ENABLE([sockets],
+        [whether we have sockets extension enabled],
+        [AS_HELP_STRING([--enable-sockets],
+          [Enable sockets support])])
+      if test x"$PHP_SOCKETS" = x"no"; then
+        AC_MSG_ERROR([Couldn't build event sockets support with sockets extension disabled])
+      fi
+    else
+      AC_CHECK_HEADERS([$phpincludedir/ext/sockets/php_sockets.h], ,
+        [
+          AC_MSG_ERROR([Couldn't find $phpincludedir/sockets/php_sockets.h. Please check if sockets extension installed])
+        ]
+      )
+    fi
     PHP_ADD_EXTENSION_DEP(event, sockets)
     AC_DEFINE(PHP_EVENT_SOCKETS, 1, [Whether sockets extension is required])
     dnl Hack for distroes installing sockets separately
