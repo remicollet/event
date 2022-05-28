@@ -32,19 +32,20 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2021-10-14</date>
+  <date>2022-05-28</date>
   <!--{{{ Current version -->
   <version>
-    <release>3.0.7RC1</release>
-    <api>3.0.7RC1</api>
+    <release>3.0.7</release>
+    <api>3.0.7</api>
   </version>
   <stability>
-    <release>beta</release>
-    <api>beta</api>
+    <release>stable</release>
+    <api>stable</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Fixed #69: The event loop remained running when the user called exit() or an exception was thrown from the event callback. Now in these cases the loop will be stopped automatically.
+    Added support for in-tree build (PR https://bitbucket.org/osmanov/pecl-event/pull-requests/18/support-in-tree-build by dixyes)
+    Fixed tests/27-event-util-create-socket_php8.phpt on macOS
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -238,6 +239,23 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 3.0.7 -->
+    <release>
+      <version>
+        <release>3.0.7</release>
+        <api>3.0.7</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+    Added support for in-tree build (PR https://bitbucket.org/osmanov/pecl-event/pull-requests/18/support-in-tree-build by dixyes)
+    Fixed tests/27-event-util-create-socket_php8.phpt on macOS
+    ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 3.0.7RC1 -->
     <release>
       <version>
