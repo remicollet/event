@@ -8,7 +8,7 @@ pipelines:
             - docker-php-ext-install sockets && docker-php-ext-enable --ini-name 0-sockets.ini sockets
             - docker-php-source extract
             - phpize
-            - ./configure --with-event-core --with-event-extra --with-event-openssl
+            - ./configure --with-event-core --with-event-extra --with-event-openssl --with-openssl-dir
             - make install
             - docker-php-ext-enable --ini-name z-event.ini event
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
@@ -21,7 +21,7 @@ pipelines:
             - docker-php-ext-install sockets && docker-php-ext-enable --ini-name 0-sockets.ini sockets
             - docker-php-source extract
             - phpize
-            - ./configure --with-event-core --with-event-extra --with-event-openssl
+            - ./configure --with-event-core --with-event-extra --with-event-openssl --with-openssl-dir
             - make install
             - docker-php-ext-enable --ini-name z-event.ini event
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
@@ -34,7 +34,7 @@ pipelines:
             - docker-php-ext-install sockets && docker-php-ext-enable --ini-name 0-sockets.ini sockets
             - docker-php-source extract
             - phpize
-            - ./configure --with-event-core --with-event-extra --with-event-openssl
+            - ./configure --with-event-core --with-event-extra --with-event-openssl --with-openssl-dir
             - make install
             - docker-php-ext-enable --ini-name z-event.ini event
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
@@ -47,7 +47,7 @@ pipelines:
             - docker-php-ext-install sockets && docker-php-ext-enable --ini-name 0-sockets.ini sockets
             - docker-php-source extract
             - phpize
-            - ./configure --with-event-core --with-event-extra --with-event-openssl
+            - ./configure --with-event-core --with-event-extra --with-event-openssl --with-openssl-dir
             - make install
             - docker-php-ext-enable --ini-name z-event.ini event
             - NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) php run-tests.php
