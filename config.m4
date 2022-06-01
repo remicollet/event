@@ -30,7 +30,7 @@ PHP_ARG_WITH(event-ns, for custom PHP namespace in Event,
 [  --with-event-ns[=NS] Set custom PHP namespace for all Event classes], no, no)
 
 PHP_ARG_WITH(openssl-dir, for OpenSSL installation prefix,
-[  --with-openssl-dir[=DIR]  Event: openssl installation prefix], no, no)
+[  --with-openssl-dir[=DIR]  Event: openssl installation prefix], yes, no)
 
 PHP_ARG_WITH([event-libevent-dir], [],
 [  --with-event-libevent-dir[=DIR] Event: libevent installation prefix], no, no)
