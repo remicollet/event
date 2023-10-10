@@ -10,21 +10,30 @@ services:
         volumes:
           - /usr/src/pecl-event/build
           - /usr/src/pecl-event/modules
+    php81test:
+        stdin_open: true
+        image: ruslanosmanov/pecl-event-php8-test
+        build:
+            context: .
+            dockerfile: php8/Dockerfile-php8.1
+        volumes:
+          - /usr/src/pecl-event/build
+          - /usr/src/pecl-event/modules
+    php82test:
+        stdin_open: true
+        image: ruslanosmanov/pecl-event-php8-test
+        build:
+            context: .
+            dockerfile: php8/Dockerfile-php8.2
+        volumes:
+          - /usr/src/pecl-event/build
+          - /usr/src/pecl-event/modules
     php7test:
         stdin_open: true
         image: ruslanosmanov/pecl-event-php7-test
         build:
             context: .
             dockerfile: php7/Dockerfile
-        volumes:
-          - /usr/src/pecl-event/build
-          - /usr/src/pecl-event/modules
-    php5test:
-        stdin_open: true
-        image: ruslanosmanov/pecl-event-php5-test
-        build:
-            context: .
-            dockerfile: php5/Dockerfile
         volumes:
           - /usr/src/pecl-event/build
           - /usr/src/pecl-event/modules
