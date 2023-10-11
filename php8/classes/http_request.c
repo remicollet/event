@@ -97,9 +97,7 @@ static void _req_handler(struct evhttp_request *req, void *arg)
 		ZVAL_COPY(&argv[1], &http_req->data);
 	}
 
-	fci.size = sizeof(fci);
-	ZVAL_COPY_VALUE(&fci.function_name, &zcallable);
-	fci.object = NULL;
+	zend_fcall_info_init(&zcallable, 0, &fci, &http_req->cb.fci_cache, NULL, NULL);
 	fci.retval = &retval;
 	fci.params = argv;
 	fci.param_count = 2;
