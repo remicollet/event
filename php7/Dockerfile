@@ -1,4 +1,4 @@
-FROM php:7.4-cli
+FROM php:7.4.33-cli
 
 RUN apt-get update && apt-get install -y libssl1.1 libssl-dev libevent-dev
 RUN docker-php-ext-install sockets posix pcntl \
