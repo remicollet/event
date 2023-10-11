@@ -22,6 +22,26 @@
 
 /* {{{ Private */
 
+static zend_always_inline struct event_base * get_base(php_event_http_conn_t *evcon)/*{{{*/
+{
+	if (UNEXPECTED(evcon == NULL)) {
+		return NULL;
+	}
+	if (UNEXPECTED(evcon->conn == NULL)) {
+		return NULL;
+	}
+	return evhttp_connection_get_base(evcon->conn);
+}/*}}}*/
+
+static zend_always_inline void loop_break_cleanup(void *data)/*{{{*/
+{
+	php_event_http_conn_t *evcon  = (php_event_http_conn_t *)data;
+
+	if (evcon != NULL) {
+		zval_ptr_dtor(&evcon->self);
+	}
+}/*}}}*/
+
 static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 {
 	php_event_http_conn_t *evcon   = (php_event_http_conn_t *)arg;
@@ -29,6 +49,7 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	zval                   argv[2];
 	zval                   retval;
 	zval                   zcallable;
+	struct event_base     *base;
 
 	PHP_EVENT_ASSERT(evcon && conn);
 
@@ -55,12 +76,12 @@ static void _conn_close_cb(struct evhttp_connection *conn, void *arg)/* {{{ */
 	fci.param_count   = 2;
 	fci.params        = argv;
 
-	if (zend_call_function(&fci, &evcon->cb_close.fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
+	base = get_base(evcon);
+	if (base != NULL) {
+		php_event_call_or_break(base, &fci, &evcon->cb_close.fci_cache, NULL, NULL);
 	} else {
-		php_error_docref(NULL, E_WARNING, "Failed to invoke http connection close callback");
+		php_error_docref(NULL, E_WARNING,
+			"Failed to invoke http connection close callback due to invalid state of the event base");
 	}
 
 	zval_ptr_dtor(&zcallable);
