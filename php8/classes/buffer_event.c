@@ -32,6 +32,37 @@ extern zend_class_entry *php_event_dns_base_ce;
     }                                               \
 }
 
+static zend_always_inline struct event_base * get_base(php_event_bevent_t *bev)/*{{{*/
+{
+	php_event_base_t *b;
+
+	if (UNEXPECTED(bev == NULL)) {
+		return NULL;
+	}
+	if (UNEXPECTED(Z_ISUNDEF(bev->base))) {
+		return NULL;
+	}
+
+	b = Z_EVENT_BASE_OBJ_P(&bev->base);
+	if (UNEXPECTED(b == NULL)) {
+		return NULL;
+	}
+	PHP_EVENT_ASSERT(b->base);
+
+	return b->base;
+}/*}}}*/
+
+static zend_always_inline void call_function(zend_fcall_info *fci, zend_fcall_info_cache *fcc, php_event_bevent_t *bev)/*{{{*/
+{
+	struct event_base *base = get_base(bev);
+
+	if (UNEXPECTED(base == NULL)) {
+		return;
+	}
+
+	php_event_call_or_break(base, fci, fcc, NULL, NULL);
+}
+
 /* {{{ bevent_rw_cb
  * Is called from the bufferevent read and write callbacks */
 static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_event_bevent_t *bev, php_event_callback_t *pcb)
@@ -39,7 +70,6 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 
 	zval              argv[2];
 	zval              retval;
-	php_event_base_t *b;
 	zend_string      *func_name;
 	zend_fcall_info   fci;
 	zval              zcallable;
@@ -79,23 +109,7 @@ static zend_always_inline void bevent_rw_cb(struct bufferevent *bevent, php_even
 	fci.params = argv;
 	fci.param_count = 2;
 
-	if (zend_call_function(&fci, &pcb->fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
-	} else {
-		if (EG(exception)) {
-			PHP_EVENT_ASSERT(!Z_ISUNDEF(bev->base));
-			b = Z_EVENT_BASE_OBJ_P(&bev->base);
-			event_base_loopbreak(b->base);
-
-			if (!Z_ISUNDEF(argv[0])) {
-				zval_ptr_dtor(&argv[0]);
-			}
-		} else {
-			php_error_docref(NULL, E_WARNING, "Failed to invoke bufferevent callback");
-		}
-	}
+	call_function(&fci, &pcb->fci_cache, bev);
 
 	zval_ptr_dtor(&zcallable);
 
@@ -134,7 +148,6 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	zend_fcall_info     fci;
 	zval                argv[3];
 	zval                retval;
-	php_event_base_t   *b;
 	zend_string        *func_name;
 	zval                zcallable;
 
@@ -175,26 +188,7 @@ static void bevent_event_cb(struct bufferevent *bevent, short events, void *ptr)
 	fci.params = argv;
 	fci.param_count = 3;
 
-	if (zend_call_function(&fci, &bev->cb_event.fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
-	} else {
-		if (EG(exception)) {
-			PHP_EVENT_ASSERT(!Z_ISUNDEF(bev->base));
-			b = Z_EVENT_BASE_OBJ_P(&bev->base);
-			event_base_loopbreak(b->base);
-
-			if (!Z_ISUNDEF(argv[0])) {
-				zval_ptr_dtor(&argv[0]);
-			}
-			if (!Z_ISUNDEF(argv[1])) {
-				zval_ptr_dtor(&argv[1]);
-			}
-		} else {
-			php_error_docref(NULL, E_WARNING, "Failed to invoke bufferevent event callback");
-		}
-	}
+	call_function(&fci, &bev->cb_event.fci_cache, bev);
 
 	zval_ptr_dtor(&zcallable);
 

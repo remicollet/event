@@ -190,6 +190,47 @@ int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport)/*{{{*
 	return SUCCESS;
 }/*}}}*/
 
+void php_event_call_or_break( /*{{{*/
+		struct event_base *base,
+		zend_fcall_info *fci,
+		zend_fcall_info_cache *fcc,
+		php_event_break_loop_cleanup cleanup_cb,
+		void *cleanup_data
+		)
+{
+	PHP_EVENT_ASSERT(base);
+	PHP_EVENT_ASSERT(fci);
+	PHP_EVENT_ASSERT(fcc);
+
+	if (zend_call_function(fci, fcc) == SUCCESS) {
+		if (!Z_ISUNDEF_P(fci->retval)) {
+			zval_ptr_dtor(fci->retval);
+		}
+
+	/* Starting from PHP 8.2.0, zend_call_function returns SUCCESS instead of FAILURE
+		when the callable throws an exception.
+		See https://github.com/php/php-src/commit/485d3acfe6a40e126783b105fde689728fca262a */
+#if PHP_VERSION_ID >= 80200
+
+		if (EG(exception)) {
+			/* We probably shouldn't generate the warning if the user called exit() */
+			if (!zend_is_unwind_exit(EG(exception))) {
+				php_error_docref(NULL, E_WARNING, "Breaking the loop due to exception %s", ZSTR_VAL(EG(exception)->ce->name));
+			}
+			_php_event_break_loop_or_throw(base, cleanup_cb, cleanup_data);
+		}
+#endif
+
+		return;
+	}
+
+#if PHP_VERSION_ID < 80200
+	php_error_docref(NULL, E_WARNING, "Failed to invoke callback, breaking the loop");
+#endif
+
+	_php_event_break_loop_or_throw(base, cleanup_cb, cleanup_data);
+}/*}}}*/
+
 /*
  * Local variables:
  * tab-width: 4

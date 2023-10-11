@@ -48,6 +48,38 @@ static zend_always_inline php_event_http_cb_t * _new_http_cb(zval *zbase, zval *
 }
 /* }}} */
 
+static zend_always_inline struct event_base * get_base(php_event_http_cb_t *cb)/*{{{*/
+{
+	Z_EVENT_X_OBJ_T(base) *b = Z_EVENT_BASE_OBJ_P(&cb->base);
+
+	PHP_EVENT_ASSERT(b && b->base);
+	if (UNEXPECTED(b == NULL || b->base == NULL)) {
+		return NULL;
+	}
+
+	return b->base;
+}/*}}}*/
+
+static zend_always_inline struct event_base * get_base_from_http(php_event_http_t *http)/*{{{*/
+{
+	Z_EVENT_X_OBJ_T(base) *b;
+
+	PHP_EVENT_ASSERT(http && !Z_ISUNDEF(http->base));
+	if (UNEXPECTED(http == NULL)) {
+		return NULL;
+	}
+	if (UNEXPECTED(Z_ISUNDEF(http->base))) {
+		return NULL;
+	}
+
+	b = Z_EVENT_BASE_OBJ_P(&http->base);
+	if (UNEXPECTED(b == NULL)) {
+		return NULL;
+	}
+
+	return b->base;
+}/*}}}*/
+
 /* {{{ _http_callback */
 static void _http_callback(struct evhttp_request *req, void *arg)
 {
@@ -57,7 +89,7 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	zval                 retval;
 	zval                 zcallable;
 	zend_string         *func_name;
-	Z_EVENT_X_OBJ_T(base) *b;
+	struct event_base   *base;
 	Z_EVENT_X_OBJ_T(http_req) *http_req;
 
 	cb = (php_event_http_cb_t *)arg;
@@ -94,25 +126,11 @@ static void _http_callback(struct evhttp_request *req, void *arg)
 	fci.params = argv;
 	fci.param_count = 2;
 
-	if (zend_call_function(&fci, &cb->cb.fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
+	base = get_base(cb);
+	if (base != NULL) {
+		php_event_call_or_break(base, &fci, &cb->cb.fci_cache, NULL, NULL);
 	} else {
-		if (EG(exception)) {
-			b = Z_EVENT_BASE_OBJ_P(&cb->base);
-			PHP_EVENT_ASSERT(b && b->base);
-			event_base_loopbreak(b->base);
-
-			if (!Z_ISUNDEF(argv[0])) {
-				zval_ptr_dtor(&argv[0]);
-			}
-			if (!Z_ISUNDEF(argv[1])) {
-				zval_ptr_dtor(&argv[1]);
-			}
-		} else {
-			php_error_docref(NULL, E_WARNING, "Failed to invoke the http request callback");
-		}
+		php_error_docref(NULL, E_ERROR, "HTTP callback was not called due to invalid state of the event base");
 	}
 
 	zval_ptr_dtor(&zcallable);
@@ -135,8 +153,8 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	zval              retval;
 	zval              zcallable;
 	zend_string      *func_name;
-	Z_EVENT_X_OBJ_T(base) *b;
 	Z_EVENT_X_OBJ_T(http_req) *http_req;
+	struct event_base *base;
 
 	PHP_EVENT_ASSERT(http);
 
@@ -171,25 +189,11 @@ static void _http_default_callback(struct evhttp_request *req, void *arg)
 	fci.params = argv;
 	fci.param_count = 2;
 
-	if (zend_call_function(&fci, &http->cb.fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
+	base = get_base_from_http(http);
+	if (base != NULL) {
+		php_event_call_or_break(base, &fci, &http->cb.fci_cache, NULL, NULL);
 	} else {
-		if (EG(exception)) {
-			PHP_EVENT_ASSERT(http && !Z_ISUNDEF(http->base));
-			b = Z_EVENT_BASE_OBJ_P(&http->base);
-			event_base_loopbreak(b->base);
-
-			if (!Z_ISUNDEF(argv[0])) {
-				zval_ptr_dtor(&argv[0]);
-			}
-			if (!Z_ISUNDEF(argv[1])) {
-				zval_ptr_dtor(&argv[1]);
-			}
-		} else {
-			php_error_docref(NULL, E_WARNING, "Failed to invoke http request callback");
-		}
+		php_error_docref(NULL, E_ERROR, "HTTP callback was not called due to invalid state of the event base");
 	}
 
 	zval_ptr_dtor(&zcallable);

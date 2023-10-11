@@ -19,6 +19,7 @@
 #define PHP_EVENT_UTIL_H
 
 #include "common.h"
+#include <zend_exceptions.h>
 
 #ifdef PHP_WIN32
 # ifdef EINPROGRESS
@@ -219,6 +220,27 @@ static zend_always_inline HashTable * find_prop_handler(HashTable *classes, zend
 
 /* Obsolete */
 #define PHP_EVENT_REQUIRE_BASE_BY_REF(zbase)
+
+/* Cleanup function to be called before breaking the loop */
+typedef void (*php_event_break_loop_cleanup)(void *data);
+
+static zend_always_inline void _php_event_break_loop_or_throw(struct event_base *base, php_event_break_loop_cleanup cleanup_cb, void *cleanup_data)/*{{{*/
+{
+	if (UNEXPECTED(base == NULL)) {
+		return;
+	}
+
+	if (cleanup_cb != NULL) {
+		cleanup_cb(cleanup_data);
+	}
+
+	if (event_base_loopbreak(base)) {
+		zend_throw_exception_ex(php_event_get_exception(), 0, "Failed to break the loop");
+	}
+}/*}}}*/
+
+void php_event_call_or_break(struct event_base *base, zend_fcall_info *fci, zend_fcall_info_cache *fcc,
+		php_event_break_loop_cleanup cleanup_cb, void *cleanup_data);
 
 #endif /* PHP_EVENT_UTIL_H */
 /*

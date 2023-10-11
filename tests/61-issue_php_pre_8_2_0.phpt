@@ -1,9 +1,9 @@
 --TEST--
-Check for issue #61 - segfault after throwing exception from an event handler
+Check for issue #61 - segfault after throwing exception from an event handler in PHP version before 8.2.0
 --SKIPIF--
 <?php
-if (PHP_VERSION_ID < 80200) {
-	die("skip only for PHP version >= 8.2.0");
+if (PHP_VERSION_ID >= 80200) {
+	die("skip only for PHP version before 8.2.0");
 }
 ?>
 --FILE--
@@ -20,11 +20,9 @@ $e->addTimer(0);
 $base->loop();
 ?>
 --EXPECTF--
-Warning: EventBase::loop(): Breaking the loop due to exception Exception in %s on line %d
-
-Fatal error: Uncaught Exception: issue61 in %s/61-issue.php:%d
+Fatal error: Uncaught Exception: issue61 in %s/61-issue_php_pre_8_2_0.php:%d
 Stack trace:
 #0 [internal function]: {closure}(-1, 1, NULL)
-#1 %s/61-issue.php(%d): %SEventBase->loop()
+#1 %s/61-issue_php_pre_8_2_0.php(%d): %SEventBase->loop()
 #2 {main}
-  thrown in %s/61-issue.php on line %d
+  thrown in %s/61-issue_php_pre_8_2_0.php on line %d

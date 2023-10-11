@@ -1,10 +1,9 @@
 --TEST--
-Check for issue #69 - handling event callback call failure in PHP 8.2.0 and above
+Check for issue #69 - handling event callback call failure in PHP version before 8.2.0
 --SKIPIF--
 <?php
-// We have a test file dedecated to PHP 8.2.0.
-if (PHP_VERSION_ID < 802000) {
-	die("skip only for PHP version 8.2.0 and above");
+if (PHP_VERSION_ID >= 80200 || PHP_VERSION_ID < 80000) {
+	die("skip only for PHP 8 version before 8.2.0");
 }
 ?>
 --FILE--
@@ -69,9 +68,9 @@ timer/RuntimeException
 Caught RuntimeException: Timer
 event/RuntimeException
 
-Warning: EventBase::loop(): Breaking the loop due to exception%a
+Warning: EventBase::loop(): Failed to invoke callback, breaking the loop%a
 Caught RuntimeException: Stream watcher
 event/exit
 exit()
 
-Warning: EventBase::loop(): Breaking the loop due to exception%a
+Warning: EventBase::loop(): Failed to invoke callback, breaking the loop%a

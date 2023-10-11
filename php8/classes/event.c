@@ -52,10 +52,28 @@ static struct event_base * php_event_get_event_base(struct event *e)/*{{{*/
 #endif
 }/*}}}*/
 
+static zend_always_inline void event_break_cleanup(void *data)/*{{{*/
+{
+	php_event_t *e = (php_event_t *)data;
+
+	PHP_EVENT_ASSERT(e);
+	if (UNEXPECTED(e->event == NULL)) {
+		return;
+	}
+
+	event_del(e->event);
+}/*}}}*/
+
+static zend_always_inline void call_function(zend_fcall_info *fci, php_event_t *e)/*{{{*/
+{
+	struct event_base *base = php_event_get_event_base(e->event);
+
+	php_event_call_or_break(base, fci, &e->cb.fci_cache, event_break_cleanup, e);
+}/*}}}*/
+
 /* {{{ timer_cb */
 static void timer_cb(evutil_socket_t fd, short what, void *arg)
 {
-	struct event_base *base    = NULL;
 	php_event_t     *e         = (php_event_t *)arg;
 	zend_fcall_info  fci;
 	zval             argv[1];
@@ -86,24 +104,7 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 	fci.params = argv;
 	fci.param_count = 1;
 
-	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
-	} else {
-		if (e->event != NULL) {
-			php_error_docref(NULL, E_WARNING, "Failed to invoke timer callback, breaking the loop");
-
-			event_del(e->event);
-
-			base = php_event_get_event_base(e->event);
-			if (base != NULL) {
-				if (event_base_loopbreak(base)) {
-					zend_throw_exception_ex(php_event_get_exception(), 0, "Failed to break the loop");
-				}
-			}
-		}
-	}
+	call_function(&fci, e);
 
 	zval_ptr_dtor(&zcallable);
 
@@ -114,7 +115,6 @@ static void timer_cb(evutil_socket_t fd, short what, void *arg)
 /* {{{ event_cb */
 static void event_cb(evutil_socket_t fd, short what, void *arg)
 {
-	struct event_base *base      = NULL;
 	php_event_t       *e         = (php_event_t *) arg;
 	zend_fcall_info    fci;
 	zval               argv[3];
@@ -155,24 +155,7 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 	fci.params = argv;
 	fci.param_count = 3;
 
-	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
-	} else {
-		if (e->event != NULL) {
-			php_error_docref(NULL, E_WARNING, "Failed to invoke event callback, breaking the loop.");
-
-			event_del(e->event);
-
-			base = php_event_get_event_base(e->event);
-			if (base != NULL) {
-				if (event_base_loopbreak(base)) {
-					zend_throw_exception_ex(php_event_get_exception(), 0, "Failed to break the loop");
-				}
-			}
-		}
-	}
+	call_function(&fci, e);
 
 	zval_ptr_dtor(&zcallable);
 
@@ -185,7 +168,6 @@ static void event_cb(evutil_socket_t fd, short what, void *arg)
 /* {{{ signal_cb */
 static void signal_cb(evutil_socket_t signum, short what, void *arg)
 {
-	struct event_base *base  = NULL;
 	php_event_t     *e       = (php_event_t *)arg;
 	zend_fcall_info  fci;
 	zval             argv[2];
@@ -218,24 +200,7 @@ static void signal_cb(evutil_socket_t signum, short what, void *arg)
 	fci.params = argv;
 	fci.param_count = 2;
 
-	if (zend_call_function(&fci, &e->cb.fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
-	} else {
-		if (e->event != NULL) {
-			php_error_docref(NULL, E_WARNING, "Failed to invoke signal callback, breaking the loop.");
-
-			event_del(e->event);
-
-			base = php_event_get_event_base(e->event);
-			if (base != NULL) {
-				if (event_base_loopbreak(base)) {
-					zend_throw_exception_ex(php_event_get_exception(), 0, "Failed to break the loop");
-				}
-			}
-		}
-	}
+	call_function(&fci, e);
 
 	zval_ptr_dtor(&zcallable);
 
