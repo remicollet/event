@@ -395,15 +395,12 @@ PHP_METHOD(EventBuffer, copyout)
 
 	ret = evbuffer_copyout(b->buf, data, max_bytes);
 
+	zdata = Z_REFVAL_P(zdata);
+
 	if (ret > 0) {
 		convert_to_string(zdata);
 		zval_dtor(zdata);
-#if 0
-		Z_STRVAL_P(zdata) = estrndup(data, ret);
-		Z_STRLEN_P(zdata) = ret;
-#else
 		ZVAL_STRINGL(zdata, data, ret);
-#endif
 	}
 
 	efree(data);
