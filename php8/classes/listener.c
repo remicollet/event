@@ -90,14 +90,40 @@ static int sockaddr_parse(const struct sockaddr *in_addr, zval *out_zarr)
 }
 /* }}} */
 
+struct php_event_listener_cb_cleanup {
+	evutil_socket_t        fd;         /* Client connection socket */
+	struct evconnlistener *listener;
+};
+
+static zend_always_inline void event_listener_func_call_cleanup(void *data)/*{{{*/
+{
+	struct php_event_listener_cb_cleanup *cleanup_data = (struct php_event_listener_cb_cleanup *)data;
+
+	if (UNEXPECTED(cleanup_data == NULL)) {
+		return;
+	}
+	if (UNEXPECTED(cleanup_data->listener == NULL)) {
+		return;
+	}
+	/* Stop accepting new connection on the listener */
+	evconnlistener_disable(cleanup_data->listener);
+
+	if (cleanup_data->fd > 0) {
+		/* Close client connection */
+		evutil_closesocket(cleanup_data->fd);
+	}
+}/*}}}*/
+
 /* {{{ _php_event_listener_cb */
-static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *address, int socklen, void *ctx) {
-	php_event_listener_t *l       = (php_event_listener_t *)ctx;
+static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *address, int socklen, void *ctx)
+{
+	php_event_listener_t *l         = (php_event_listener_t *)ctx;
 	zend_fcall_info       fci;
 	zval                  argv[4];
 	zval                  retval;
-	zend_string     *func_name;
+	zend_string          *func_name;
 	zval                  zcallable;
+	struct event_base    *base;
 
 	PHP_EVENT_ASSERT(l);
 
@@ -161,12 +187,15 @@ static void _php_event_listener_cb(struct evconnlistener *listener, evutil_socke
 	fci.params = argv;
 	fci.param_count = 4;
 
-	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
+	base = evconnlistener_get_base(l->listener);
+	if (base != NULL) {
+		struct php_event_listener_cb_cleanup cleanup_data;
+		cleanup_data.fd = fd;
+		cleanup_data.listener = l->listener;
+		php_event_call_or_break(base, &fci, &l->cb.fci_cache, event_listener_func_call_cleanup, &cleanup_data);
 	} else {
-		php_error_docref(NULL, E_WARNING, "Failed to invoke listener callback");
+		php_error_docref(NULL, E_WARNING, "EventListener callback was not called because "
+				"the associated event base couldn't be retrieved");
 	}
 
 	zval_ptr_dtor(&zcallable);
@@ -186,6 +215,7 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	zval                  retval;
 	zend_string          *func_name;
 	zval                  zcallable;
+	struct event_base    *base;
 
 	PHP_EVENT_ASSERT(l);
 
@@ -214,12 +244,15 @@ static void listener_error_cb(struct evconnlistener *listener, void *ctx) {
 	fci.params = argv;
 	fci.param_count = 2;
 
-	if (zend_call_function(&fci, &l->cb.fci_cache) == SUCCESS) {
-		if (!Z_ISUNDEF(retval)) {
-			zval_ptr_dtor(&retval);
-		}
+	base = evconnlistener_get_base(l->listener);
+	if (base != NULL) {
+		struct php_event_listener_cb_cleanup cleanup_data;
+		cleanup_data.fd = 0;
+		cleanup_data.listener = l->listener;
+		php_event_call_or_break(base, &fci, &l->cb.fci_cache, event_listener_func_call_cleanup, &cleanup_data);
 	} else {
-		php_error_docref(NULL, E_WARNING, "Failed to invoke listener error callback");
+		php_error_docref(NULL, E_WARNING, "EventListener error callback was not called because "
+				"the associated event base couldn't be retrieved");
 	}
 
 	zval_ptr_dtor(&zcallable);
