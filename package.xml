@@ -32,19 +32,28 @@
     <email>remi@php.net</email>
     <active>yes</active>
   </contributor>
-  <date>2022-06-01</date>
+  <date>2023-10-14</date>
   <!--{{{ Current version -->
   <version>
-    <release>3.0.8</release>
-    <api>3.0.7</api>
+    <release>3.1.0RC1</release>
+    <api>3.1.0RC1</api>
   </version>
   <stability>
-    <release>stable</release>
-    <api>stable</api>
+    <release>beta</release>
+    <api>beta</api>
   </stability>
   <license uri="http://www.php.net/license">PHP</license>
   <notes><![CDATA[
-    Set --with-openssl-dir configure option to "yes" by default.
+    - The loop will now be stopped if an event callback throws an exception.
+      This prevents user from losing control on the event loop.
+    - EventDnsBase::__construct() now accepts bool|int as its second parameter:
+        * false and true have the same meaning as before;
+        * EventDnsBase::DISABLE_WHEN_INACTIVE - Do not prevent the libevent event loop from exiting when we have no active DNS requests.
+        * EventDnsBase::INITIALIZE_NAMESERVERS - Process resolv.conf.
+        * EventDnsBase::NAMESERVERS_NO_DEFAULT - Do not add default nameserver if there are no nameservers in resolv.conf.
+    - Internally, a safer strlcpy() will be used instead of strcpy().
+    - Fixed a segmentation fault that might occur in the EventHttpRequest callback.
+    - Fixed a bug where the EventBuffer::copyout method didn't populate the output variable properly in PHP >= 8.2 (thanks to Joseph Tseng).
     ]]></notes>
   <!--}}}-->
   <!--{{{ Contents -->
@@ -208,9 +217,21 @@
         <file role="test" name="28-bevent-ssl1.1.0.phpt"/>
         <file role="test" name="29-buffer-pullup.phpt"/>
         <file role="test" name="30-listener-free.phpt"/>
+        <file role="test" name="31-issue.phpt"/>
+        <file role="test" name="32-buffer-copyout.phpt"/>
+        <file role="test" name="33-bevent-event-cb-exception.phpt"/>
+        <file role="test" name="33-bevent-read-cb-exception.phpt"/>
+        <file role="test" name="33-bevent-write-cb-exception.phpt"/>
+        <file role="test" name="34-event-callback-exit.phpt"/>
+        <file role="test" name="35-dns-base-parse-resolv-conf-error.phpt"/>
+        <file role="test" name="36-dns-base-construct-init-flags.phpt"/>
         <file role="test" name="49-issue.phpt"/>
         <file role="test" name="54-event-config-set-flags.phpt"/>
         <file role="test" name="61-issue.phpt"/>
+        <file role="test" name="61-issue_php_pre_8_2_0.phpt"/>
+        <file role="test" name="69-issue-event-cb-failure_php7.phpt"/>
+        <file role="test" name="69-issue-event-cb-failure_php8.phpt"/>
+        <file role="test" name="69-issue-event-cb-failure_php_pre_8_2_0.phpt"/>
       </dir>
     </dir>
   </contents>
@@ -238,6 +259,31 @@
   </extsrcrelease>
   <!--{{{ changelog-->
   <changelog>
+    <!--{{{ 3.1.0RC1-->
+    <release>
+      <version>
+        <release>3.1.0RC1</release>
+        <api>3.1.0RC1</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP</license>
+      <notes><![CDATA[
+        - The loop will now be stopped if an event callback throws an exception.
+        This prevents user from losing control on the event loop.
+        - EventDnsBase::__construct() now accepts bool|int as its second parameter:
+        * false and true have the same meaning as before;
+        * EventDnsBase::DISABLE_WHEN_INACTIVE - Do not prevent the libevent event loop from exiting when we have no active DNS requests.
+        * EventDnsBase::INITIALIZE_NAMESERVERS - Process resolv.conf.
+        * EventDnsBase::NAMESERVERS_NO_DEFAULT - Do not add default nameserver if there are no nameservers in resolv.conf.
+        - Internally, a safer strlcpy() will be used instead of strcpy().
+        - Fixed a segmentation fault that might occur in the EventHttpRequest callback.
+        - Fixed a bug where the EventBuffer::copyout method didn't populate the output variable properly in PHP >= 8.2 (thanks to Joseph Tseng).
+        ]]></notes>
+    </release>
+    <!--}}}-->
     <!--{{{ 3.0.8 -->
     <release>
       <version>
