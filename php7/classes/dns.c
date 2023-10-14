@@ -83,22 +83,22 @@ PHP_METHOD(EventDnsBase, parseResolvConf)
 
 		switch (ret) {
 			case 1:
-				strcpy(err, "Failed to open file");
+				strlcpy(err, "Failed to open file", sizeof(err));
 				break;
 			case 2:
-				strcpy(err, "Failed to stat file");
+				strlcpy(err, "Failed to stat file", sizeof(err));
 				break;
 			case 3:
-				strcpy(err, "File too large");
+				strlcpy(err, "File too large", sizeof(err));
 				break;
 			case 4:
-				strcpy(err, "Out of memory");
+				strlcpy(err, "Out of memory", sizeof(err));
 				break;
 			case 5:
-				strcpy(err, "Short read from file");
+				strlcpy(err, "Short read from file", sizeof(err));
 				break;
 			case 6:
-				strcpy(err, "No nameservers listed in the file");
+				strlcpy(err, "No nameservers listed in the file", sizeof(err));
 				break;
 		}
 

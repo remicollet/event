@@ -279,7 +279,7 @@ PHP_EVENT_METHOD(EventListener, __construct)
 			s_un             = (struct sockaddr_un *)&ss;
 			s_un->sun_family = AF_UNIX;
 
-			strcpy(s_un->sun_path, Z_STRVAL_P(pztarget) + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
+			strlcpy(s_un->sun_path, Z_STRVAL_P(pztarget) + sizeof(PHP_EVENT_SUN_PREFIX) - 1, sizeof(s_un->sun_path));
 			ss_len = sizeof(struct sockaddr_un);
 		} else
 #endif

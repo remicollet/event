@@ -498,8 +498,7 @@ PHP_EVENT_METHOD(EventBufferEvent, connect)
 		s_un->sun_family = AF_UNIX;
 		ss_len          = sizeof(struct sockaddr_un);
 
-		strcpy(s_un->sun_path, addr + sizeof(PHP_EVENT_SUN_PREFIX) - 1);
-
+		strlcpy(s_un->sun_path, addr + sizeof(PHP_EVENT_SUN_PREFIX) - 1, sizeof(s_un->sun_path));
 	} else
 #endif
 		if (evutil_parse_sockaddr_port(addr, (struct sockaddr *) &ss, &ss_len)) {
