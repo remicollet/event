@@ -1,7 +1,7 @@
 dnl +----------------------------------------------------------------------+
 dnl | PHP Version 8                                                        |
 dnl +----------------------------------------------------------------------+
-dnl | Copyrght (C) 1997-2020 The PHP Group                                 |
+dnl | Copyrght (C) 1997-2023 The PHP Group                                 |
 dnl +----------------------------------------------------------------------+
 dnl | This source file is subject to version 3.01 of the PHP license,      |
 dnl | that is bundled with this package in the file LICENSE, and is        |
