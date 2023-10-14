@@ -18,35 +18,74 @@
 #include "../src/common.h"
 #include "../src/util.h"
 #include "../src/priv.h"
+#include "zend_exceptions.h"
 
-/* {{{ proto EventDnsBase EventDnsBase::__construct(EventBase base, bool initialize);
+/* {{{ proto EventDnsBase EventDnsBase::__construct(EventBase base, mixed initialize);
  *
  * Returns object representing event dns base.
  *
  * If the initialize argument is true, it tries to configure the DNS base
- * sensibly given your operating system’s default. Otherwise, it leaves the
+ * sensibly given your operating system’s default. If it is false, it leaves the
  * event dns base empty, with no nameservers or options configured. In the latter
- * case you should configure dns base yourself, e.g. with
- * EventDnsBase::parseResolvConf() */
+ * case you should configure dns base yourself, e.g. with EventDnsBase::parseResolvConf().
+ *
+ * If initialize is an integer, it must be one of the following flags:
+ * - EventDnsBase::DISABLE_WHEN_INACTIVE - Do not prevent the libevent event loop from exiting when we have no active dns requests.
+ * - EventDnsBase::INITIALIZE_NAMESERVERS - Process resolv.conf.
+ * - EventDnsBase::NAMESERVERS_NO_DEFAULT - Do not add default nameserver if there are no nameservers in resolv.conf.
+ * */
 PHP_METHOD(EventDnsBase, __construct)
 {
 	php_event_base_t     *base;
 	zval                 *zbase;
 	php_event_dns_base_t *dnsb;
-	zend_bool             initialize;
+	zval                 *zinitialize;
+	int                   flags = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "Ob",
-				&zbase, php_event_base_ce, &initialize) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_OBJECT_OF_CLASS(zbase, php_event_base_ce)
+		Z_PARAM_ZVAL(zinitialize)
+	ZEND_PARSE_PARAMETERS_END();
 
 	PHP_EVENT_REQUIRE_BASE_BY_REF(zbase);
 
 	base = Z_EVENT_BASE_OBJ_P(zbase);
-
 	dnsb = Z_EVENT_DNS_BASE_OBJ_P(getThis());
 
-	dnsb->dns_base = evdns_base_new(base->base, initialize);
+	PHP_EVENT_ASSERT(dnsb);
+	PHP_EVENT_ASSERT(base->base != NULL);
+
+	if (Z_TYPE_P(zinitialize) == IS_TRUE) {
+		flags = EVDNS_BASE_INITIALIZE_NAMESERVERS;
+	} else if (Z_TYPE_P(zinitialize) == IS_FALSE) {
+		flags = 0;
+#if LIBEVENT_VERSION_NUMBER >= 0x02010000
+	} else if (Z_TYPE_P(zinitialize) == IS_LONG) {
+		long lflags = Z_LVAL_P(zinitialize);
+
+		if (lflags > INT_MAX || lflags < INT_MIN) {
+			zend_throw_exception_ex(php_event_get_exception(), 0, "The value of initialization flags is out of range");
+			goto fail;
+		}
+		flags = lflags;
+
+		if (flags & ~(EVDNS_BASE_DISABLE_WHEN_INACTIVE
+					| EVDNS_BASE_INITIALIZE_NAMESERVERS
+					| EVDNS_BASE_NAMESERVERS_NO_DEFAULT)) {
+			zend_throw_exception_ex(php_event_get_exception(), 0, "Invalid initialization flags");
+			goto fail;
+		}
+#endif /* libevent version >= 2.1 */
+	} else {
+		zend_throw_exception_ex(php_event_get_exception(), 0, "Invalid type of the initialization flags");
+		goto fail;
+	}
+
+	if (dnsb != NULL) {
+		dnsb->dns_base = evdns_base_new(base->base, flags);
+	}
+fail:
+	;
 }
 /* }}} */
 

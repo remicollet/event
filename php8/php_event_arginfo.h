@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: a6b73da1aafb89d8e74bbc59e9a57eca55a67645 */
+ * Stub hash: ad63a20069cf07b0c6aa31dafce044f5b0527754 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_EventConfig___construct, 0, 0, 0)
 ZEND_END_ARG_INFO()
@@ -156,7 +156,7 @@ ZEND_END_ARG_INFO()
 #if HAVE_EVENT_EXTRA_LIB
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_EventDnsBase___construct, 0, 0, 2)
 	ZEND_ARG_OBJ_INFO(0, base, EventBase, 0)
-	ZEND_ARG_TYPE_INFO(0, initialize, _IS_BOOL, 0)
+	ZEND_ARG_TYPE_INFO(0, initialize, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 #endif
 
@@ -1246,38 +1246,23 @@ static const zend_function_entry class_Event_methods[] = {
 };
 
 
+#if HAVE_EVENT_EXTRA_LIB
 static const zend_function_entry class_EventDnsBase_methods[] = {
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventDnsBase, __construct, arginfo_class_EventDnsBase___construct, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventDnsBase, parseResolvConf, arginfo_class_EventDnsBase_parseResolvConf, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventDnsBase, addNameserverIp, arginfo_class_EventDnsBase_addNameserverIp, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventDnsBase, loadHosts, arginfo_class_EventDnsBase_loadHosts, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventDnsBase, clearSearch, arginfo_class_EventDnsBase_clearSearch, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventDnsBase, addSearch, arginfo_class_EventDnsBase_addSearch, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventDnsBase, setSearchNdots, arginfo_class_EventDnsBase_setSearchNdots, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventDnsBase, setOption, arginfo_class_EventDnsBase_setOption, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventDnsBase, countNameservers, arginfo_class_EventDnsBase_countNameservers, ZEND_ACC_PUBLIC)
-#endif
 	ZEND_FE_END
 };
+#endif
 
 
+#if HAVE_EVENT_EXTRA_LIB
 static const zend_function_entry class_EventHttpConnection_methods[] = {
 #if HAVE_EVENT_EXTRA_LIB && LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
 	ZEND_ME(EventHttpConnection, __construct, arginfo_class_EventHttpConnection___construct, ZEND_ACC_PUBLIC)
@@ -1285,46 +1270,24 @@ static const zend_function_entry class_EventHttpConnection_methods[] = {
 #if HAVE_EVENT_EXTRA_LIB && !(LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB))
 	ZEND_ME(EventHttpConnection, __construct, arginfo_class_EventHttpConnection___construct, ZEND_ACC_PUBLIC)
 #endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, __sleep, arginfo_class_EventHttpConnection___sleep, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, __wakeup, arginfo_class_EventHttpConnection___wakeup, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, getBase, arginfo_class_EventHttpConnection_getBase, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, getPeer, arginfo_class_EventHttpConnection_getPeer, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, setLocalAddress, arginfo_class_EventHttpConnection_setLocalAddress, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, setLocalPort, arginfo_class_EventHttpConnection_setLocalPort, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, setTimeout, arginfo_class_EventHttpConnection_setTimeout, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, setMaxHeadersSize, arginfo_class_EventHttpConnection_setMaxHeadersSize, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, setMaxBodySize, arginfo_class_EventHttpConnection_setMaxBodySize, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, setRetries, arginfo_class_EventHttpConnection_setRetries, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, makeRequest, arginfo_class_EventHttpConnection_makeRequest, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpConnection, setCloseCallback, arginfo_class_EventHttpConnection_setCloseCallback, ZEND_ACC_PUBLIC)
-#endif
 	ZEND_FE_END
 };
+#endif
 
 
+#if HAVE_EVENT_EXTRA_LIB
 static const zend_function_entry class_EventHttp_methods[] = {
 #if HAVE_EVENT_EXTRA_LIB && LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
 	ZEND_ME(EventHttp, __construct, arginfo_class_EventHttp___construct, ZEND_ACC_PUBLIC)
@@ -1332,159 +1295,74 @@ static const zend_function_entry class_EventHttp_methods[] = {
 #if HAVE_EVENT_EXTRA_LIB && !(LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB))
 	ZEND_ME(EventHttp, __construct, arginfo_class_EventHttp___construct, ZEND_ACC_PUBLIC)
 #endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, __sleep, arginfo_class_EventHttp___sleep, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, __wakeup, arginfo_class_EventHttp___wakeup, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, accept, arginfo_class_EventHttp_accept, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, bind, arginfo_class_EventHttp_bind, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, setCallback, arginfo_class_EventHttp_setCallback, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, setDefaultCallback, arginfo_class_EventHttp_setDefaultCallback, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, setAllowedMethods, arginfo_class_EventHttp_setAllowedMethods, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, setMaxBodySize, arginfo_class_EventHttp_setMaxBodySize, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, setMaxHeadersSize, arginfo_class_EventHttp_setMaxHeadersSize, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, setTimeout, arginfo_class_EventHttp_setTimeout, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, addServerAlias, arginfo_class_EventHttp_addServerAlias, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttp, removeServerAlias, arginfo_class_EventHttp_removeServerAlias, ZEND_ACC_PUBLIC)
-#endif
 	ZEND_FE_END
 };
+#endif
 
 
+#if HAVE_EVENT_EXTRA_LIB
 static const zend_function_entry class_EventHttpRequest_methods[] = {
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, __construct, arginfo_class_EventHttpRequest___construct, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, __sleep, arginfo_class_EventHttpRequest___sleep, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, __wakeup, arginfo_class_EventHttpRequest___wakeup, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, free, arginfo_class_EventHttpRequest_free, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, getCommand, arginfo_class_EventHttpRequest_getCommand, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, getHost, arginfo_class_EventHttpRequest_getHost, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, getUri, arginfo_class_EventHttpRequest_getUri, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, getResponseCode, arginfo_class_EventHttpRequest_getResponseCode, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, getInputHeaders, arginfo_class_EventHttpRequest_getInputHeaders, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, getOutputHeaders, arginfo_class_EventHttpRequest_getOutputHeaders, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, getInputBuffer, arginfo_class_EventHttpRequest_getInputBuffer, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, getOutputBuffer, arginfo_class_EventHttpRequest_getOutputBuffer, ZEND_ACC_PUBLIC)
-#endif
 #if HAVE_EVENT_EXTRA_LIB && LIBEVENT_VERSION_NUMBER >= 0x02001100
 	ZEND_ME(EventHttpRequest, getBufferEvent, arginfo_class_EventHttpRequest_getBufferEvent, ZEND_ACC_PUBLIC)
 #endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, getConnection, arginfo_class_EventHttpRequest_getConnection, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, closeConnection, arginfo_class_EventHttpRequest_closeConnection, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, sendError, arginfo_class_EventHttpRequest_sendError, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, sendReply, arginfo_class_EventHttpRequest_sendReply, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, sendReplyChunk, arginfo_class_EventHttpRequest_sendReplyChunk, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, sendReplyEnd, arginfo_class_EventHttpRequest_sendReplyEnd, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, sendReplyStart, arginfo_class_EventHttpRequest_sendReplyStart, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, cancel, arginfo_class_EventHttpRequest_cancel, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, addHeader, arginfo_class_EventHttpRequest_addHeader, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, clearHeaders, arginfo_class_EventHttpRequest_clearHeaders, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, removeHeader, arginfo_class_EventHttpRequest_removeHeader, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventHttpRequest, findHeader, arginfo_class_EventHttpRequest_findHeader, ZEND_ACC_PUBLIC)
-#endif
 	ZEND_FE_END
 };
+#endif
 
 
+#if HAVE_EVENT_EXTRA_LIB
 static const zend_function_entry class_EventListener_methods[] = {
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventListener, __construct, arginfo_class_EventListener___construct, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventListener, __sleep, arginfo_class_EventListener___sleep, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventListener, __wakeup, arginfo_class_EventListener___wakeup, ZEND_ACC_PUBLIC|ZEND_ACC_FINAL)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventListener, free, arginfo_class_EventListener_free, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventListener, enable, arginfo_class_EventListener_enable, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventListener, disable, arginfo_class_EventListener_disable, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventListener, setCallback, arginfo_class_EventListener_setCallback, ZEND_ACC_PUBLIC)
-#endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventListener, setErrorCallback, arginfo_class_EventListener_setErrorCallback, ZEND_ACC_PUBLIC)
-#endif
 #if HAVE_EVENT_EXTRA_LIB && LIBEVENT_VERSION_NUMBER >= 0x02000300
 	ZEND_ME(EventListener, getBase, arginfo_class_EventListener_getBase, ZEND_ACC_PUBLIC)
 #endif
-#if HAVE_EVENT_EXTRA_LIB
 	ZEND_ME(EventListener, getSocketName, arginfo_class_EventListener_getSocketName, ZEND_ACC_PUBLIC)
-#endif
 	ZEND_FE_END
 };
+#endif
 
 
 static const zend_function_entry class_EventUtil_methods[] = {
@@ -1585,10 +1463,9 @@ static const zend_function_entry class_EventBufferEvent_methods[] = {
 };
 
 
-static const zend_function_entry class_EventSslContext_methods[] = {
 #if defined(HAVE_EVENT_OPENSSL_LIB)
+static const zend_function_entry class_EventSslContext_methods[] = {
 	ZEND_ME(EventSslContext, __construct, arginfo_class_EventSslContext___construct, ZEND_ACC_PUBLIC)
-#endif
 #if defined(HAVE_EVENT_OPENSSL_LIB) && OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 	ZEND_ME(EventSslContext, setMinProtoVersion, arginfo_class_EventSslContext_setMinProtoVersion, ZEND_ACC_PUBLIC)
 #endif
@@ -1597,3 +1474,4 @@ static const zend_function_entry class_EventSslContext_methods[] = {
 #endif
 	ZEND_FE_END
 };
+#endif

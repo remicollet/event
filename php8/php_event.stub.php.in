@@ -77,7 +77,7 @@ class Event {
 
 #if HAVE_EVENT_EXTRA_LIB
 class EventDnsBase {
-    public function __construct(EventBase $base, bool $initialize) {}
+    public function __construct(EventBase $base, mixed $initialize) {}
     public function parseResolvConf(int $flags, string $filename): bool {}
     public function addNameserverIp(string $ip): bool {}
     public function loadHosts(string $hosts): bool {}
