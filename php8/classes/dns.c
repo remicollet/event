@@ -55,11 +55,11 @@ PHP_EVENT_METHOD(EventDnsBase, __construct)
 	PHP_EVENT_ASSERT(dnsb);
 	PHP_EVENT_ASSERT(base->base != NULL);
 
-	if (Z_TYPE_P(zinitialize) == IS_TRUE) {
-		flags = EVDNS_BASE_INITIALIZE_NAMESERVERS;
-	} else if (Z_TYPE_P(zinitialize) == IS_FALSE) {
+	if (Z_TYPE_P(zinitialize) == IS_FALSE) {
 		flags = 0;
 #if LIBEVENT_VERSION_NUMBER >= 0x02010000
+	} else if (Z_TYPE_P(zinitialize) == IS_TRUE) {
+		flags = EVDNS_BASE_INITIALIZE_NAMESERVERS;
 	} else if (Z_TYPE_P(zinitialize) == IS_LONG) {
 		long lflags = Z_LVAL_P(zinitialize);
 
@@ -70,8 +70,10 @@ PHP_EVENT_METHOD(EventDnsBase, __construct)
 		flags = lflags;
 
 		if (flags & ~(EVDNS_BASE_DISABLE_WHEN_INACTIVE
-					| EVDNS_BASE_INITIALIZE_NAMESERVERS
-					| EVDNS_BASE_NAMESERVERS_NO_DEFAULT)) {
+#if LIBEVENT_VERSION_NUMBER >= 0x02011000
+					| EVDNS_BASE_NAMESERVERS_NO_DEFAULT
+#endif
+					| EVDNS_BASE_INITIALIZE_NAMESERVERS)) {
 			zend_throw_exception_ex(php_event_get_exception(), 0, "Invalid initialization flags");
 			goto fail;
 		}

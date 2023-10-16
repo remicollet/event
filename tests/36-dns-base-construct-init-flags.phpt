@@ -7,7 +7,7 @@ if (!class_exists(EVENT_NS . "\\EventDnsBase")) {
 }
 
 $eventUtilClass = EVENT_NS . '\\EventUtil';
-if ($eventUtilClass::LIBEVENT_VERSION_NUMBER < 0x02010000) {
+if ($eventUtilClass::LIBEVENT_VERSION_NUMBER < 0x02011000) {
     die('skip this test is for libevent version >= 2.1');
 }
 ?>
