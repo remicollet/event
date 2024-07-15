@@ -34,7 +34,7 @@ Warning: EventBase::loop(): Breaking the loop due to exception RuntimeException 
 
 Fatal error: Uncaught RuntimeException: from EventBufferEvent callback in %s/33-bevent-write-cb-exception.php:%d
 Stack trace:
-#0 [internal function]: {closure}(Object(EventBufferEvent), NULL)
+#0 [internal function]: {closur%s}(Object(EventBufferEvent), NULL)
 #1 %s/33-bevent-write-cb-exception.php(%d): %SEventBase->loop()
 #2 {main}
 %wthrown in %s/33-bevent-write-cb-exception.php on line %d

@@ -24,7 +24,7 @@ Warning: EventBase::loop(): Breaking the loop due to exception Exception in %s o
 
 Fatal error: Uncaught Exception: issue61 in %s/61-issue.php:%d
 Stack trace:
-#0 [internal function]: {closure}(-1, 1, NULL)
+#0 [internal function]: {closur%s}(-1, 1, NULL)
 #1 %s/61-issue.php(%d): %SEventBase->loop()
 #2 {main}
   thrown in %s/61-issue.php on line %d
