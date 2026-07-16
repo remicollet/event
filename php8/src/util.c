@@ -132,7 +132,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport)/*{{{*
 				if (evutil_inet_ntop(sa->sa_family, &sin->sin_addr,
 							(void *) &addr, sizeof(addr))) {
 					if (!Z_ISUNDEF_P(pzaddr)) {
-						zval_dtor(pzaddr);
+						zval_ptr_dtor_nogc(pzaddr);
 					}
 					ZVAL_STRING(pzaddr, addr);
 
@@ -151,7 +151,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport)/*{{{*
 				if (evutil_inet_ntop(sa->sa_family, &sin6->sin6_addr,
 							(void *) &addr6, sizeof(addr6))) {
 					if (!Z_ISUNDEF_P(pzaddr)) {
-						zval_dtor(pzaddr);
+						zval_ptr_dtor_nogc(pzaddr);
 					}
 					ZVAL_STRING(pzaddr, addr6);
 
@@ -168,7 +168,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport)/*{{{*
 				struct sockaddr_un *ua = (struct sockaddr_un *) sa;
 
 				if (!Z_ISUNDEF_P(pzaddr)) {
-					zval_dtor(pzaddr);
+					zval_ptr_dtor_nogc(pzaddr);
 				}
 				ZVAL_STRING(pzaddr, ua->sun_path);
 			}
@@ -182,7 +182,7 @@ int _php_event_getsockname(evutil_socket_t fd, zval *pzaddr, zval *pzport)/*{{{*
 
 	if (port != -1) {
 		if (pzport && !Z_ISUNDEF_P(pzport)) {
-			zval_dtor(pzport);
+			zval_ptr_dtor_nogc(pzport);
 		}
 		ZVAL_LONG(pzport, port);
 	}

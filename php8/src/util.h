@@ -119,7 +119,7 @@ static zend_always_inline void php_event_replace_zval(zval *zdst, zval *zsrc) {/
 	PHP_EVENT_X_OBJ_HANDLERS(x).name = php_event_ ## x ## _ ## name
 
 #define PHP_EVENT_SET_X_OBJ_HANDLERS(x) do { \
-	PHP_EVENT_X_OBJ_HANDLERS(x).offset = XtOffsetOf(Z_EVENT_X_OBJ_T(x), zo); \
+	PHP_EVENT_X_OBJ_HANDLERS(x).offset = offsetof(Z_EVENT_X_OBJ_T(x), zo); \
 	PHP_EVENT_X_OBJ_HANDLERS(x).get_gc = get_gc; \
 	PHP_EVENT_X_OBJ_HANDLERS(x).clone_obj = NULL; \
 	PHP_EVENT_SET_X_OBJ_HANDLER(x, free_obj); \
@@ -136,7 +136,7 @@ static zend_always_inline void php_event_replace_zval(zval *zdst, zval *zsrc) {/
 #define Z_EVENT_X_FETCH_OBJ(x, pzo) php_event_ ## x ## _fetch_object(pzo)
 #define Z_EVENT_X_FETCH_OBJ_DECL(x) \
 	static zend_always_inline Z_EVENT_X_OBJ_T(x) * Z_EVENT_X_FETCH_OBJ(x, zend_object *obj) { \
-		return (EXPECTED(obj) ? (Z_EVENT_X_OBJ_T(x) *)((char *)obj - XtOffsetOf(Z_EVENT_X_OBJ_T(x), zo)) : NULL); \
+		return (EXPECTED(obj) ? (Z_EVENT_X_OBJ_T(x) *)((char *)obj - offsetof(Z_EVENT_X_OBJ_T(x), zo)) : NULL); \
 	}
 
 #define Z_EVENT_X_OBJ_P(x, zv) (EXPECTED(zv) ? Z_EVENT_X_FETCH_OBJ(x, Z_OBJ_P(zv)) : NULL)

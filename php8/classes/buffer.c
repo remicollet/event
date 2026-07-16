@@ -399,7 +399,7 @@ PHP_EVENT_METHOD(EventBuffer, copyout)
 
 	if (ret > 0) {
 		convert_to_string(zdata);
-		zval_dtor(zdata);
+		zval_ptr_dtor_nogc(zdata);
 		ZVAL_STRINGL(zdata, data, ret);
 	}
 
